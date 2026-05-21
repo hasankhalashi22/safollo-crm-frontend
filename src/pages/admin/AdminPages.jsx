@@ -1,7 +1,5 @@
-// AdminDueList.jsx
 import { useState, useEffect } from 'react';
-import { salesApi } from '../../api/client';
-import { fieldConfigsApi, coursesApi } from '../../api/client';
+import { salesApi, fieldConfigsApi, coursesApi } from '../../api/client';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { Phone } from 'lucide-react';
@@ -68,38 +66,64 @@ export function AdminSettings() {
   const [courses, setCourses] = useState([]);
   const [newCourse, setNewCourse] = useState({ name: '', short_name: '', default_price: '' });
   const [newBatch, setNewBatch] = useState({ course_id: '', name: '', price: '' });
+  const [loadingFields, setLoadingFields] = useState(true);
+  const [loadingCourses, setLoadingCourses] = useState(true);
 
   useEffect(() => {
-    fieldConfigsApi.getAll().then(r => setFields(r.data || []));
-    coursesApi.getAll().then(r => setCourses(r.data || []));
+    fieldConfigsApi.getAll()
+      .then(r => { setFields(r.data || []); setLoadingFields(false); })
+      .catch(() => setLoadingFields(false));
+
+    coursesApi.getAll()
+      .then(r => { setCourses(r.data || []); setLoadingCourses(false); })
+      .catch(() => setLoadingCourses(false));
   }, []);
 
   const toggleField = async (key, current) => {
     try {
       await fieldConfigsApi.update(key, { is_mandatory: !current });
-      setFields(f => f.map(field => field.field_key === key ? { ...field, is_mandatory: !current } : field));
+      setFields(f => f.map(field =>
+        field.field_key === key ? { ...field, is_mandatory: !current } : field
+      ));
       toast.success('আপডেট হয়েছে');
-    } catch { toast.error('সমস্যা হয়েছে'); }
+    } catch {
+      toast.error('সমস্যা হয়েছে');
+    }
   };
 
   const createCourse = async (e) => {
     e.preventDefault();
+    if (!newCourse.name) return toast.error('কোর্সের নাম দিন');
+    if (!newCourse.default_price) return toast.error('মূল্য দিন');
     try {
-      await coursesApi.create({ ...newCourse, default_price: parseFloat(newCourse.default_price) });
+      await coursesApi.create({
+        ...newCourse,
+        default_price: parseFloat(newCourse.default_price)
+      });
       toast.success('কোর্স তৈরি হয়েছে ✅');
       setNewCourse({ name: '', short_name: '', default_price: '' });
       coursesApi.getAll().then(r => setCourses(r.data || []));
-    } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
+    } catch (err) {
+      toast.error(err.message || 'সমস্যা হয়েছে');
+    }
   };
 
   const createBatch = async (e) => {
     e.preventDefault();
+    if (!newBatch.course_id) return toast.error('কোর্স বেছে নিন');
+    if (!newBatch.name) return toast.error('ব্যাচের নাম দিন');
     try {
-      await coursesApi.createBatch({ ...newBatch, course_id: parseInt(newBatch.course_id), price: newBatch.price ? parseFloat(newBatch.price) : undefined });
+      await coursesApi.createBatch({
+        ...newBatch,
+        course_id: parseInt(newBatch.course_id),
+        price: newBatch.price ? parseFloat(newBatch.price) : undefined
+      });
       toast.success('ব্যাচ তৈরি হয়েছে ✅');
       setNewBatch({ course_id: '', name: '', price: '' });
       coursesApi.getAll().then(r => setCourses(r.data || []));
-    } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
+    } catch (err) {
+      toast.error(err.message || 'সমস্যা হয়েছে');
+    }
   };
 
   return (
@@ -109,29 +133,52 @@ export function AdminSettings() {
       {/* Field config */}
       <div className="card">
         <h2 className="font-semibold text-dark mb-4">সেল ফর্মের Fields</h2>
-        <p className="text-sm text-gray-500 mb-3">Mandatory করলে সেল করার সময় এই field পূরণ না করলে সাবমিট হবে না।</p>
-        <div className="space-y-3">
-          {fields.map(f => (
-            <div key={f.field_key} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-              <span className="font-medium text-sm">{f.field_label}</span>
-              <button
-                onClick={() => toggleField(f.field_key, f.is_mandatory)}
-                className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${f.is_mandatory ? 'bg-red-100 text-red-600' : 'bg-gray-200 text-gray-500'}`}
-              >
-                {f.is_mandatory ? 'আবশ্যক ✓' : 'ঐচ্ছিক'}
-              </button>
-            </div>
-          ))}
-        </div>
+        <p className="text-sm text-gray-500 mb-3">
+          Mandatory করলে সেল করার সময় এই field পূরণ না করলে সাবমিট হবে না।
+        </p>
+        {loadingFields ? (
+          <div className="flex justify-center py-4"><div className="spinner w-6 h-6" /></div>
+        ) : (
+          <div className="space-y-3">
+            {fields.map(f => (
+              <div key={f.field_key} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                <span className="font-medium text-sm">{f.field_label}</span>
+                <button
+                  onClick={() => toggleField(f.field_key, f.is_mandatory)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium transition-all
+                    ${f.is_mandatory ? 'bg-red-100 text-red-600' : 'bg-gray-200 text-gray-500'}`}
+                >
+                  {f.is_mandatory ? 'আবশ্যক ✓' : 'ঐচ্ছিক'}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* New course */}
       <div className="card">
         <h2 className="font-semibold text-dark mb-4">নতুন কোর্স যোগ করুন</h2>
         <form onSubmit={createCourse} className="space-y-3">
-          <input className="input-field" placeholder="কোর্সের নাম *" value={newCourse.name} onChange={e => setNewCourse(p => ({ ...p, name: e.target.value }))} />
-          <input className="input-field" placeholder="Short Name (যেমন: BCS-52)" value={newCourse.short_name} onChange={e => setNewCourse(p => ({ ...p, short_name: e.target.value }))} />
-          <input type="number" className="input-field" placeholder="ডিফল্ট মূল্য (৳) *" value={newCourse.default_price} onChange={e => setNewCourse(p => ({ ...p, default_price: e.target.value }))} />
+          <input
+            className="input-field"
+            placeholder="কোর্সের নাম *"
+            value={newCourse.name}
+            onChange={e => setNewCourse(p => ({ ...p, name: e.target.value }))}
+          />
+          <input
+            className="input-field"
+            placeholder="Short Name (যেমন: BCS-52)"
+            value={newCourse.short_name}
+            onChange={e => setNewCourse(p => ({ ...p, short_name: e.target.value }))}
+          />
+          <input
+            type="number"
+            className="input-field"
+            placeholder="ডিফল্ট মূল্য (৳) *"
+            value={newCourse.default_price}
+            onChange={e => setNewCourse(p => ({ ...p, default_price: e.target.value }))}
+          />
           <button type="submit" className="btn-primary py-2.5">কোর্স তৈরি করুন</button>
         </form>
       </div>
@@ -140,12 +187,27 @@ export function AdminSettings() {
       <div className="card">
         <h2 className="font-semibold text-dark mb-4">নতুন ব্যাচ যোগ করুন</h2>
         <form onSubmit={createBatch} className="space-y-3">
-          <select className="input-field" value={newBatch.course_id} onChange={e => setNewBatch(p => ({ ...p, course_id: e.target.value }))}>
+          <select
+            className="input-field"
+            value={newBatch.course_id}
+            onChange={e => setNewBatch(p => ({ ...p, course_id: e.target.value }))}
+          >
             <option value="">-- কোর্স বেছে নিন --</option>
             {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
-          <input className="input-field" placeholder="ব্যাচের নাম (যেমন: ব্যাচ ৩) *" value={newBatch.name} onChange={e => setNewBatch(p => ({ ...p, name: e.target.value }))} />
-          <input type="number" className="input-field" placeholder="মূল্য (খালি রাখলে কোর্সের ডিফল্ট মূল্য)" value={newBatch.price} onChange={e => setNewBatch(p => ({ ...p, price: e.target.value }))} />
+          <input
+            className="input-field"
+            placeholder="ব্যাচের নাম (যেমন: ব্যাচ ৩) *"
+            value={newBatch.name}
+            onChange={e => setNewBatch(p => ({ ...p, name: e.target.value }))}
+          />
+          <input
+            type="number"
+            className="input-field"
+            placeholder="মূল্য (খালি রাখলে কোর্সের ডিফল্ট মূল্য)"
+            value={newBatch.price}
+            onChange={e => setNewBatch(p => ({ ...p, price: e.target.value }))}
+          />
           <button type="submit" className="btn-primary py-2.5">ব্যাচ তৈরি করুন</button>
         </form>
       </div>
@@ -153,23 +215,31 @@ export function AdminSettings() {
       {/* Course list */}
       <div className="card">
         <h2 className="font-semibold text-dark mb-4">বর্তমান কোর্সসমূহ</h2>
-        <div className="space-y-2">
-          {courses.map(c => (
-            <div key={c.id} className="p-3 bg-gray-50 rounded-xl">
-              <div className="flex justify-between">
-                <span className="font-medium">{c.name}</span>
-                <span className="text-primary-600 font-bold">৳{Number(c.default_price).toLocaleString()}</span>
-              </div>
-              {c.batches?.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-1.5">
-                  {c.batches.map(b => (
-                    <span key={b.id} className="text-xs bg-white px-2 py-0.5 rounded-full border border-gray-200">{b.name}</span>
-                  ))}
+        {loadingCourses ? (
+          <div className="flex justify-center py-4"><div className="spinner w-6 h-6" /></div>
+        ) : courses.length === 0 ? (
+          <p className="text-gray-400 text-sm text-center py-4">কোনো কোর্স নেই</p>
+        ) : (
+          <div className="space-y-2">
+            {courses.map(c => (
+              <div key={c.id} className="p-3 bg-gray-50 rounded-xl">
+                <div className="flex justify-between">
+                  <span className="font-medium">{c.name}</span>
+                  <span className="text-primary-600 font-bold">৳{Number(c.default_price).toLocaleString()}</span>
                 </div>
-              )}
-            </div>
-          ))}
-        </div>
+                {c.batches?.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {c.batches.map(b => (
+                      <span key={b.id} className="text-xs bg-white px-2 py-0.5 rounded-full border border-gray-200">
+                        {b.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
