@@ -61,11 +61,6 @@ export function AdminDueList() {
   );
 }
 
-// AdminSettings.jsx
-import { useState, useEffect } from 'react';
-import { fieldConfigsApi, coursesApi } from '../../api/client';
-import toast from 'react-hot-toast';
-
 export function AdminSettings() {
   const [fields, setFields] = useState([]);
   const [courses, setCourses] = useState([]);
