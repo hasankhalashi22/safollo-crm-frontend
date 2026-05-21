@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { -webkit-tap-highlight-color: transparent; }
+  body {
+    @apply font-sans text-dark bg-gray-50 antialiased;
+    min-height: 100vh;
+  }
+  h1, h2, h3 { @apply font-display; }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary-500 text-white font-semibold py-3 px-6 rounded-xl
+           active:scale-95 transition-all duration-150 shadow-card
+           disabled:opacity-50 disabled:cursor-not-allowed w-full;
+  }
+  .btn-secondary {
+    @apply bg-white text-primary-500 font-semibold py-3 px-6 rounded-xl
+           border-2 border-primary-500 active:scale-95 transition-all duration-150 w-full;
+  }
+  .btn-danger {
+    @apply bg-red-500 text-white font-semibold py-3 px-6 rounded-xl
+           active:scale-95 transition-all duration-150 w-full;
+  }
+  .input-field {
+    @apply w-full px-4 py-3 rounded-xl border border-gray-200 bg-white
+           focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent
+           transition-all duration-150 text-dark placeholder-gray-400;
+  }
+  .card {
+    @apply bg-white rounded-2xl shadow-card p-4;
+  }
+  .badge-paid {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+           bg-green-100 text-green-800;
+  }
+  .badge-due {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+           bg-red-100 text-red-800;
+  }
+  .badge-partial {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+           bg-yellow-100 text-yellow-800;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #96D2C8; border-radius: 2px; }
+
+/* Loading spinner */
+.spinner {
+  border: 3px solid #E6F4F1;
+  border-top-color: #1A7A6E;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Page transition */
+.page-enter { animation: fadeSlideIn 0.3s ease forwards; }
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
