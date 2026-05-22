@@ -36,8 +36,8 @@ export default function Login() {
       login(res.token, res.user);
       toast.success(`স্বাগতম, ${res.user.full_name || res.user.phone}!`);
       // Role-based redirect
-      if (res.user.role_level <= 2) navigate('/admin');
-      else if (res.user.role === 'manager') navigate('/manager');
+      if (res.user.role === 'manager') navigate('/manager');
+      else if (res.user.role_level <= 2) navigate('/admin');
       else navigate('/executive');
     } catch (err) {
       toast.error(err.message || 'OTP ভুল');

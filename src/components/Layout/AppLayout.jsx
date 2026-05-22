@@ -79,12 +79,17 @@ export function AdminLayout({ children }) {
     toast.success('লগআউট হয়েছে');
   };
 
-  const navItems = [
+  const isManager = user?.role === 'manager';
+  const navItems = isManager ? [
+    { to: '/manager', icon: BarChart2, label: 'ড্যাশবোর্ড', end: true },
+    { to: '/manager/sales', icon: Plus, label: 'সেলস রিপোর্ট' },
+    { to: '/manager/due', icon: Clock, label: 'বকেয়া তালিকা' },
+  ] : [
     { to: '/admin', icon: BarChart2, label: 'ড্যাশবোর্ড', end: true },
     { to: '/admin/sales', icon: Plus, label: 'সেলস রিপোর্ট' },
     { to: '/admin/due', icon: Clock, label: 'বকেয়া তালিকা' },
     { to: '/admin/staff', icon: Users, label: 'স্টাফ ম্যানেজমেন্ট' },
-    { to: '/admin/settings', icon: BookOpen, label: 'কোর্স ম্যানেজমেন্ট' },
+    { to: '/admin/courses', icon: BookOpen, label: 'কোর্স ম্যানেজমেন্ট' },
     { to: '/admin/settings', icon: Settings, label: 'সেটিংস' },
   ];
 

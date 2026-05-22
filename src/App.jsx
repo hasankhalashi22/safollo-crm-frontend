@@ -59,10 +59,20 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
 
-      {/* Manager - same as executive but with team view */}
+      {/* Manager routes */}
       <Route path="/manager" element={
         <ProtectedRoute allowedLevels={[3]}>
-          <ExecutiveLayout><ExecutiveDashboard /></ExecutiveLayout>
+          <AdminLayout><AdminDashboard /></AdminLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/manager/sales" element={
+        <ProtectedRoute allowedLevels={[3]}>
+          <AdminLayout><AdminSales /></AdminLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/manager/due" element={
+        <ProtectedRoute allowedLevels={[3]}>
+          <AdminLayout><AdminDueList /></AdminLayout>
         </ProtectedRoute>
       } />
 
