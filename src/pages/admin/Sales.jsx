@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react';
-import { salesApi, coursesApi } from '../../api/client';
+import { salesApi, coursesApi, usersApi } from '../../api/client';
 import { format } from 'date-fns';
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, Download } from 'lucide-react';
 
 const STATUS_LABELS = { paid: { label: 'পেইড', cls: 'badge-paid' }, due: { label: 'বকেয়া', cls: 'badge-due' }, partial: { label: 'আংশিক', cls: 'badge-partial' } };
 
 export default function AdminSales() {
-  const [sales, setSales] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState(null);
-  const [filters, setFilters] = useState({ search: '', course_id: '', payment_status: '', date_from: '', date_to: '' });
+ const [sales, setSales] = useState([]);
+const [total, setTotal] = useState(0);
+const [courses, setCourses] = useState([]);
+const [executives, setExecutives] = useState([]);
+const [loading, setLoading] = useState(true);
+const [selected, setSelected] = useState(null);
+const [filters, setFilters] = useState({ search: '', course_id: '', payment_status: '', date_from: '', date_to: '', executive_id: '' });
 
   const fetchSales = (f = filters) => {
     setLoading(true);
@@ -24,10 +25,43 @@ export default function AdminSales() {
 
   useEffect(() => {
     coursesApi.getAll().then(r => setCourses(r.data || []));
+    usersApi.getAll({ role: 'executive' }).then(r => setExecutives(r.data || []));
     fetchSales();
   }, []);
 
   const setFilter = (k, v) => setFilters(p => ({ ...p, [k]: v }));
+
+const handleExport = () => {
+    if (sales.length === 0) return toast.error('কোনো ডেটা নেই');
+
+    const headers = ['তারিখ', 'স্টুডেন্টের নাম', 'ফোন নম্বর', 'কোর্স', 'ব্যাচ', 'কোর্স মূল্য', 'সংগৃহীত', 'বাকি', 'স্ট্যাটাস', 'Executive', 'রেফারেন্স'];
+    const rows = sales.map(s => [
+      format(new Date(s.created_at), 'dd/MM/yyyy'),
+      s.student_name || '',
+      s.student_phone,
+      s.course_name,
+      s.batch_name || '',
+      s.course_price,
+      s.total_collected,
+      s.due_amount || 0,
+      s.payment_status === 'paid' ? 'পেইড' : s.payment_status === 'due' ? 'বকেয়া' : 'আংশিক',
+      s.executive_name || '',
+      s.reference || '',
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(cell => `"${cell}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `সেলস_রিপোর্ট_${format(new Date(), 'dd-MM-yyyy')}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success('Excel-এ export হয়েছে ✅');
+  };
 
   return (
     <div className="p-6">
@@ -36,6 +70,12 @@ export default function AdminSales() {
           <h1 className="text-2xl font-display font-bold text-dark">সেলস রিপোর্ট</h1>
           <p className="text-gray-500 text-sm">মোট {total}টি রেকর্ড</p>
         </div>
+        <button
+          onClick={handleExport}
+          className="flex items-center gap-2 bg-green-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium active:scale-95"
+        >
+          <Download size={16} /> Excel Download
+        </button>
       </div>
 
       {/* Filters */}
@@ -59,6 +99,12 @@ export default function AdminSales() {
             <option value="paid">পেইড</option>
             <option value="due">বকেয়া</option>
             <option value="partial">আংশিক</option>
+          </select>
+          <select className="input-field" value={filters.executive_id} onChange={e => setFilter('executive_id', e.target.value)}>
+            <option value="">সব Executive</option>
+            {executives.map(e => (
+              <option key={e.id} value={e.id}>{e.full_name || e.phone}</option>
+            ))}
           </select>
           <button onClick={() => fetchSales()} className="btn-primary py-2">খুঁজুন</button>
         </div>
