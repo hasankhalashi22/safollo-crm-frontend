@@ -16,7 +16,15 @@ const [filters, setFilters] = useState({ search: '', course_id: '', payment_stat
 
   const fetchSales = (f = filters) => {
     setLoading(true);
-    salesApi.getAll({ ...f }).then(res => {
+    const params = {};
+    if (f.search) params.search = f.search;
+    if (f.course_id) params.course_id = f.course_id;
+    if (f.payment_status) params.payment_status = f.payment_status;
+    if (f.date_from) params.date_from = f.date_from;
+    if (f.date_to) params.date_to = f.date_to;
+    if (f.executive_id) params.executive_id = f.executive_id;
+    console.log('Fetching sales with params:', params);
+    salesApi.getAll(params).then(res => {
       setSales(res.data || []);
       setTotal(res.total || 0);
       setLoading(false);
@@ -88,7 +96,8 @@ const handleExport = () => {
           <div className="relative">
             <Search size={16} className="absolute left-3 top-3.5 text-gray-400" />
             <input className="input-field pl-9" placeholder="ফোন বা নাম" value={filters.search}
-              onChange={e => setFilter('search', e.target.value)} />
+              onChange={e => setFilter('search', e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && fetchSales()} />
           </div>
           <select className="input-field" value={filters.course_id} onChange={e => setFilter('course_id', e.target.value)}>
             <option value="">সব কোর্স</option>
