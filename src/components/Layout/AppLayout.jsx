@@ -84,7 +84,7 @@ export function AdminLayout({ children }) {
     { to: '/admin/sales', icon: Plus, label: 'সেলস রিপোর্ট' },
     { to: '/admin/due', icon: Clock, label: 'বকেয়া তালিকা' },
     { to: '/admin/staff', icon: Users, label: 'স্টাফ ম্যানেজমেন্ট' },
-    { to: '/admin/courses', icon: BookOpen, label: 'কোর্স ম্যানেজমেন্ট' },
+    { to: '/admin/settings', icon: BookOpen, label: 'কোর্স ম্যানেজমেন্ট' },
     { to: '/admin/settings', icon: Settings, label: 'সেটিংস' },
   ];
 
