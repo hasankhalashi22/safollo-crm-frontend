@@ -117,11 +117,13 @@ export default function DueList() {
 }
 
 function PaymentModal({ due, onClose, onSuccess }) {
-  const [amount, setAmount] = useState('');
-  const [method, setMethod] = useState('');
-  const [txnId, setTxnId] = useState('');
-  const [dueDate, setDueDate] = useState('');
-  const [loading, setLoading] = useState(false);
+ const [amount, setAmount] = useState('');
+const [method, setMethod] = useState('');
+const [txnId, setTxnId] = useState('');
+const [dueDate, setDueDate] = useState('');
+const [proof, setProof] = useState(null);
+const [proofPreview, setProofPreview] = useState(null);
+const [loading, setLoading] = useState(false);
 
   const maxAmount = due.course_price - due.total_collected;
 
@@ -129,15 +131,18 @@ function PaymentModal({ due, onClose, onSuccess }) {
     e.preventDefault();
     if (!amount || Number(amount) <= 0) return toast.error('টাকার পরিমাণ দিন');
     if (!method) return toast.error('পেমেন্ট পদ্ধতি বেছে নিন');
+    if (!txnId) return toast.error('ট্রানজেকশন আইডি দিন');
+    if (!proof) return toast.error('পেমেন্ট প্রুফ আপলোড করুন');
 
     setLoading(true);
     try {
-      const formData = new FormData();
+    const formData = new FormData();
       formData.append('enrollment_id', due.id);
       formData.append('amount', amount);
       formData.append('payment_method', method);
-      if (txnId) formData.append('transaction_id', txnId);
+      formData.append('transaction_id', txnId);
       if (dueDate) formData.append('due_date', dueDate);
+      if (proof) formData.append('payment_proof', proof);
 
       await paymentsApi.add(formData);
       toast.success('পেমেন্ট রেকর্ড হয়েছে ✅');
@@ -184,7 +189,26 @@ function PaymentModal({ due, onClose, onSuccess }) {
             ))}
           </div>
 
-          <input type="text" className="input-field" placeholder="ট্রানজেকশন আইডি (ঐচ্ছিক)" value={txnId} onChange={e => setTxnId(e.target.value)} />
+          <input type="text" className="input-field" placeholder="ট্রানজেকশন আইডি" value={txnId} onChange={e => setTxnId(e.target.value)} />
+
+{/* Payment proof */}
+{proofPreview ? (
+  <div className="relative">
+    <img src={proofPreview} alt="proof" className="w-full h-28 object-cover rounded-xl" />
+    <button type="button"
+      onClick={() => { setProof(null); setProofPreview(null); }}
+      className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs">✕</button>
+  </div>
+) : (
+  <label className="flex items-center gap-3 p-3 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer">
+    <span className="text-gray-400 text-sm">📷 পেমেন্ট প্রুফ আপলোড করুন *</span>
+    <input type="file" accept="image/*" className="hidden"
+      onChange={e => {
+        const file = e.target.files[0];
+        if (file) { setProof(file); setProofPreview(URL.createObjectURL(file)); }
+      }} />
+  </label>
+)}
 
           {Number(amount) < maxAmount && (
             <input type="date" className="input-field" value={dueDate} onChange={e => setDueDate(e.target.value)} />
