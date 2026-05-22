@@ -26,7 +26,9 @@ export default function AdminStaff() {
     if (!form.role_id) return toast.error('Role বেছে নিন');
     setCreating(true);
     try {
-      await usersApi.create({ ...form, role_id: parseInt(form.role_id) });
+     const payload = { ...form, role_id: parseInt(form.role_id) };
+console.log('Creating user with:', payload);
+await usersApi.create(payload);
       toast.success('স্টাফ তৈরি হয়েছে ✅');
       setShowCreate(false);
       setForm({ phone: '', role_id: '', manager_id: '' });
