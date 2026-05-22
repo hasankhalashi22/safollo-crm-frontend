@@ -2,19 +2,63 @@ import { useState, useEffect } from 'react';
 import { salesApi, paymentsApi } from '../../api/client';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
-import { Phone, ChevronDown, ChevronUp } from 'lucide-react';
+import { Phone, ChevronDown, ChevronUp, Search, Download } from 'lucide-react';
 
 export default function DueList() {
   const [dues, setDues] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState(null);
-  const [payModal, setPayModal] = useState(null);
+const [filtered, setFiltered] = useState([]);
+const [search, setSearch] = useState('');
+const [loading, setLoading] = useState(true);
+const [expanded, setExpanded] = useState(null);
+const [payModal, setPayModal] = useState(null);
 
   const fetchDues = () => {
-    salesApi.getDueList().then(res => {
+    salesApi.getDueList({ limit: 500 }).then(res => {
       setDues(res.data || []);
+      setFiltered(res.data || []);
       setLoading(false);
     }).catch(() => setLoading(false));
+  };
+
+  const handleSearch = (val) => {
+    setSearch(val);
+    if (!val) {
+      setFiltered(dues);
+    } else {
+      setFiltered(dues.filter(d =>
+        d.student_phone?.includes(val) ||
+        d.student_name?.toLowerCase().includes(val.toLowerCase())
+      ));
+    }
+  };
+
+  const handleExport = () => {
+    if (filtered.length === 0) return toast.error('কোনো ডেটা নেই');
+
+    const headers = ['স্টুডেন্টের নাম', 'ফোন নম্বর', 'কোর্স', 'ব্যাচ', 'কোর্স মূল্য', 'সংগৃহীত', 'বাকি', 'শেষ তারিখ'];
+    const rows = filtered.map(d => [
+      d.student_name || '',
+      d.student_phone,
+      d.course_name,
+      d.batch_name || '',
+      d.course_price,
+      d.total_collected,
+      d.due_amount,
+      d.last_due_date ? format(new Date(d.last_due_date), 'dd/MM/yyyy') : '',
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(cell => `"${cell}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `বকেয়া_তালিকা_${format(new Date(), 'dd-MM-yyyy')}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success('Excel-এ export হয়েছে ✅');
   };
 
   useEffect(() => { fetchDues(); }, []);
@@ -27,12 +71,32 @@ export default function DueList() {
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-display font-bold text-dark mb-4">
-        বকেয়া তালিকা
-        <span className="ml-2 text-sm font-normal text-red-500 bg-red-50 px-2 py-0.5 rounded-full">
-          {dues.length}টি
-        </span>
-      </h2>
+     <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-display font-bold text-dark">
+          বকেয়া তালিকা
+          <span className="ml-2 text-sm font-normal text-red-500 bg-red-50 px-2 py-0.5 rounded-full">
+            {filtered.length}টি
+          </span>
+        </h2>
+        <button
+          onClick={handleExport}
+          className="flex items-center gap-1.5 bg-green-500 text-white px-3 py-2 rounded-xl text-sm font-medium active:scale-95"
+        >
+          <Download size={16} /> Excel
+        </button>
+      </div>
+
+      {/* Search */}
+      <div className="relative mb-4">
+        <Search size={16} className="absolute left-3 top-3.5 text-gray-400" />
+        <input
+          type="tel"
+          className="input-field pl-9"
+          placeholder="ফোন নম্বর বা নাম দিয়ে খুঁজুন..."
+          value={search}
+          onChange={e => handleSearch(e.target.value)}
+        />
+      </div>
 
       {dues.length === 0 ? (
         <div className="card text-center py-12">
@@ -41,7 +105,7 @@ export default function DueList() {
         </div>
       ) : (
         <div className="space-y-3">
-          {dues.map(due => (
+          {filtered.map(due => (
             <div key={due.id} className="card">
               <div
                 className="flex items-start justify-between cursor-pointer"
