@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { usersApi } from '../../api/client';
 import toast from 'react-hot-toast';
 import { UserPlus, ToggleLeft, ToggleRight } from 'lucide-react';
+import { usersApi, authApi } from '../../api/client';
 
 export default function AdminStaff() {
   const [users, setUsers] = useState([]);
@@ -49,7 +50,15 @@ await usersApi.create(payload);
       toast.error(err.message || 'সমস্যা হয়েছে');
     }
   };
-
+const handleResetPassword = async (id, name) => {
+    if (!confirm(`${name || 'এই স্টাফ'}-এর পাসওয়ার্ড রিসেট করবেন?`)) return;
+    try {
+      await authApi.resetPassword(id);
+      toast.success('পাসওয়ার্ড রিসেট হয়েছে ✅');
+    } catch (err) {
+      toast.error(err.message || 'সমস্যা হয়েছে');
+    }
+  };
   const managers = users.filter(u => u.role === 'manager');
 
   return (
@@ -103,8 +112,11 @@ await usersApi.create(payload);
                 </td>
                 <td className="px-4 py-3">
                   <button onClick={() => handleToggle(u.id)} className="p-1.5 hover:bg-gray-100 rounded-lg">
-                    {u.is_active ? <ToggleRight size={20} className="text-green-500" /> : <ToggleLeft size={20} className="text-gray-400" />}
-                  </button>
+  {u.is_active ? <ToggleRight size={20} className="text-green-500" /> : <ToggleLeft size={20} className="text-gray-400" />}
+</button>
+<button onClick={() => handleResetPassword(u.id, u.full_name)} className="p-1.5 hover:bg-red-50 rounded-lg ml-1" title="পাসওয়ার্ড রিসেট">
+  🔑
+</button>
                 </td>
               </tr>
             ))}

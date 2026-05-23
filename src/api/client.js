@@ -29,12 +29,16 @@ api.interceptors.response.use(
 
 // Auth
 export const authApi = {
-  sendOtp:   (phone) => api.post('/api/auth/send-otp', { phone }),
-  verifyOtp: (phone, code) => api.post('/api/auth/verify-otp', { phone, code }),
-  logout:    () => api.post('/api/auth/logout'),
-  getMe:     () => api.get('/api/auth/me'),
+  sendOtp:          (phone) => api.post('/api/auth/send-otp', { phone }),
+  verifyOtp:        (phone, code) => api.post('/api/auth/verify-otp', { phone, code }),
+  verifyOtpFirst:   (phone, code) => api.post('/api/auth/verify-otp-first', { phone, code }),
+  setPassword:      (phone, password) => api.post('/api/auth/set-password', { phone, password }),
+  loginWithPassword:(phone, password) => api.post('/api/auth/login', { phone, password }),
+  changePassword:   (old_password, new_password) => api.post('/api/auth/change-password', { old_password, new_password }),
+  resetPassword:    (userId) => api.post(`/api/auth/reset-password/${userId}`),
+  logout:           () => api.post('/api/auth/logout'),
+  getMe:            () => api.get('/api/auth/me'),
 };
-
 // Users
 export const usersApi = {
   getAll:       (params) => api.get('/api/users', { params }),
