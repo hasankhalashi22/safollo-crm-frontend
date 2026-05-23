@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { usersApi, authApi } from '../../api/client';
 import toast from 'react-hot-toast';
 import { UserPlus, ToggleLeft, ToggleRight } from 'lucide-react';
-import { usersApi, authApi } from '../../api/client';
+
 
 export default function AdminStaff() {
   const [users, setUsers] = useState([]);
