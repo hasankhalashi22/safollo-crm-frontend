@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { usersApi } from '../../api/client';
+import { usersApi, authApi } from '../../api/client';
 import toast from 'react-hot-toast';
 import { UserPlus, ToggleLeft, ToggleRight } from 'lucide-react';
 import { usersApi, authApi } from '../../api/client';
