@@ -60,9 +60,15 @@ function AppRoutes() {
       } />
 
       {/* Manager routes */}
+     {/* Manager routes */}
       <Route path="/manager" element={
         <ProtectedRoute allowedLevels={[3]}>
           <AdminLayout><AdminDashboard /></AdminLayout>
+        </ProtectedRoute>
+      } />
+      <Route path="/manager/new-sale" element={
+        <ProtectedRoute allowedLevels={[3]}>
+          <AdminLayout><NewSale /></AdminLayout>
         </ProtectedRoute>
       } />
       <Route path="/manager/sales" element={
