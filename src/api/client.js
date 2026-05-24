@@ -81,10 +81,9 @@ export const salesApi = {
   }),
   getAll:    (params) => api.get('/api/sales', { params }),
   getById:   (id) => api.get(`/api/sales/${id}`),
-  getDueList:(params) => api.get('/api/sales/due', 
-edit:     (id, data) => api.patch(`/api/sales/${id}`, data),
-reassign: (id, newExecutiveId) => api.patch(`/api/sales/${id}/reassign`, { new_executive_id: newExecutiveId }),
-{ params }),
+ getDueList:(params) => api.get('/api/sales/due', { params }),
+edit:      (id, data) => api.patch(`/api/sales/${id}`, data),
+reassign:  (id, newExecutiveId) => api.patch(`/api/sales/${id}/reassign`, { new_executive_id: newExecutiveId }),
 };
 
 // Payments
