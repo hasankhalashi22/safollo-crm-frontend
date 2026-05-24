@@ -1,9 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './hooks/useAuth';
-
+import { useEffect } from 'react';
 import Login from './pages/Login';
 import { ExecutiveLayout, AdminLayout } from './components/Layout/AppLayout';
+import CompleteProfile from './pages/CompleteProfile';
 
 // Executive pages
 import ExecutiveDashboard from './pages/executive/Dashboard';
@@ -22,6 +23,15 @@ function ProtectedRoute({ children, allowedLevels }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="flex items-center justify-center h-screen"><div className="spinner w-10 h-10" /></div>;
   if (!user) return <Navigate to="/login" replace />;
+
+  // Super Admin ও Advisor-এর profile mandatory না
+  const needsProfile = user.role !== 'super_admin' && user.role !== 'advisor';
+
+  // Profile complete না হলে profile page-এ redirect
+  if (needsProfile && !user.is_profile_complete) {
+    return <Navigate to="/complete-profile" replace />;
+  }
+
   if (allowedLevels && !allowedLevels.includes(user.role_level)) {
     if (user.role_level <= 2) return <Navigate to="/admin" replace />;
     if (user.role === 'manager') return <Navigate to="/manager" replace />;
@@ -29,7 +39,6 @@ function ProtectedRoute({ children, allowedLevels }) {
   }
   return children;
 }
-
 function AppRoutes() {
   const { user } = useAuth();
 
@@ -117,6 +126,7 @@ function AppRoutes() {
       {/* Default redirect */}
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
+<Route path="/complete-profile" element={<CompleteProfile />} />
     </Routes>
   );
 }
