@@ -68,7 +68,7 @@ export default function AdminDashboard() {
           <h2 className="font-semibold text-dark mb-4">এই মাসের দৈনিক সংগ্রহ</h2>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={monthly.daily_breakdown}>
-              <XAxis dataKey="date" tick={{ fontSize: 11 }} tickFormatter={d => d?.slice(8)} />
+              <XAxis dataKey="date" tick={{ fontSize: 11 }} tickFormatter={d => d ? new Date(d).getDate() + '/' + (new Date(d).getMonth()+1) : ''} />
               <YAxis tick={{ fontSize: 11 }} tickFormatter={v => `৳${v/1000}k`} />
               <Tooltip formatter={v => [`৳${Number(v).toLocaleString()}`, 'সংগ্রহ']} />
               <Bar dataKey="collected" fill="#1A7A6E" radius={[4, 4, 0, 0]} />
