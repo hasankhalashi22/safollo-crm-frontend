@@ -39,6 +39,7 @@ export const authApi = {
   logout:           () => api.post('/api/auth/logout'),
   getMe:            () => api.get('/api/auth/me'),
 };
+
 // Users
 export const usersApi = {
   getAll:       (params) => api.get('/api/users', { params }),
@@ -47,6 +48,9 @@ export const usersApi = {
   update:       (id, data) => api.patch(`/api/users/${id}`, data),
   toggleActive: (id) => api.patch(`/api/users/${id}/toggle`),
   getRoles:     () => api.get('/api/users/roles'),
+  createRole:   (data) => api.post('/api/users/roles', data),
+  updateRole:   (id, data) => api.patch(`/api/users/roles/${id}`, data),
+  deleteRole:   (id) => api.delete(`/api/users/roles/${id}`),
 };
 
 // Profiles
@@ -81,9 +85,9 @@ export const salesApi = {
   }),
   getAll:    (params) => api.get('/api/sales', { params }),
   getById:   (id) => api.get(`/api/sales/${id}`),
- getDueList:(params) => api.get('/api/sales/due', { params }),
-edit:      (id, data) => api.patch(`/api/sales/${id}`, data),
-reassign:  (id, newExecutiveId) => api.patch(`/api/sales/${id}/reassign`, { new_executive_id: newExecutiveId }),
+  getDueList:(params) => api.get('/api/sales/due', { params }),
+  edit:      (id, data) => api.patch(`/api/sales/${id}`, data),
+  reassign:  (id, newExecutiveId) => api.patch(`/api/sales/${id}/reassign`, { new_executive_id: newExecutiveId }),
 };
 
 // Payments
@@ -95,10 +99,10 @@ export const paymentsApi = {
 
 // Reports
 export const reportsApi = {
-  daily:    (params) => api.get('/api/reports/daily', { params }),
-  monthly:  (params) => api.get('/api/reports/monthly', { params }),
-  overview: () => api.get('/api/reports/overview'),
-myPerformance: (params) => api.get('/api/reports/my-performance', { params }),
+  daily:         (params) => api.get('/api/reports/daily', { params }),
+  monthly:       (params) => api.get('/api/reports/monthly', { params }),
+  overview:      () => api.get('/api/reports/overview'),
+  myPerformance: (params) => api.get('/api/reports/my-performance', { params }),
 };
 
 // Field configs
