@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
-import { Camera, X } from 'lucide-react';
 import { coursesApi, salesApi, fieldConfigsApi, usersApi } from '../../api/client';
 import { useAuth } from '../../hooks/useAuth';
+import toast from 'react-hot-toast';
+import { Camera, X } from 'lucide-react';
 
 const PAYMENT_METHODS = [
   { value: 'bkash',  label: 'বিকাশ',  color: 'bg-pink-100 text-pink-700 border-pink-300' },
@@ -16,9 +16,11 @@ const PAYMENT_METHODS = [
 export default function NewSale() {
   const [courses, setCourses] = useState([]);
   const [fieldConfigs, setFieldConfigs] = useState([]);
+  const [executives, setExecutives] = useState([]);
   const [loading, setLoading] = useState(false);
   const [proofPreview, setProofPreview] = useState(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [form, setForm] = useState({
     student_phone: '',
@@ -33,6 +35,7 @@ export default function NewSale() {
     reference: '',
     notes: '',
     payment_proof: null,
+    override_executive_id: '',
   });
 
   useEffect(() => {
@@ -40,6 +43,9 @@ export default function NewSale() {
       setCourses(cRes.data || []);
       setFieldConfigs(fRes.data || []);
     });
+    if (user?.role_level <= 3) {
+      usersApi.getAll({ role: 'executive' }).then(r => setExecutives(r.data || []));
+    }
   }, []);
 
   const selectedCourse = courses.find(c => c.id == form.course_id);
@@ -78,7 +84,6 @@ export default function NewSale() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation
     if (!form.student_phone || form.student_phone.length !== 11) {
       return toast.error('সঠিক মোবাইল নম্বর দিন');
     }
@@ -88,7 +93,6 @@ export default function NewSale() {
     }
     if (!form.payment_method) return toast.error('পেমেন্ট পদ্ধতি বেছে নিন');
 
-    // Mandatory field check
     for (const config of fieldConfigs) {
       if (config.is_mandatory && config.field_key !== 'payment_proof') {
         if (!form[config.field_key]) {
@@ -109,7 +113,7 @@ export default function NewSale() {
 
       await salesApi.create(formData);
       toast.success('সেল সফলভাবে যোগ হয়েছে! ✅');
-      navigate('/executive');
+      navigate(-1);
     } catch (err) {
       toast.error(err.message || 'সমস্যা হয়েছে');
     } finally {
@@ -139,18 +143,35 @@ export default function NewSale() {
             />
           </div>
 
-          {(!isFieldMandatory('student_name') === false || true) && (
+          <div>
+            <label className="block text-sm font-medium text-dark mb-1.5">
+              স্টুডেন্টের নাম {isFieldMandatory('student_name') && <span className="text-red-500">*</span>}
+            </label>
+            <input
+              type="text"
+              className="input-field"
+              placeholder="নাম লিখুন"
+              value={form.student_name}
+              onChange={e => set('student_name', e.target.value)}
+            />
+          </div>
+
+          {/* Executive override for Manager/Advisor/Admin */}
+          {user?.role_level <= 3 && executives.length > 0 && (
             <div>
               <label className="block text-sm font-medium text-dark mb-1.5">
-                স্টুডেন্টের নাম {isFieldMandatory('student_name') && <span className="text-red-500">*</span>}
+                কোন Executive-এর নামে? (খালি রাখলে নিজের নামে)
               </label>
-              <input
-                type="text"
+              <select
                 className="input-field"
-                placeholder="নাম লিখুন"
-                value={form.student_name}
-                onChange={e => set('student_name', e.target.value)}
-              />
+                value={form.override_executive_id}
+                onChange={e => set('override_executive_id', e.target.value)}
+              >
+                <option value="">নিজের নামে</option>
+                {executives.map(e => (
+                  <option key={e.id} value={e.id}>{e.full_name || e.phone}</option>
+                ))}
+              </select>
             </div>
           )}
         </div>
@@ -215,7 +236,6 @@ export default function NewSale() {
             />
           </div>
 
-          {/* Due amount display */}
           {dueAmount > 0 && (
             <div className="bg-red-50 rounded-xl p-3 flex justify-between items-center">
               <span className="text-sm text-red-600">বাকি থাকবে</span>
@@ -229,7 +249,6 @@ export default function NewSale() {
             </div>
           )}
 
-          {/* Payment method */}
           <div>
             <label className="block text-sm font-medium text-dark mb-2">পেমেন্ট পদ্ধতি <span className="text-red-500">*</span></label>
             <div className="flex flex-wrap gap-2">
@@ -247,7 +266,6 @@ export default function NewSale() {
             </div>
           </div>
 
-          {/* Transaction ID */}
           <div>
             <label className="block text-sm font-medium text-dark mb-1.5">
               ট্রানজেকশন আইডি {isFieldMandatory('transaction_id') && <span className="text-red-500">*</span>}
@@ -261,13 +279,12 @@ export default function NewSale() {
             />
           </div>
 
-          {/* Payment proof */}
           <div>
             <label className="block text-sm font-medium text-dark mb-1.5">
               পেমেন্ট প্রুফ {isFieldMandatory('payment_proof') && <span className="text-red-500">*</span>}
             </label>
             {proofPreview ? (
-              <div className="relative inline-block">
+              <div className="relative inline-block w-full">
                 <img src={proofPreview} alt="proof" className="w-full h-32 object-cover rounded-xl" />
                 <button
                   type="button"
@@ -286,7 +303,6 @@ export default function NewSale() {
             )}
           </div>
 
-          {/* Due date */}
           {dueAmount > 0 && (
             <div>
               <label className="block text-sm font-medium text-dark mb-1.5">
