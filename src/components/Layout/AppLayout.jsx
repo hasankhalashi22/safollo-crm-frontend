@@ -33,6 +33,12 @@ export function ExecutiveLayout({ children }) {
       {/* Bottom navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 shadow-lg z-10">
         <div className="flex items-center justify-around px-2 py-2">
+<NavLink to="/executive/performance" className={({ isActive }) =>
+  `flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`
+}>
+  <TrendingUp size={20} />
+  <span className="text-xs">পারফরম্যান্স</span>
+</NavLink>
           <NavLink to="/executive" end className={({ isActive }) =>
             `flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`
           }>
@@ -85,6 +91,7 @@ export function AdminLayout({ children }) {
     { to: '/manager/new-sale', icon: Plus, label: 'নতুন সেল' },
     { to: '/manager/sales', icon: BarChart2, label: 'সেলস রিপোর্ট' },
     { to: '/manager/due', icon: Clock, label: 'বকেয়া তালিকা' },
+    { to: '/manager/performance', icon: TrendingUp, label: 'পারফরম্যান্স' },
   ] : [
     { to: '/admin', icon: BarChart2, label: 'ড্যাশবোর্ড', end: true },
     { to: '/admin/sales', icon: Plus, label: 'সেলস রিপোর্ট' },

@@ -98,6 +98,7 @@ export const reportsApi = {
   daily:    (params) => api.get('/api/reports/daily', { params }),
   monthly:  (params) => api.get('/api/reports/monthly', { params }),
   overview: () => api.get('/api/reports/overview'),
+myPerformance: (params) => api.get('/api/reports/my-performance', { params }),
 };
 
 // Field configs

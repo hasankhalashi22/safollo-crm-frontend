@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import Login from './pages/Login';
 import { ExecutiveLayout, AdminLayout } from './components/Layout/AppLayout';
 import CompleteProfile from './pages/CompleteProfile';
+import MyPerformance from './pages/executive/MyPerformance';
 
 // Executive pages
 import ExecutiveDashboard from './pages/executive/Dashboard';
@@ -127,6 +128,16 @@ function AppRoutes() {
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
 <Route path="/complete-profile" element={<CompleteProfile />} />
+<Route path="/executive/performance" element={
+  <ProtectedRoute allowedLevels={[3, 4]}>
+    <ExecutiveLayout><MyPerformance /></ExecutiveLayout>
+  </ProtectedRoute>
+} />
+<Route path="/manager/performance" element={
+  <ProtectedRoute allowedLevels={[3]}>
+    <AdminLayout><MyPerformance /></AdminLayout>
+  </ProtectedRoute>
+} />
     </Routes>
   );
 }
