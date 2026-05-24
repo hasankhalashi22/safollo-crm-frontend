@@ -14,7 +14,11 @@ export default function AdminStaff() {
   const [creating, setCreating] = useState(false);
 
   const fetchUsers = () => {
-    usersApi.getAll().then(r => { setUsers(r.data || []); setLoading(false); });
+    usersApi.getAll().then(r => {
+      const filtered = (r.data || []).filter(u => u.role !== 'super_admin');
+      setUsers(filtered);
+      setLoading(false);
+    });
   };
 
   useEffect(() => {
@@ -54,6 +58,28 @@ export default function AdminStaff() {
     } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
   };
 
+const handleExport = () => {
+    if (users.length === 0) return toast.error('কোনো ডেটা নেই');
+    const headers = ['নাম', 'ফোন', 'পদ', 'ম্যানেজার', 'যোগদান', 'স্ট্যাটাস'];
+    const rows = users.map(u => [
+      u.full_name || '—',
+      u.phone,
+      u.role_label,
+      u.manager_name || '—',
+      u.joining_date ? format(new Date(u.joining_date), 'dd/MM/yyyy') : '—',
+      u.is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়',
+    ]);
+    const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `স্টাফ_তালিকা_${format(new Date(), 'dd-MM-yyyy')}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Download হয়েছে ✅');
+  };
+
   const managers = users.filter(u => u.role === 'manager');
 
   return (
@@ -63,9 +89,14 @@ export default function AdminStaff() {
           <h1 className="text-2xl font-display font-bold text-dark">স্টাফ ম্যানেজমেন্ট</h1>
           <p className="text-gray-500 text-sm">মোট {users.length} জন</p>
         </div>
-        <button onClick={() => setShowCreate(true)} className="flex items-center gap-2 bg-primary-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium active:scale-95">
-          <UserPlus size={18} /> নতুন স্টাফ
-        </button>
+        <div className="flex gap-2">
+          <button onClick={handleExport} className="flex items-center gap-2 bg-green-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium active:scale-95">
+            ⬇️ Excel
+          </button>
+          <button onClick={() => setShowCreate(true)} className="flex items-center gap-2 bg-primary-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium active:scale-95">
+            <UserPlus size={18} /> নতুন স্টাফ
+          </button>
+        </div>
       </div>
 
       <div className="card overflow-hidden p-0">
