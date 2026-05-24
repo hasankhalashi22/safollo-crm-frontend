@@ -41,9 +41,22 @@ export default function Login() {
     setStep('password');
   };
 
-  const handlePasswordLogin = async (e) => {
+const handlePasswordLogin = async (e) => {
     e.preventDefault();
-    if (!password) return toast.error('পাসওয়ার্ড দিন');
+    if (!password) {
+      // No password entered — try first login flow
+      setLoading(true);
+      try {
+        await authApi.sendOtp(phone);
+        toast.success('প্রথমবার লগইন — OTP পাঠানো হয়েছে');
+        setStep('first-otp');
+      } catch (err) {
+        toast.error(err.message || 'সমস্যা হয়েছে');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
     setLoading(true);
     try {
       const res = await authApi.loginWithPassword(phone, password);
