@@ -28,6 +28,7 @@ export default function CompleteProfile() {
     permanent_address: '',
     education_level: '',
     nid_number: '',
+    joining_date: '',
   });
 
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
@@ -50,6 +51,7 @@ export default function CompleteProfile() {
       { key: 'permanent_address', label: 'স্থায়ী ঠিকানা' },
       { key: 'education_level', label: 'শিক্ষাগত যোগ্যতা' },
       { key: 'nid_number', label: 'NID নম্বর' },
+      { key: 'joining_date', label: 'যোগদানের তারিখ' },
     ];
 
     for (const field of mandatory) {
@@ -209,6 +211,12 @@ export default function CompleteProfile() {
               )}
             </div>
           </div>
+
+{/* Joining date */}
+<div className="card space-y-3">
+  <h3 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">চাকরির তথ্য</h3>
+  <Field label="যোগদানের তারিখ *" type="date" value={form.joining_date} onChange={v => set('joining_date', v)} />
+</div>
 
           <button type="submit" className="btn-primary" disabled={saving}>
             {saving ? (

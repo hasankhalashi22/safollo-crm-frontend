@@ -32,6 +32,7 @@ export default function Profile() {
         education_level: r.data.education_level || '',
         education_details: r.data.education_details || '',
         nid_number: r.data.nid_number || '',
+	joining_date: r.data.joining_date?.split('T')[0] || '',
       });
       setLoading(false);
     }).catch(() => setLoading(false));
@@ -181,6 +182,11 @@ export default function Profile() {
             )}
           </div>
         </div>
+
+<div className="card space-y-3">
+  <h3 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">চাকরির তথ্য</h3>
+  <Field label="যোগদানের তারিখ" type="date" value={form.joining_date} onChange={v => set('joining_date', v)} />
+</div>
 
         <button type="submit" className="btn-primary flex items-center justify-center gap-2" disabled={saving}>
           <Save size={18} />
