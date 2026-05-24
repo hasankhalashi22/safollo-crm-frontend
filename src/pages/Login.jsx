@@ -154,7 +154,9 @@ const handlePasswordLogin = async (e) => {
       <div className="w-full max-w-sm relative">
         <div className="text-center mb-8">
           <div className="mb-4">
-  <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-20 mx-auto drop-shadow-lg" />
+  <div className="bg-white rounded-2xl p-3 inline-block shadow-lg mb-2">
+  <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-16 mx-auto" />
+</div>
 </div>
 <p className="text-primary-200 text-sm mt-1">CRM Management System</p>
         </div>
