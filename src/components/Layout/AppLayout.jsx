@@ -1,9 +1,9 @@
+import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { Home, Plus, Clock, User, BarChart2, Users, BookOpen, Settings, LogOut, TrendingUp, Shield } from 'lucide-react';
+import { Home, Plus, Clock, User, BarChart2, Users, BookOpen, Settings, LogOut, TrendingUp, Shield, Menu, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-// Executive bottom nav
 export function ExecutiveLayout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -16,20 +16,15 @@ export function ExecutiveLayout({ children }) {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      {/* Top bar */}
       <div className="bg-primary-500 text-white px-4 py-3 flex items-center justify-between sticky top-0 z-10 shadow-md">
-        <div>
-          <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-8 brightness-0 invert" />
-        </div>
+        <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-8 brightness-0 invert" />
         <button onClick={handleLogout} className="p-2 rounded-xl bg-primary-600 active:scale-95">
           <LogOut size={18} />
         </button>
       </div>
 
-      {/* Content */}
       <main className="page-enter">{children}</main>
 
-      {/* Bottom navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 shadow-lg z-10">
         <div className="flex items-center justify-around px-2 py-2">
           <NavLink to="/executive" end className={({ isActive }) =>
@@ -74,10 +69,10 @@ export function ExecutiveLayout({ children }) {
   );
 }
 
-// Admin sidebar layout
 export function AdminLayout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -108,50 +103,83 @@ export function AdminLayout({ children }) {
 
   const navItems = isManager ? managerNav : adminNav;
 
-  return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-100 flex flex-col shadow-sm">
-        <div className="p-4 border-b border-gray-100">
-          <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-10 mb-1" />
-          <p className="text-xs text-gray-400">{user?.role_label}</p>
-        </div>
+  const SidebarContent = () => (
+    <>
+      <div className="p-4 border-b border-gray-100">
+        <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-10 mb-1" />
+        <p className="text-xs text-gray-400">{user?.role_label}</p>
+      </div>
 
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          {navItems.map(({ to, icon: Icon, label, end }) => (
-            <NavLink key={to} to={to} end={end} className={({ isActive }) =>
+      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+        {navItems.map(({ to, icon: Icon, label, end }) => (
+          <NavLink key={to} to={to} end={end}
+            onClick={() => setSidebarOpen(false)}
+            className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
                ${isActive ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'}`
             }>
-              <Icon size={18} />
-              {label}
-            </NavLink>
-          ))}
-        </nav>
+            <Icon size={18} />
+            {label}
+          </NavLink>
+        ))}
+      </nav>
 
-        <div className="p-3 border-t border-gray-100">
-          <div className="flex items-center gap-3 px-3 py-2.5 mb-2">
-            <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
-              <span className="text-primary-600 font-bold text-sm">
-                {(user?.full_name || user?.phone)?.[0]}
-              </span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{user?.full_name || user?.phone}</p>
-              <p className="text-xs text-gray-400">{user?.role_label}</p>
-            </div>
+      <div className="p-3 border-t border-gray-100">
+        <div className="flex items-center gap-3 px-3 py-2.5 mb-2">
+          <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+            <span className="text-primary-600 font-bold text-sm">
+              {(user?.full_name || user?.phone)?.[0]}
+            </span>
           </div>
-          <button onClick={handleLogout} className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl transition-all">
-            <LogOut size={16} />
-            লগআউট
-          </button>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium truncate">{user?.full_name || user?.phone}</p>
+            <p className="text-xs text-gray-400">{user?.role_label}</p>
+          </div>
         </div>
+        <button onClick={handleLogout} className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl transition-all">
+          <LogOut size={16} />
+          লগআউট
+        </button>
+      </div>
+    </>
+  );
+
+  return (
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
+
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex w-64 bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0">
+        <SidebarContent />
       </aside>
 
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 flex">
+          <div className="fixed inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
+          <aside className="relative w-72 bg-white flex flex-col shadow-xl">
+            <button onClick={() => setSidebarOpen(false)}
+              className="absolute top-3 right-3 p-1.5 bg-gray-100 rounded-full z-10">
+              <X size={18} />
+            </button>
+            <SidebarContent />
+          </aside>
+        </div>
+      )}
+
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto page-enter">
-        {children}
-      </main>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Mobile Top Bar */}
+        <div className="lg:hidden bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3 shadow-sm">
+          <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl bg-gray-100">
+            <Menu size={20} className="text-gray-600" />
+          </button>
+          <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-8" />
+        </div>
+
+        <main className="flex-1 overflow-y-auto page-enter">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
