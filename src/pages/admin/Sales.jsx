@@ -3,6 +3,7 @@ import { salesApi, coursesApi, usersApi } from '../../api/client';
 import { format } from 'date-fns';
 import { Search, Filter, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../hooks/useAuth';
 
 const STATUS_LABELS = {
   paid: { label: 'পেইড', cls: 'badge-paid' },
@@ -11,8 +12,8 @@ const STATUS_LABELS = {
 };
 
 export default function AdminSales() {
-  const [sales, setSales] = useState([]);
-  const [total, setTotal] = useState(0);
+  const { user } = useAuth();
+  const [sales, setSales] = useState([]);  const [total, setTotal] = useState(0);
   const [courses, setCourses] = useState([]);
   const [executives, setExecutives] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -153,10 +154,12 @@ export default function AdminSales() {
                   </td>
                   <td className="px-4 py-3 text-gray-500">{s.executive_name || '—'}</td>
                   <td className="px-4 py-3">
-                    <button onClick={(e) => { e.stopPropagation(); setEditModal(s); }}
-                      className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium">
-                      ✏️ Edit
-                    </button>
+                    {(user?.role === 'super_admin' || user?.role === 'advisor') && (
+  <button onClick={(e) => { e.stopPropagation(); setEditModal(s); }}
+    className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium">
+    ✏️ Edit
+  </button>
+)}
                   </td>
                 </tr>
               ))}
