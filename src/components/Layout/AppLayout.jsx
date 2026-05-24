@@ -85,7 +85,6 @@ export function AdminLayout({ children }) {
     { to: '/manager/new-sale', icon: Plus, label: 'নতুন সেল' },
     { to: '/manager/sales', icon: BarChart2, label: 'সেলস রিপোর্ট' },
     { to: '/manager/due', icon: Clock, label: 'বকেয়া তালিকা' },
-  ] :
   ] : [
     { to: '/admin', icon: BarChart2, label: 'ড্যাশবোর্ড', end: true },
     { to: '/admin/sales', icon: Plus, label: 'সেলস রিপোর্ট' },
