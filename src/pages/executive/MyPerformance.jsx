@@ -16,6 +16,7 @@ export default function MyPerformance() {
 
   const fetchData = () => {
     setLoading(true);
+console.log('Token:', localStorage.getItem('crm_token'));
     reportsApi.myPerformance({ month: selectedMonth, year: selectedYear }).then(res => {
       setData(res.data);
       setLoading(false);
