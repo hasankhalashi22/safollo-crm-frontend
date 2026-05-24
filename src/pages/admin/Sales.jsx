@@ -2,17 +2,23 @@ import { useState, useEffect } from 'react';
 import { salesApi, coursesApi, usersApi } from '../../api/client';
 import { format } from 'date-fns';
 import { Search, Filter, Download } from 'lucide-react';
+import toast from 'react-hot-toast';
 
-const STATUS_LABELS = { paid: { label: 'পেইড', cls: 'badge-paid' }, due: { label: 'বকেয়া', cls: 'badge-due' }, partial: { label: 'আংশিক', cls: 'badge-partial' } };
+const STATUS_LABELS = {
+  paid: { label: 'পেইড', cls: 'badge-paid' },
+  due: { label: 'বকেয়া', cls: 'badge-due' },
+  partial: { label: 'আংশিক', cls: 'badge-partial' }
+};
 
 export default function AdminSales() {
- const [sales, setSales] = useState([]);
-const [total, setTotal] = useState(0);
-const [courses, setCourses] = useState([]);
-const [executives, setExecutives] = useState([]);
-const [loading, setLoading] = useState(true);
-const [selected, setSelected] = useState(null);
-const [filters, setFilters] = useState({ search: '', course_id: '', payment_status: '', date_from: '', date_to: '', executive_id: '' });
+  const [sales, setSales] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [courses, setCourses] = useState([]);
+  const [executives, setExecutives] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState(null);
+  const [editModal, setEditModal] = useState(null);
+  const [filters, setFilters] = useState({ search: '', course_id: '', payment_status: '', date_from: '', date_to: '', executive_id: '' });
 
   const fetchSales = (f = filters) => {
     setLoading(true);
@@ -23,7 +29,6 @@ const [filters, setFilters] = useState({ search: '', course_id: '', payment_stat
     if (f.date_from) params.date_from = f.date_from;
     if (f.date_to) params.date_to = f.date_to;
     if (f.executive_id) params.executive_id = f.executive_id;
-    console.log('Fetching sales with params:', params);
     salesApi.getAll(params).then(res => {
       setSales(res.data || []);
       setTotal(res.total || 0);
@@ -33,15 +38,14 @@ const [filters, setFilters] = useState({ search: '', course_id: '', payment_stat
 
   useEffect(() => {
     coursesApi.getAll().then(r => setCourses(r.data || []));
-    usersApi.getAll({ role: 'executive' }).then(r => setExecutives(r.data || []));
+    usersApi.getAll().then(r => setExecutives(r.data || []));
     fetchSales();
   }, []);
 
   const setFilter = (k, v) => setFilters(p => ({ ...p, [k]: v }));
 
-const handleExport = () => {
+  const handleExport = () => {
     if (sales.length === 0) return toast.error('কোনো ডেটা নেই');
-
     const headers = ['তারিখ', 'স্টুডেন্টের নাম', 'ফোন নম্বর', 'কোর্স', 'ব্যাচ', 'কোর্স মূল্য', 'সংগৃহীত', 'বাকি', 'স্ট্যাটাস', 'Executive', 'রেফারেন্স'];
     const rows = sales.map(s => [
       format(new Date(s.created_at), 'dd/MM/yyyy'),
@@ -56,11 +60,7 @@ const handleExport = () => {
       s.executive_name || '',
       s.reference || '',
     ]);
-
-    const csvContent = [headers, ...rows]
-      .map(row => row.map(cell => `"${cell}"`).join(','))
-      .join('\n');
-
+    const csvContent = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
     const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -78,10 +78,7 @@ const handleExport = () => {
           <h1 className="text-2xl font-display font-bold text-dark">সেলস রিপোর্ট</h1>
           <p className="text-gray-500 text-sm">মোট {total}টি রেকর্ড</p>
         </div>
-        <button
-          onClick={handleExport}
-          className="flex items-center gap-2 bg-green-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium active:scale-95"
-        >
+        <button onClick={handleExport} className="flex items-center gap-2 bg-green-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium active:scale-95">
           <Download size={16} /> Excel Download
         </button>
       </div>
@@ -92,7 +89,7 @@ const handleExport = () => {
           <Filter size={16} className="text-gray-400" />
           <span className="text-sm font-medium text-gray-600">ফিল্টার</span>
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           <div className="relative">
             <Search size={16} className="absolute left-3 top-3.5 text-gray-400" />
             <input className="input-field pl-9" placeholder="ফোন বা নাম" value={filters.search}
@@ -111,16 +108,12 @@ const handleExport = () => {
           </select>
           <select className="input-field" value={filters.executive_id} onChange={e => setFilter('executive_id', e.target.value)}>
             <option value="">সব Executive</option>
-            {executives.map(e => (
-              <option key={e.id} value={e.id}>{e.full_name || e.phone}</option>
-            ))}
+            {executives.map(e => <option key={e.id} value={e.id}>{e.full_name || e.phone}</option>)}
           </select>
-          <button onClick={() => fetchSales()} className="btn-primary py-2">খুঁজুন</button>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
           <input type="date" className="input-field" value={filters.date_from} onChange={e => setFilter('date_from', e.target.value)} />
           <input type="date" className="input-field" value={filters.date_to} onChange={e => setFilter('date_to', e.target.value)} />
         </div>
+        <button onClick={() => fetchSales()} className="btn-primary py-2 max-w-xs">খুঁজুন</button>
       </div>
 
       {/* Table */}
@@ -129,16 +122,16 @@ const handleExport = () => {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                {['তারিখ', 'স্টুডেন্ট', 'কোর্স', 'মূল্য', 'সংগৃহীত', 'বাকি', 'স্ট্যাটাস', 'Executive'].map(h => (
+                {['তারিখ', 'স্টুডেন্ট', 'কোর্স', 'মূল্য', 'সংগৃহীত', 'বাকি', 'স্ট্যাটাস', 'Executive', 'অ্যাকশন'].map(h => (
                   <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
-                <tr><td colSpan={8} className="text-center py-12 text-gray-400">লোড হচ্ছে...</td></tr>
+                <tr><td colSpan={9} className="text-center py-12 text-gray-400">লোড হচ্ছে...</td></tr>
               ) : sales.length === 0 ? (
-                <tr><td colSpan={8} className="text-center py-12 text-gray-400">কোনো রেকর্ড নেই</td></tr>
+                <tr><td colSpan={9} className="text-center py-12 text-gray-400">কোনো রেকর্ড নেই</td></tr>
               ) : sales.map(s => (
                 <tr key={s.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setSelected(s)}>
                   <td className="px-4 py-3 text-gray-500">{format(new Date(s.created_at), 'dd/MM/yy')}</td>
@@ -159,6 +152,12 @@ const handleExport = () => {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-gray-500">{s.executive_name || '—'}</td>
+                  <td className="px-4 py-3">
+                    <button onClick={(e) => { e.stopPropagation(); setEditModal(s); }}
+                      className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium">
+                      ✏️ Edit
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -183,7 +182,6 @@ const handleExport = () => {
               <Row label="বাকি" value={`৳${Number(selected.due_amount || 0).toLocaleString()}`} />
               <Row label="Executive" value={selected.executive_name || '—'} />
               {selected.reference && <Row label="রেফারেন্স" value={selected.reference} />}
-
               {selected.payment_history?.length > 0 && (
                 <div>
                   <p className="font-semibold text-gray-700 mb-2">পেমেন্ট ইতিহাস</p>
@@ -205,6 +203,16 @@ const handleExport = () => {
           </div>
         </div>
       )}
+
+      {/* Edit Modal */}
+      {editModal && (
+        <EditSaleModal
+          sale={editModal}
+          executives={executives}
+          onClose={() => setEditModal(null)}
+          onSuccess={() => { setEditModal(null); fetchSales(); }}
+        />
+      )}
     </div>
   );
 }
@@ -214,6 +222,74 @@ function Row({ label, value }) {
     <div className="flex justify-between border-b border-gray-50 pb-2">
       <span className="text-gray-500">{label}</span>
       <span className="font-medium">{value}</span>
+    </div>
+  );
+}
+
+function EditSaleModal({ sale, executives, onClose, onSuccess }) {
+  const [form, setForm] = useState({
+    reference: sale.reference || '',
+    notes: sale.notes || '',
+    course_price: sale.course_price || '',
+    executive_id: sale.executive_id || '',
+  });
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await salesApi.edit(sale.id, form);
+      toast.success('সেল আপডেট হয়েছে ✅');
+      onSuccess();
+    } catch (err) {
+      toast.error(err.message || 'সমস্যা হয়েছে');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md p-5">
+        <div className="flex justify-between mb-4">
+          <h3 className="font-bold text-lg">সেল এডিট করুন</h3>
+          <button onClick={onClose} className="p-1.5 bg-gray-100 rounded-full">✕</button>
+        </div>
+        <div className="bg-gray-50 rounded-xl p-3 mb-4 text-sm">
+          <p className="font-medium">{sale.student_name || sale.student_phone}</p>
+          <p className="text-gray-500">{sale.course_name} • {sale.batch_name}</p>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div>
+            <label className="block text-sm font-medium mb-1.5">কোর্স মূল্য</label>
+            <input type="number" className="input-field" value={form.course_price}
+              onChange={e => setForm(p => ({ ...p, course_price: e.target.value }))} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Executive পরিবর্তন</label>
+            <select className="input-field" value={form.executive_id}
+              onChange={e => setForm(p => ({ ...p, executive_id: e.target.value }))}>
+              {executives.map(e => (
+                <option key={e.id} value={e.id}>{e.full_name || e.phone} ({e.role_label})</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5">রেফারেন্স</label>
+            <input type="text" className="input-field" value={form.reference}
+              onChange={e => setForm(p => ({ ...p, reference: e.target.value }))} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5">নোট</label>
+            <textarea className="input-field resize-none" rows={2} value={form.notes}
+              onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} />
+          </div>
+          <button type="submit" className="btn-primary" disabled={loading}>
+            {loading ? 'আপডেট হচ্ছে...' : '✅ আপডেট করুন'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

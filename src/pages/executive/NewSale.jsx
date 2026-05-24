@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { coursesApi, salesApi, fieldConfigsApi } from '../../api/client';
 import toast from 'react-hot-toast';
 import { Camera, X } from 'lucide-react';
+import { coursesApi, salesApi, fieldConfigsApi, usersApi } from '../../api/client';
+import { useAuth } from '../../hooks/useAuth';
 
 const PAYMENT_METHODS = [
   { value: 'bkash',  label: 'বিকাশ',  color: 'bg-pink-100 text-pink-700 border-pink-300' },
