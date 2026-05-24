@@ -76,6 +76,8 @@ export const coursesApi = {
   update:       (id, data) => api.patch(`/api/courses/${id}`, data),
   createBatch:  (data) => api.post('/api/courses/batches', data),
   updateBatch:  (id, data) => api.patch(`/api/courses/batches/${id}`, data),
+delete:       (id) => api.delete(`/api/courses/${id}`),
+deleteBatch:  (id) => api.delete(`/api/courses/batches/${id}`),
 };
 
 // Sales

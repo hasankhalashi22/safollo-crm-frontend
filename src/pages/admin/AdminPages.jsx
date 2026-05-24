@@ -3,6 +3,7 @@ import { salesApi, fieldConfigsApi, coursesApi, usersApi } from '../../api/clien
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { Phone, Edit } from 'lucide-react';
+import { Phone, Edit, Trash2 } from 'lucide-react';
 
 export function AdminDueList() {
   const [dues, setDues] = useState([]);
@@ -200,6 +201,24 @@ export function CourseManagement() {
 
   const fetchCourses = () => {
     coursesApi.getAll().then(r => { setCourses(r.data || []); setLoading(false); });
+
+const handleDeleteCourse = async (course) => {
+    if (!confirm(`"${course.name}" কোর্স delete করবেন?`)) return;
+    try {
+      await coursesApi.delete(course.id);
+      toast.success('কোর্স delete হয়েছে ✅');
+      fetchCourses();
+    } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
+  };
+
+  const handleDeleteBatch = async (batch) => {
+    if (!confirm(`"${batch.name}" ব্যাচ delete করবেন?`)) return;
+    try {
+      await coursesApi.deleteBatch(batch.id);
+      toast.success('ব্যাচ delete হয়েছে ✅');
+      fetchCourses();
+    } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
+  };
   };
 
   useEffect(() => { fetchCourses(); }, []);
@@ -330,6 +349,9 @@ export function CourseManagement() {
             <div className="flex justify-between mb-4">
               <h3 className="font-bold text-lg">কোর্স এডিট</h3>
               <button onClick={() => setEditCourse(null)} className="p-1.5 bg-gray-100 rounded-full">✕</button>
+<button onClick={() => handleDeleteCourse(c)} className="p-1.5 bg-red-50 text-red-500 rounded-lg">
+  <Trash2 size={14} />
+</button>
             </div>
             <form onSubmit={updateCourse} className="space-y-3">
               <input className="input-field" value={editCourse.name} onChange={e => setEditCourse(p => ({ ...p, name: e.target.value }))} />
@@ -350,6 +372,12 @@ export function CourseManagement() {
             <div className="flex justify-between mb-4">
               <h3 className="font-bold text-lg">ব্যাচ এডিট — {editBatch.course_name}</h3>
               <button onClick={() => setEditBatch(null)} className="p-1.5 bg-gray-100 rounded-full">✕</button>
+<button key={b.id} onClick={() => setEditBatch({ ...b, course_name: c.name })} ...>
+  {b.name} <Edit size={10} />
+</button>
+<button onClick={() => handleDeleteBatch(b)} className="text-xs px-1.5 py-0.5 rounded-full bg-red-50 text-red-400">
+  ✕
+</button>
             </div>
             <form onSubmit={updateBatch} className="space-y-3">
               <input className="input-field" placeholder="ব্যাচের নাম" value={editBatch.name} onChange={e => setEditBatch(p => ({ ...p, name: e.target.value }))} />
