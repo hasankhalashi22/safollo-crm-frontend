@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { coursesApi, salesApi, fieldConfigsApi } from '../../api/client';
 import toast from 'react-hot-toast';
 import { Camera, X } from 'lucide-react';
 import { coursesApi, salesApi, fieldConfigsApi, usersApi } from '../../api/client';
