@@ -19,7 +19,7 @@ export function ExecutiveLayout({ children }) {
       {/* Top bar */}
       <div className="bg-primary-500 text-white px-4 py-3 flex items-center justify-between sticky top-0 z-10 shadow-md">
         <div>
-          <p className="font-display font-bold text-lg leading-tight">সাফল্য CRM</p>
+          <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-8 brightness-0 invert" />
           <p className="text-primary-200 text-xs">{user?.full_name || user?.phone}</p>
         </div>
         <button onClick={handleLogout} className="p-2 rounded-xl bg-primary-600 active:scale-95">
@@ -97,10 +97,10 @@ export function AdminLayout({ children }) {
     <div className="flex h-screen bg-gray-50 overflow-hidden">
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-gray-100 flex flex-col shadow-sm">
-        <div className="p-5 border-b border-gray-100">
-          <h1 className="font-display text-xl font-bold text-primary-600">সাফল্য CRM</h1>
-          <p className="text-xs text-gray-400 mt-0.5">{user?.role_label}</p>
-        </div>
+       <div className="p-4 border-b border-gray-100">
+  <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-10 mb-1" />
+  <p className="text-xs text-gray-400">{user?.role_label}</p>
+</div>
 
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {navItems.map(({ to, icon: Icon, label, end }) => (
