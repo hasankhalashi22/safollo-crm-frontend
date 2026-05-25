@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { salesApi, fieldConfigsApi, coursesApi, usersApi } from '../../api/client';
+import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { Phone, Edit, Trash2 } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
 
 export function AdminDueList() {
   const { user: currentUser } = useAuth();
@@ -24,15 +24,6 @@ export function AdminDueList() {
       setFiltered(r.data || []);
       setLoading(false);
     }).catch(() => setLoading(false));
-  };
-
-const handleDeleteDue = async (due) => {
-    if (!confirm(`এই বকেয়া entry permanently delete করবেন?`)) return;
-    try {
-      await salesApi.delete(due.id);
-      toast.success('Delete হয়েছে ✅');
-      fetchDues();
-    } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
   };
 
   useEffect(() => {
@@ -75,6 +66,15 @@ const handleDeleteDue = async (due) => {
     toast.success('Download হয়েছে ✅');
   };
 
+  const handleDeleteDue = async (due) => {
+    if (!confirm(`এই বকেয়া entry permanently delete করবেন?`)) return;
+    try {
+      await salesApi.delete(due.id);
+      toast.success('Delete হয়েছে ✅');
+      fetchDues();
+    } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
+  };
+
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-4">
@@ -105,16 +105,16 @@ const handleDeleteDue = async (due) => {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b">
             <tr>
-             {['স্টুডেন্ট', 'কোর্স', 'বাকি', 'তারিখ', 'Executive', 'কল', 'Reassign', 'Delete'].map(h => (
+              {['স্টুডেন্ট', 'কোর্স', 'বাকি', 'তারিখ', 'Executive', 'কল', 'Reassign', 'Delete'].map(h => (
                 <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
             {loading ? (
-              <tr><td colSpan={7} className="text-center py-12 text-gray-400">লোড হচ্ছে...</td></tr>
+              <tr><td colSpan={8} className="text-center py-12 text-gray-400">লোড হচ্ছে...</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={7} className="text-center py-12 text-green-500">✅ কোনো বকেয়া নেই</td></tr>
+              <tr><td colSpan={8} className="text-center py-12 text-green-500">✅ কোনো বকেয়া নেই</td></tr>
             ) : filtered.map(d => (
               <tr key={d.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3">
@@ -134,6 +134,7 @@ const handleDeleteDue = async (due) => {
                   <a href={`tel:${d.student_phone}`} className="p-1.5 bg-green-50 text-green-600 rounded-lg inline-flex">
                     <Phone size={16} />
                   </a>
+                </td>
                 <td className="px-4 py-3">
                   <button onClick={() => setReassignModal(d)} className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium">
                     Reassign
@@ -207,8 +208,6 @@ function ReassignModal({ due, executives, onClose, onSuccess }) {
     </div>
   );
 }
-
-
 
 export function CourseManagement() {
   const [courses, setCourses] = useState([]);
