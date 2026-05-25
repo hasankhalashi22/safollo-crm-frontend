@@ -16,8 +16,8 @@ import AdminDashboard from './pages/admin/Dashboard';
 import AdminSales from './pages/admin/Sales';
 import AdminStaff from './pages/admin/Staff';
 import RoleManagement from './pages/admin/RoleManagement';
-import { AdminDueList, AdminSettings, CourseManagement } from './pages/admin/AdminPages';
 import AuditLog from './pages/admin/AuditLog';
+import { AdminDueList, AdminSettings, CourseManagement } from './pages/admin/AdminPages';
 
 function ProtectedRoute({ children, allowedLevels }) {
   const { user, loading } = useAuth();
@@ -65,37 +65,4 @@ function AppRoutes() {
       <Route path="/admin/new-sale" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><NewSale /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/sales" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><AdminSales /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/due" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><AdminDueList /></AdminLayout></ProtectedRoute>} />
-      <Route path="/admin/staff" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><AdminStaff /></AdminLayout></ProtectedRoute>} />
-      <Route path="/admin/roles" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><RoleManagement /></AdminLayout></ProtectedRoute>} />
-      <Route path="/admin/courses" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><CourseManagement /></AdminLayout></ProtectedRoute>} />
-      <Route path="/admin/settings" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><AdminSettings /></AdminLayout></ProtectedRoute>} />
-
-      <Route path="/" element={<Navigate to="/login" replace />} />
-      <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
-
-<Route path="/admin/audit" element={
-  <ProtectedRoute allowedLevels={[1]}>
-    <AdminLayout><AuditLog /></AdminLayout>
-  </ProtectedRoute>
-} />
-  );
-}
-
-export default function App() {
-  return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-        <Toaster
-          position="top-center"
-          toastOptions={{
-            duration: 3000,
-            style: { fontFamily: 'Hind Siliguri, sans-serif', fontSize: '14px' },
-            success: { iconTheme: { primary: '#1A7A6E', secondary: 'white' } },
-          }}
-        />
-      </AuthProvider>
-    </BrowserRouter>
-  );
-}
+      <Route path="/admin/staff" element={<ProtectedRoute allowedLevels={[1, 2]}><A
