@@ -37,6 +37,15 @@ export default function AdminSales() {
     }).catch(() => setLoading(false));
   };
 
+const handleDelete = async (sale) => {
+    if (!confirm(`এই সেল permanently delete করবেন?`)) return;
+    try {
+      await salesApi.delete(sale.id);
+      toast.success('সেল delete হয়েছে ✅');
+      fetchSales();
+    } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
+  };
+
   useEffect(() => {
     coursesApi.getAll().then(r => setCourses(r.data || []));
     usersApi.getAll().then(r => setExecutives(r.data || []));
@@ -160,6 +169,13 @@ export default function AdminSales() {
     ✏️ Edit
   </button>
 )}
+{user?.role === 'super_admin' && (
+  <button onClick={(e) => { e.stopPropagation(); handleDelete(s); }}
+    className="px-2 py-1 bg-red-50 text-red-500 rounded-lg text-xs font-medium ml-1">
+    🗑️
+  </button>
+)}
+
                   </td>
                 </tr>
               ))}

@@ -51,6 +51,7 @@ export const usersApi = {
   createRole:   (data) => api.post('/api/users/roles', data),
   updateRole:   (id, data) => api.patch(`/api/users/roles/${id}`, data),
   deleteRole:   (id) => api.delete(`/api/users/roles/${id}`),
+deleteUser: (id) => api.delete(`/api/users/${id}`),
 };
 
 // Profiles
@@ -90,6 +91,7 @@ export const salesApi = {
   getDueList:(params) => api.get('/api/sales/due', { params }),
   edit:      (id, data) => api.patch(`/api/sales/${id}`, data),
   reassign:  (id, newExecutiveId) => api.patch(`/api/sales/${id}/reassign`, { new_executive_id: newExecutiveId }),
+delete: (id) => api.delete(`/api/sales/${id}`),
 };
 
 // Payments

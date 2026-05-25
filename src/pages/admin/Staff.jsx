@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { usersApi, authApi, reportsApi } from '../../api/client';
+import { usersApi, authApi } from '../../api/client';
+import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
-import { UserPlus, ToggleLeft, ToggleRight, Eye, Download } from 'lucide-react';
+import { UserPlus, ToggleLeft, ToggleRight, Eye, Download, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function AdminStaff() {
+const { user: currentUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -55,6 +57,15 @@ export default function AdminStaff() {
     try {
       await authApi.resetPassword(id);
       toast.success('পাসওয়ার্ড রিসেট হয়েছে ✅');
+    } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
+  };
+
+const handleDeleteUser = async (u) => {
+    if (!confirm(`"${u.full_name || u.phone}" কে permanently delete করবেন? এই কাজ ফেরানো যাবে না!`)) return;
+    try {
+      await usersApi.deleteUser(u.id);
+      toast.success('স্টাফ delete হয়েছে');
+      fetchUsers();
     } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
   };
 
@@ -145,6 +156,11 @@ const handleExport = () => {
                   <button onClick={() => handleResetPassword(u.id, u.full_name)} className="p-1.5 hover:bg-red-50 rounded-lg" title="পাসওয়ার্ড রিসেট">
                     🔑
                   </button>
+                  {currentUser?.role === 'super_admin' && (
+                    <button onClick={() => handleDeleteUser(u)} className="p-1.5 hover:bg-red-50 rounded-lg" title="Delete">
+                      <Trash2 size={18} className="text-red-500" />
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
