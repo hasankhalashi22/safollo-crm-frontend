@@ -17,6 +17,7 @@ import AdminSales from './pages/admin/Sales';
 import AdminStaff from './pages/admin/Staff';
 import RoleManagement from './pages/admin/RoleManagement';
 import { AdminDueList, AdminSettings, CourseManagement } from './pages/admin/AdminPages';
+import AuditLog from './pages/admin/AuditLog';
 
 function ProtectedRoute({ children, allowedLevels }) {
   const { user, loading } = useAuth();
@@ -72,6 +73,12 @@ function AppRoutes() {
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
+
+<Route path="/admin/audit" element={
+  <ProtectedRoute allowedLevels={[1]}>
+    <AdminLayout><AuditLog /></AdminLayout>
+  </ProtectedRoute>
+} />
   );
 }
 

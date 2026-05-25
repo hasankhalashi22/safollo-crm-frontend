@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { Home, Plus, Clock, User, BarChart2, Users, BookOpen, Settings, LogOut, TrendingUp, Shield, Menu, X } from 'lucide-react';
+
 import toast from 'react-hot-toast';
+import { Home, Plus, Clock, User, BarChart2, Users, BookOpen, Settings, LogOut, TrendingUp, Shield, Menu, X, Activity } from 'lucide-react';
 
 export function ExecutiveLayout({ children }) {
   const { user, logout } = useAuth();
@@ -99,6 +100,7 @@ export function AdminLayout({ children }) {
     { to: '/admin/roles', icon: Shield, label: 'Role Management' },
     { to: '/admin/courses', icon: BookOpen, label: 'কোর্স ম্যানেজমেন্ট' },
     { to: '/admin/settings', icon: Settings, label: 'সেটিংস' },
+{ to: '/admin/audit', icon: Activity, label: 'Activity Log' },
   ];
 
   const navItems = isManager ? managerNav : adminNav;

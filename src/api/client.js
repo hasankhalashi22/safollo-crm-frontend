@@ -115,4 +115,8 @@ export const fieldConfigsApi = {
   update: (key, data) => api.patch(`/api/field-configs/${key}`, data),
 };
 
+// Audit logs
+export const auditApi = {
+  getLogs: (params) => api.get('/api/audit', { params }),
+};
 export default api;
