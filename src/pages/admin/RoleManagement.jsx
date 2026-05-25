@@ -25,7 +25,8 @@ export default function RoleManagement() {
 
   const fetchRoles = () => {
     usersApi.getRoles().then(r => {
-      setRoles(r.data || []);
+      const filtered = (r.data || []).filter(role => role.name !== 'super_admin');
+      setRoles(filtered);
       setLoading(false);
     }).catch(() => setLoading(false));
   };
