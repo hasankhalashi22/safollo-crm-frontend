@@ -3,8 +3,10 @@ import { salesApi, fieldConfigsApi, coursesApi, usersApi } from '../../api/clien
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { Phone, Edit, Trash2 } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
 
 export function AdminDueList() {
+  const { user: currentUser } = useAuth();
   const [dues, setDues] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [executives, setExecutives] = useState([]);
@@ -22,6 +24,15 @@ export function AdminDueList() {
       setFiltered(r.data || []);
       setLoading(false);
     }).catch(() => setLoading(false));
+  };
+
+const handleDeleteDue = async (due) => {
+    if (!confirm(`এই বকেয়া entry permanently delete করবেন?`)) return;
+    try {
+      await salesApi.delete(due.id);
+      toast.success('Delete হয়েছে ✅');
+      fetchDues();
+    } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
   };
 
   useEffect(() => {
@@ -94,7 +105,7 @@ export function AdminDueList() {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b">
             <tr>
-              {['স্টুডেন্ট', 'কোর্স', 'বাকি', 'তারিখ', 'Executive', 'কল', 'Reassign'].map(h => (
+             {['স্টুডেন্ট', 'কোর্স', 'বাকি', 'তারিখ', 'Executive', 'কল', 'Reassign', 'Delete'].map(h => (
                 <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">{h}</th>
               ))}
             </tr>
@@ -123,11 +134,18 @@ export function AdminDueList() {
                   <a href={`tel:${d.student_phone}`} className="p-1.5 bg-green-50 text-green-600 rounded-lg inline-flex">
                     <Phone size={16} />
                   </a>
-                </td>
                 <td className="px-4 py-3">
                   <button onClick={() => setReassignModal(d)} className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium">
                     Reassign
                   </button>
+                </td>
+                <td className="px-4 py-3">
+                  {currentUser?.role === 'super_admin' && (
+                    <button onClick={() => handleDeleteDue(d)}
+                      className="px-2 py-1 bg-red-50 text-red-500 rounded-lg text-xs font-medium">
+                      🗑️
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
@@ -189,6 +207,8 @@ function ReassignModal({ due, executives, onClose, onSuccess }) {
     </div>
   );
 }
+
+
 
 export function CourseManagement() {
   const [courses, setCourses] = useState([]);
