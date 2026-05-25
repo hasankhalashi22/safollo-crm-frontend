@@ -132,7 +132,8 @@ const handleDelete = async (sale) => {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                {['তারিখ', 'স্টুডেন্ট', 'কোর্স', 'মূল্য', 'সংগৃহীত', 'বাকি', 'স্ট্যাটাস', 'Executive', 'অ্যাকশন'].map(h => (
+                {['তারিখ', 'স্টুডেন্ট', 'কোর্স', 'মূল্য', 'সংগৃহীত', 'বাকি', 'স্ট্যাটাস', 'Executive', 'Approver', 'অ্যাকশন'].map(h => (
+(
                   <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">{h}</th>
                 ))}
               </tr>
@@ -162,6 +163,7 @@ const handleDelete = async (sale) => {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-gray-500">{s.executive_name || '—'}</td>
+<td className="px-4 py-3 text-gray-500">{s.approver_name || '—'}</td>
                   <td className="px-4 py-3">
                     {(user?.role === 'super_admin' || user?.role === 'advisor') && (
   <button onClick={(e) => { e.stopPropagation(); setEditModal(s); }}
