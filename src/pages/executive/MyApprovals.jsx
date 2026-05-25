@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { approvalsApi } from '../../api/client';
+import { approvalsApi, salesApi } from '../../api/client';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
-import { Edit } from 'lucide-react';
+import { Edit, Trash2 } from 'lucide-react';
 
 export default function MyApprovals() {
   const [sales, setSales] = useState([]);
@@ -28,6 +28,15 @@ export default function MyApprovals() {
     } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
   };
 
+  const handleCancel = async (sale) => {
+    if (!confirm('এই সেল entry বাতিল করবেন?')) return;
+    try {
+      await salesApi.delete(sale.id);
+      toast.success('সেল বাতিল হয়েছে');
+      fetchMyPending();
+    } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
+  };
+
   if (loading) return <div className="flex justify-center h-64 items-center"><div className="spinner w-8 h-8" /></div>;
 
   return (
@@ -46,7 +55,7 @@ export default function MyApprovals() {
               <div className="flex justify-between items-start">
                 <div>
                   <p className="font-semibold">{sale.student_name || sale.student_phone}</p>
-                  <p className="text-sm text-gray-500">{sale.course_name}</p>
+                  <p className="text-sm text-gray-500">{sale.course_name} {sale.batch_name ? '• ' + sale.batch_name : ''}</p>
                   <p className="font-bold text-primary-600 mt-1">৳{Number(sale.total_collected).toLocaleString()}</p>
                 </div>
                 <div className="text-right">
@@ -54,7 +63,7 @@ export default function MyApprovals() {
                     ${sale.approval_status === 'pending' ? 'bg-orange-100 text-orange-600' : 'bg-red-100 text-red-600'}`}>
                     {sale.approval_status === 'pending' ? '⏳ Pending' : '❌ Rejected'}
                   </span>
-                  <p className="text-xs text-gray-400 mt-1">{format(new Date(sale.created_at), 'dd/MM/yy')}</p>
+                  <p className="text-xs text-gray-400 mt-1">{format(new Date(sale.created_at), 'dd/MM/yy HH:mm')}</p>
                 </div>
               </div>
 
@@ -66,10 +75,16 @@ export default function MyApprovals() {
               )}
 
               {sale.approval_status === 'rejected' && (
-                <button onClick={() => setResubmitModal(sale)}
-                  className="mt-3 flex items-center gap-2 w-full justify-center py-2 bg-primary-50 text-primary-600 rounded-xl text-sm font-medium">
-                  <Edit size={16} /> Edit করে Resubmit করুন
-                </button>
+                <div className="flex gap-2 mt-3">
+                  <button onClick={() => setResubmitModal(sale)}
+                    className="flex-1 flex items-center gap-2 justify-center py-2 bg-primary-50 text-primary-600 rounded-xl text-sm font-medium active:scale-95">
+                    <Edit size={16} /> Edit করে Resubmit
+                  </button>
+                  <button onClick={() => handleCancel(sale)}
+                    className="flex items-center gap-2 px-3 py-2 bg-red-50 text-red-500 rounded-xl text-sm font-medium active:scale-95">
+                    <Trash2 size={16} /> বাতিল
+                  </button>
+                </div>
               )}
             </div>
           ))}
