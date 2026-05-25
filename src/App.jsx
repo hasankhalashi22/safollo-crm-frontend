@@ -11,12 +11,14 @@ import NewSale from './pages/executive/NewSale';
 import DueList from './pages/executive/DueList';
 import Profile from './pages/executive/Profile';
 import MyPerformance from './pages/executive/MyPerformance';
+import MyApprovals from './pages/executive/MyApprovals';
 
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminSales from './pages/admin/Sales';
 import AdminStaff from './pages/admin/Staff';
 import RoleManagement from './pages/admin/RoleManagement';
 import AuditLog from './pages/admin/AuditLog';
+import SaleApproval from './pages/admin/SaleApproval';
 import { AdminDueList, AdminSettings, CourseManagement } from './pages/admin/AdminPages';
 
 function ProtectedRoute({ children, allowedLevels }) {
@@ -54,12 +56,14 @@ function AppRoutes() {
       <Route path="/executive/due" element={<ProtectedRoute allowedLevels={[4, 5]}><ExecutiveLayout><DueList /></ExecutiveLayout></ProtectedRoute>} />
       <Route path="/executive/performance" element={<ProtectedRoute allowedLevels={[4, 5]}><ExecutiveLayout><MyPerformance /></ExecutiveLayout></ProtectedRoute>} />
       <Route path="/executive/profile" element={<ProtectedRoute allowedLevels={[4, 5]}><ExecutiveLayout><Profile /></ExecutiveLayout></ProtectedRoute>} />
+      <Route path="/executive/approvals" element={<ProtectedRoute allowedLevels={[4, 5]}><ExecutiveLayout><MyApprovals /></ExecutiveLayout></ProtectedRoute>} />
 
       <Route path="/manager" element={<ProtectedRoute allowedLevels={[3]}><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
       <Route path="/manager/new-sale" element={<ProtectedRoute allowedLevels={[3]}><AdminLayout><NewSale /></AdminLayout></ProtectedRoute>} />
       <Route path="/manager/sales" element={<ProtectedRoute allowedLevels={[3]}><AdminLayout><AdminSales /></AdminLayout></ProtectedRoute>} />
       <Route path="/manager/due" element={<ProtectedRoute allowedLevels={[3]}><AdminLayout><AdminDueList /></AdminLayout></ProtectedRoute>} />
       <Route path="/manager/performance" element={<ProtectedRoute allowedLevels={[3]}><AdminLayout><MyPerformance /></AdminLayout></ProtectedRoute>} />
+      <Route path="/manager/approvals" element={<ProtectedRoute allowedLevels={[3]}><AdminLayout><SaleApproval /></AdminLayout></ProtectedRoute>} />
 
       <Route path="/admin" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/new-sale" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><NewSale /></AdminLayout></ProtectedRoute>} />
@@ -70,6 +74,7 @@ function AppRoutes() {
       <Route path="/admin/courses" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><CourseManagement /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/settings" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><AdminSettings /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/audit" element={<ProtectedRoute allowedLevels={[1]}><AdminLayout><AuditLog /></AdminLayout></ProtectedRoute>} />
+      <Route path="/admin/approvals" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><SaleApproval /></AdminLayout></ProtectedRoute>} />
 
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="*" element={<Navigate to="/login" replace />} />

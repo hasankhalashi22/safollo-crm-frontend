@@ -119,4 +119,13 @@ export const fieldConfigsApi = {
 export const auditApi = {
   getLogs: (params) => api.get('/api/audit', { params }),
 };
+// Approvals
+export const approvalsApi = {
+  getPending:   () => api.get('/api/approvals'),
+  getMyPending: () => api.get('/api/approvals/my-pending'),
+  approve:      (id, data) => api.patch(`/api/approvals/${id}/approve`, data),
+  reject:       (id, reason) => api.patch(`/api/approvals/${id}/reject`, { reason }),
+  resubmit:     (id, data) => api.patch(`/api/approvals/${id}/resubmit`, data),
+};
+
 export default api;

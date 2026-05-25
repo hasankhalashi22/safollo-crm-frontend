@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-
+import { Home, Plus, Clock, User, BarChart2, Users, BookOpen, Settings, LogOut, TrendingUp, Shield, Menu, X, Activity, CheckSquare } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { Home, Plus, Clock, User, BarChart2, Users, BookOpen, Settings, LogOut, TrendingUp, Shield, Menu, X, Activity } from 'lucide-react';
 
 export function ExecutiveLayout({ children }) {
   const { user, logout } = useAuth();
@@ -27,40 +26,41 @@ export function ExecutiveLayout({ children }) {
       <main className="page-enter">{children}</main>
 
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 shadow-lg z-10">
-        <div className="flex items-center justify-around px-2 py-2">
+        <div className="flex items-center justify-around px-1 py-2">
           <NavLink to="/executive" end className={({ isActive }) =>
-            `flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`
-          }>
+            `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`}>
             <Home size={20} />
             <span className="text-xs">হোম</span>
           </NavLink>
 
           <NavLink to="/executive/new-sale" className={({ isActive }) =>
-            `flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`
-          }>
+            `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`}>
             <div className="bg-primary-500 text-white rounded-full p-2.5 -mt-6 shadow-lg">
               <Plus size={22} />
             </div>
             <span className="text-xs text-gray-400 mt-0.5">নতুন সেল</span>
           </NavLink>
 
+          <NavLink to="/executive/approvals" className={({ isActive }) =>
+            `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`}>
+            <CheckSquare size={20} />
+            <span className="text-xs">Approval</span>
+          </NavLink>
+
           <NavLink to="/executive/performance" className={({ isActive }) =>
-            `flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`
-          }>
+            `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`}>
             <TrendingUp size={20} />
             <span className="text-xs">পারফরম্যান্স</span>
           </NavLink>
 
           <NavLink to="/executive/due" className={({ isActive }) =>
-            `flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`
-          }>
+            `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`}>
             <Clock size={20} />
             <span className="text-xs">বকেয়া</span>
           </NavLink>
 
           <NavLink to="/executive/profile" className={({ isActive }) =>
-            `flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`
-          }>
+            `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`}>
             <User size={20} />
             <span className="text-xs">প্রোফাইল</span>
           </NavLink>
@@ -82,9 +82,11 @@ export function AdminLayout({ children }) {
   };
 
   const isManager = user?.role === 'manager';
+  const isSuperAdmin = user?.role === 'super_admin';
 
   const managerNav = [
     { to: '/manager', icon: BarChart2, label: 'ড্যাশবোর্ড', end: true },
+    { to: '/manager/approvals', icon: CheckSquare, label: 'সেল Approval' },
     { to: '/manager/new-sale', icon: Plus, label: 'নতুন সেল' },
     { to: '/manager/sales', icon: BarChart2, label: 'সেলস রিপোর্ট' },
     { to: '/manager/due', icon: Clock, label: 'বকেয়া তালিকা' },
@@ -93,6 +95,7 @@ export function AdminLayout({ children }) {
 
   const adminNav = [
     { to: '/admin', icon: BarChart2, label: 'ড্যাশবোর্ড', end: true },
+    { to: '/admin/approvals', icon: CheckSquare, label: 'সেল Approval' },
     { to: '/admin/new-sale', icon: Plus, label: 'নতুন সেল' },
     { to: '/admin/sales', icon: BarChart2, label: 'সেলস রিপোর্ট' },
     { to: '/admin/due', icon: Clock, label: 'বকেয়া তালিকা' },
@@ -100,7 +103,7 @@ export function AdminLayout({ children }) {
     { to: '/admin/roles', icon: Shield, label: 'Role Management' },
     { to: '/admin/courses', icon: BookOpen, label: 'কোর্স ম্যানেজমেন্ট' },
     { to: '/admin/settings', icon: Settings, label: 'সেটিংস' },
-{ to: '/admin/audit', icon: Activity, label: 'Activity Log' },
+    ...(isSuperAdmin ? [{ to: '/admin/audit', icon: Activity, label: 'Activity Log' }] : []),
   ];
 
   const navItems = isManager ? managerNav : adminNav;
@@ -148,13 +151,10 @@ export function AdminLayout({ children }) {
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
-
-      {/* Desktop Sidebar */}
       <aside className="hidden lg:flex w-64 bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0">
         <SidebarContent />
       </aside>
 
-      {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div className="fixed inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
@@ -168,9 +168,7 @@ export function AdminLayout({ children }) {
         </div>
       )}
 
-      {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Mobile Top Bar */}
         <div className="lg:hidden bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3 shadow-sm">
           <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl bg-gray-100">
             <Menu size={20} className="text-gray-600" />
