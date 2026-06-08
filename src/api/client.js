@@ -132,7 +132,6 @@ export const approvalsApi = {
   rejectDuePayment:    (id, reason) => api.patch(`/api/approvals/payments/${id}/reject`, { reason }),
 };
 
-getMyPendingDue: () => api.get('/api/approvals/my-pending-due'),
 
 export default api;
 
