@@ -226,7 +226,8 @@ function ProfileModal({ user, onClose }) {
 
   useEffect(() => {
     usersApi.getById(user.id).then(r => {
-      setProfile(r.data);
+      console.log('Profile data:', r);
+      setProfile(r.data || r);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [user.id]);
