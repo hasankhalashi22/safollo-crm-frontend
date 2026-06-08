@@ -47,7 +47,7 @@ export const usersApi = {
   create:       (data) => api.post('/api/users', data),
   update:       (id, data) => api.patch(`/api/users/${id}`, data),
   toggleActive: (id) => api.patch(`/api/users/${id}/toggle`),
-  getRoles:     () => api.get('/api/users/roles'),
+  getRoles: () => api.get('/api/users/roles').then(r => Array.isArray(r) ? { data: r } : r),
   createRole:   (data) => api.post('/api/users/roles', data),
   updateRole:   (id, data) => api.patch(`/api/users/roles/${id}`, data),
   deleteRole:   (id) => api.delete(`/api/users/roles/${id}`),
