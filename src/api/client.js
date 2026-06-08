@@ -124,11 +124,15 @@ export const approvalsApi = {
   getPending:          () => api.get('/api/approvals'),
   getPendingDue:       () => api.get('/api/approvals/due-payments'),
   getMyPending:        () => api.get('/api/approvals/my-pending'),
+  getMyPendingDue:     () => api.get('/api/approvals/my-pending-due'),
   approve:             (id, data) => api.patch(`/api/approvals/${id}/approve`, data),
   reject:              (id, reason) => api.patch(`/api/approvals/${id}/reject`, { reason }),
   resubmit:            (id, data) => api.patch(`/api/approvals/${id}/resubmit`, data),
   approveDuePayment:   (id) => api.patch(`/api/approvals/payments/${id}/approve`),
   rejectDuePayment:    (id, reason) => api.patch(`/api/approvals/payments/${id}/reject`, { reason }),
 };
-export default api;
+
 getMyPendingDue: () => api.get('/api/approvals/my-pending-due'),
+
+export default api;
+
