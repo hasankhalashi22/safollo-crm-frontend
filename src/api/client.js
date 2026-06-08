@@ -121,11 +121,13 @@ export const auditApi = {
 };
 // Approvals
 export const approvalsApi = {
-  getPending:   () => api.get('/api/approvals'),
-  getMyPending: () => api.get('/api/approvals/my-pending'),
-  approve:      (id, data) => api.patch(`/api/approvals/${id}/approve`, data),
-  reject:       (id, reason) => api.patch(`/api/approvals/${id}/reject`, { reason }),
-  resubmit:     (id, data) => api.patch(`/api/approvals/${id}/resubmit`, data),
+  getPending:          () => api.get('/api/approvals'),
+  getPendingDue:       () => api.get('/api/approvals/due-payments'),
+  getMyPending:        () => api.get('/api/approvals/my-pending'),
+  approve:             (id, data) => api.patch(`/api/approvals/${id}/approve`, data),
+  reject:              (id, reason) => api.patch(`/api/approvals/${id}/reject`, { reason }),
+  resubmit:            (id, data) => api.patch(`/api/approvals/${id}/resubmit`, data),
+  approveDuePayment:   (id) => api.patch(`/api/approvals/payments/${id}/approve`),
+  rejectDuePayment:    (id, reason) => api.patch(`/api/approvals/payments/${id}/reject`, { reason }),
 };
-
 export default api;
