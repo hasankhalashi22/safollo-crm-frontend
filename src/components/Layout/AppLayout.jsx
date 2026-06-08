@@ -44,7 +44,7 @@ export function ExecutiveLayout({ children }) {
           <NavLink to="/executive/approvals" className={({ isActive }) =>
             `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`}>
             <CheckSquare size={20} />
-            <span className="text-xs">Approval</span>
+            <span className="text-xs">Pending</span>
           </NavLink>
 
           <NavLink to="/executive/performance" className={({ isActive }) =>
