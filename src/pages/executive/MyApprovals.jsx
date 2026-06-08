@@ -16,11 +16,16 @@ export default function MyApprovals() {
   const [sales, setSales] = useState([]);
   const [loading, setLoading] = useState(true);
   const [resubmitModal, setResubmitModal] = useState(null);
+const [duePayments, setDuePayments] = useState([]);
 
   const fetchMyPending = () => {
     setLoading(true);
-    approvalsApi.getMyPending().then(r => {
-      setSales(r.data || []);
+    Promise.all([
+      approvalsApi.getMyPending(),
+      approvalsApi.getMyPendingDue(),
+    ]).then(([salesRes, dueRes]) => {
+      setSales(salesRes.data || []);
+      setDuePayments(dueRes.data || []);
       setLoading(false);
     }).catch(() => setLoading(false));
   };
@@ -94,6 +99,24 @@ export default function MyApprovals() {
                   </button>
                 </div>
               )}
+            </div>
+          ))}
+        </div>
+      )}
+
+     {duePayments.length > 0 && (
+        <div className="mt-4">
+          <h3 className="font-semibold text-dark mb-3">Pending বকেয়া Payment</h3>
+          {duePayments.map(payment => (
+            <div key={payment.id} className="card mb-3">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="font-semibold">{payment.student_name || payment.student_phone}</p>
+                  <p className="text-sm text-gray-500">{payment.course_name}</p>
+                  <p className="font-bold text-green-600 mt-1">৳{Number(payment.amount).toLocaleString()} পাঠিয়েছি</p>
+                </div>
+                <span className="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full">⏳ Pending</span>
+              </div>
             </div>
           ))}
         </div>
