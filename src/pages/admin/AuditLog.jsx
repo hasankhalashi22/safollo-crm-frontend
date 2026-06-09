@@ -8,6 +8,8 @@ const ACTION_LABELS = {
   UPDATE:   { label: 'আপডেট',   cls: 'bg-blue-100 text-blue-700' },
   DELETE:   { label: 'Delete',   cls: 'bg-red-100 text-red-700' },
   REASSIGN: { label: 'Reassign', cls: 'bg-yellow-100 text-yellow-700' },
+  APPROVE:  { label: 'Approve',  cls: 'bg-green-100 text-green-700' },
+  REJECT:   { label: 'Reject',   cls: 'bg-red-100 text-red-700' },
   LOGIN:    { label: 'Login',    cls: 'bg-purple-100 text-purple-700' },
 };
 
@@ -24,13 +26,18 @@ export default function AuditLog() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
-  const [filters, setFilters] = useState({
-    module: '', action: '', user_id: '', date_from: '', date_to: '',
-  });
   const [page, setPage] = useState(1);
   const limit = 50;
 
-  const fetchLogs = (f = filters, p = page) => {
+  const [filters, setFilters] = useState({
+    module: '', action: '', user_id: '', date_from: '', date_to: '',
+  });
+
+  const [appliedFilters, setAppliedFilters] = useState({
+    module: '', action: '', user_id: '', date_from: '', date_to: '',
+  });
+
+  const fetchLogs = (f, p = 1) => {
     setLoading(true);
     const params = { page: p, limit };
     if (f.module) params.module = f.module;
@@ -47,19 +54,32 @@ export default function AuditLog() {
   };
 
   useEffect(() => {
-    fetchLogs();
+    fetchLogs(appliedFilters, 1);
     usersApi.getAll().then(r => setUsers(r.data || []));
   }, []);
 
   const setFilter = (k, v) => setFilters(p => ({ ...p, [k]: v }));
 
+  const handleSearch = () => {
+    setPage(1);
+    setAppliedFilters({ ...filters });
+    fetchLogs(filters, 1);
+  };
+
+  const handleReset = () => {
+    const empty = { module: '', action: '', user_id: '', date_from: '', date_to: '' };
+    setFilters(empty);
+    setAppliedFilters(empty);
+    setPage(1);
+    fetchLogs(empty, 1);
+  };
+
   const handleExport = () => {
     if (logs.length === 0) return toast.error('কোনো ডেটা নেই');
-    const headers = ['সময়', 'কে', 'পদ', 'কাজ', 'Module', 'বিবরণ'];
+    const headers = ['সময়', 'কে', 'কাজ', 'Module', 'বিবরণ'];
     const rows = logs.map(l => [
       format(new Date(l.created_at), 'dd/MM/yyyy HH:mm'),
-      l.user_name || '—',
-      l.user_role || '—',
+      `${l.user_name || ''}${l.staff_name ? ' (' + l.staff_name + ')' : ''}`,
       ACTION_LABELS[l.action]?.label || l.action,
       MODULE_LABELS[l.module] || l.module,
       l.description || '—',
@@ -88,7 +108,7 @@ export default function AuditLog() {
       </div>
 
       {/* Filters */}
-      <div className="card mb-4">
+      <div className="card mb-4 space-y-3">
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
           <select className="input-field" value={filters.module} onChange={e => setFilter('module', e.target.value)}>
             <option value="">সব Module</option>
@@ -104,7 +124,8 @@ export default function AuditLog() {
             <option value="UPDATE">আপডেট</option>
             <option value="DELETE">Delete</option>
             <option value="REASSIGN">Reassign</option>
-            <option value="LOGIN">Login</option>
+            <option value="APPROVE">Approve</option>
+            <option value="REJECT">Reject</option>
           </select>
           <select className="input-field" value={filters.user_id} onChange={e => setFilter('user_id', e.target.value)}>
             <option value="">সব User</option>
@@ -113,8 +134,10 @@ export default function AuditLog() {
           <input type="date" className="input-field" value={filters.date_from} onChange={e => setFilter('date_from', e.target.value)} />
           <input type="date" className="input-field" value={filters.date_to} onChange={e => setFilter('date_to', e.target.value)} />
         </div>
-        <button onClick={() => { setPage(1); fetchLogs(filters, 1); }}
-          className="btn-primary py-2 max-w-xs mt-3">খুঁজুন</button>
+        <div className="flex gap-2">
+          <button onClick={handleSearch} className="btn-primary py-2 px-6">খুঁজুন</button>
+          <button onClick={handleReset} className="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl text-sm font-medium">রিসেট</button>
+        </div>
       </div>
 
       {/* Table */}
@@ -122,27 +145,26 @@ export default function AuditLog() {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b">
             <tr>
-              {['সময়', 'কে করেছে', 'পদ', 'কাজ', 'Module', 'বিবরণ'].map(h => (
+              {['সময়', 'কে করেছে', 'কাজ', 'Module', 'বিবরণ'].map(h => (
                 <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
             {loading ? (
-              <tr><td colSpan={6} className="text-center py-12 text-gray-400">লোড হচ্ছে...</td></tr>
+              <tr><td colSpan={5} className="text-center py-12 text-gray-400">লোড হচ্ছে...</td></tr>
             ) : logs.length === 0 ? (
-              <tr><td colSpan={6} className="text-center py-12 text-gray-400">কোনো log নেই</td></tr>
+              <tr><td colSpan={5} className="text-center py-12 text-gray-400">কোনো log নেই</td></tr>
             ) : logs.map(l => (
               <tr key={l.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
                   {format(new Date(l.created_at), 'dd/MM/yy HH:mm')}
                 </td>
-              <td className="px-4 py-3 font-medium">
-  {l.user_name || l.staff_name
-    ? `${l.user_name}${l.staff_name ? ' (' + l.staff_name + ')' : ''}`
-    : '—'}
-</td>
-                <td className="px-4 py-3 text-gray-500">{l.user_role || '—'}</td>
+                <td className="px-4 py-3 font-medium">
+                  {l.user_name
+                    ? `${l.user_name}${l.staff_name ? ' (' + l.staff_name + ')' : ''}`
+                    : '—'}
+                </td>
                 <td className="px-4 py-3">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${ACTION_LABELS[l.action]?.cls || 'bg-gray-100 text-gray-600'}`}>
                     {ACTION_LABELS[l.action]?.label || l.action}
@@ -165,12 +187,12 @@ export default function AuditLog() {
         <div className="flex items-center justify-between mt-4">
           <p className="text-sm text-gray-500">{total}টির মধ্যে {(page-1)*limit+1}-{Math.min(page*limit, total)} দেখাচ্ছে</p>
           <div className="flex gap-2">
-            <button onClick={() => { setPage(p => p-1); fetchLogs(filters, page-1); }}
+            <button onClick={() => { const p = page-1; setPage(p); fetchLogs(appliedFilters, p); }}
               disabled={page === 1}
               className="px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm disabled:opacity-50">
               আগে
             </button>
-            <button onClick={() => { setPage(p => p+1); fetchLogs(filters, page+1); }}
+            <button onClick={() => { const p = page+1; setPage(p); fetchLogs(appliedFilters, p); }}
               disabled={page * limit >= total}
               className="px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-sm disabled:opacity-50">
               পরে
