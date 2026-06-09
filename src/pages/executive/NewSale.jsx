@@ -69,6 +69,7 @@ export default function NewSale() {
     if (!form.collected_amount || Number(form.collected_amount) <= 0) return toast.error('সংগৃহীত টাকার পরিমাণ দিন');
     if (!form.payment_method) return toast.error('পেমেন্ট পদ্ধতি বেছে নিন');
     if (!form.sender_number || form.sender_number.length !== 11) return toast.error('যে নম্বর হতে পেমেন্ট এসেছে দিন');
+if (!form.payment_proof) return toast.error('পেমেন্ট প্রুফ আপলোড করুন');
 
     setLoading(true);
     try {
