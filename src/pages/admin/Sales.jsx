@@ -135,7 +135,7 @@ export default function AdminSales() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                {['তারিখ', 'স্টুডেন্ট', 'কোর্স', 'মূল্য', 'সংগৃহীত', 'বাকি', 'স্ট্যাটাস', 'পেমেন্ট নম্বর', 'Executive', 'Approver', 'অ্যাকশন'].map(h => (
+               {['তারিখ', 'স্টুডেন্ট', 'কোর্স', 'মূল্য', 'সংগৃহীত', 'বাকি', 'স্ট্যাটাস', 'পেমেন্ট পদ্ধতি', 'পেমেন্ট নম্বর', 'Executive', 'Approver', 'অ্যাকশন'].map(h => (
                   <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -163,6 +163,8 @@ export default function AdminSales() {
                     <span className={STATUS_LABELS[s.payment_status]?.cls || 'badge-due'}>
                       {STATUS_LABELS[s.payment_status]?.label || s.payment_status}
                     </span>
+                  <td className="px-4 py-3 text-gray-500">
+                    {s.payment_history?.[0]?.payment_method || '—'}
                   </td>
                   <td className="px-4 py-3 text-gray-500">
                     {s.payment_history?.[0]?.sender_number || '—'}
