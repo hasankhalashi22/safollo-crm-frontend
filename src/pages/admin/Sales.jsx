@@ -13,7 +13,8 @@ const STATUS_LABELS = {
 
 export default function AdminSales() {
   const { user } = useAuth();
-  const [sales, setSales] = useState([]);  const [total, setTotal] = useState(0);
+  const [sales, setSales] = useState([]);
+  const [total, setTotal] = useState(0);
   const [courses, setCourses] = useState([]);
   const [executives, setExecutives] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -37,7 +38,7 @@ export default function AdminSales() {
     }).catch(() => setLoading(false));
   };
 
-const handleDelete = async (sale) => {
+  const handleDelete = async (sale) => {
     if (!confirm(`এই সেল permanently delete করবেন?`)) return;
     try {
       await salesApi.delete(sale.id);
@@ -56,7 +57,7 @@ const handleDelete = async (sale) => {
 
   const handleExport = () => {
     if (sales.length === 0) return toast.error('কোনো ডেটা নেই');
-    const headers = ['তারিখ', 'স্টুডেন্টের নাম', 'ফোন নম্বর', 'কোর্স', 'ব্যাচ', 'কোর্স মূল্য', 'সংগৃহীত', 'বাকি', 'স্ট্যাটাস', 'Executive', 'রেফারেন্স'];
+    const headers = ['তারিখ', 'স্টুডেন্টের নাম', 'ফোন নম্বর', 'কোর্স', 'ব্যাচ', 'কোর্স মূল্য', 'সংগৃহীত', 'বাকি', 'স্ট্যাটাস', 'পেমেন্ট নম্বর', 'Executive', 'Approver', 'রেফারেন্স'];
     const rows = sales.map(s => [
       format(new Date(s.created_at), 'dd/MM/yyyy'),
       s.student_name || '',
@@ -67,7 +68,9 @@ const handleDelete = async (sale) => {
       s.total_collected,
       s.due_amount || 0,
       s.payment_status === 'paid' ? 'পেইড' : s.payment_status === 'due' ? 'বকেয়া' : 'আংশিক',
+      s.payment_history?.[0]?.sender_number || '',
       s.executive_name || '',
+      s.approver_name || '',
       s.reference || '',
     ]);
     const csvContent = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
@@ -132,19 +135,19 @@ const handleDelete = async (sale) => {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                {['তারিখ', 'স্টুডেন্ট', 'কোর্স', 'মূল্য', 'সংগৃহীত', 'বাকি', 'স্ট্যাটাস', 'Executive', 'Approver', 'অ্যাকশন'].map(h => (
-                  <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">{h}</th>
+                {['তারিখ', 'স্টুডেন্ট', 'কোর্স', 'মূল্য', 'সংগৃহীত', 'বাকি', 'স্ট্যাটাস', 'পেমেন্ট নম্বর', 'Executive', 'Approver', 'অ্যাকশন'].map(h => (
+                  <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
-                <tr><td colSpan={9} className="text-center py-12 text-gray-400">লোড হচ্ছে...</td></tr>
+                <tr><td colSpan={11} className="text-center py-12 text-gray-400">লোড হচ্ছে...</td></tr>
               ) : sales.length === 0 ? (
-                <tr><td colSpan={9} className="text-center py-12 text-gray-400">কোনো রেকর্ড নেই</td></tr>
+                <tr><td colSpan={11} className="text-center py-12 text-gray-400">কোনো রেকর্ড নেই</td></tr>
               ) : sales.map(s => (
                 <tr key={s.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setSelected(s)}>
-                  <td className="px-4 py-3 text-gray-500">{format(new Date(s.created_at), 'dd/MM/yy')}</td>
+                  <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{format(new Date(s.created_at), 'dd/MM/yy')}</td>
                   <td className="px-4 py-3">
                     <p className="font-medium">{s.student_name || '—'}</p>
                     <p className="text-xs text-gray-400">{s.student_phone}</p>
@@ -153,30 +156,32 @@ const handleDelete = async (sale) => {
                     <p>{s.course_name}</p>
                     <p className="text-xs text-gray-400">{s.batch_name}</p>
                   </td>
-                  <td className="px-4 py-3">৳{Number(s.course_price).toLocaleString()}</td>
-                  <td className="px-4 py-3 text-green-600 font-medium">৳{Number(s.total_collected).toLocaleString()}</td>
-                  <td className="px-4 py-3 text-red-600">৳{Number(s.due_amount || 0).toLocaleString()}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">৳{Number(s.course_price).toLocaleString()}</td>
+                  <td className="px-4 py-3 text-green-600 font-medium whitespace-nowrap">৳{Number(s.total_collected).toLocaleString()}</td>
+                  <td className="px-4 py-3 text-red-600 whitespace-nowrap">৳{Number(s.due_amount || 0).toLocaleString()}</td>
                   <td className="px-4 py-3">
                     <span className={STATUS_LABELS[s.payment_status]?.cls || 'badge-due'}>
                       {STATUS_LABELS[s.payment_status]?.label || s.payment_status}
                     </span>
                   </td>
+                  <td className="px-4 py-3 text-gray-500">
+                    {s.payment_history?.[0]?.sender_number || '—'}
+                  </td>
                   <td className="px-4 py-3 text-gray-500">{s.executive_name || '—'}</td>
-<td className="px-4 py-3 text-gray-500">{s.approver_name || '—'}</td>
+                  <td className="px-4 py-3 text-gray-500">{s.approver_name || '—'}</td>
                   <td className="px-4 py-3">
                     {(user?.role === 'super_admin' || user?.role === 'advisor') && (
-  <button onClick={(e) => { e.stopPropagation(); setEditModal(s); }}
-    className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium">
-    ✏️ Edit
-  </button>
-)}
-{user?.role === 'super_admin' && (
-  <button onClick={(e) => { e.stopPropagation(); handleDelete(s); }}
-    className="px-2 py-1 bg-red-50 text-red-500 rounded-lg text-xs font-medium ml-1">
-    🗑️
-  </button>
-)}
-
+                      <button onClick={(e) => { e.stopPropagation(); setEditModal(s); }}
+                        className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium">
+                        ✏️ Edit
+                      </button>
+                    )}
+                    {user?.role === 'super_admin' && (
+                      <button onClick={(e) => { e.stopPropagation(); handleDelete(s); }}
+                        className="px-2 py-1 bg-red-50 text-red-500 rounded-lg text-xs font-medium ml-1">
+                        🗑️
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -201,6 +206,7 @@ const handleDelete = async (sale) => {
               <Row label="সংগৃহীত" value={`৳${Number(selected.total_collected).toLocaleString()}`} />
               <Row label="বাকি" value={`৳${Number(selected.due_amount || 0).toLocaleString()}`} />
               <Row label="Executive" value={selected.executive_name || '—'} />
+              <Row label="Approver" value={selected.approver_name || '—'} />
               {selected.reference && <Row label="রেফারেন্স" value={selected.reference} />}
               {selected.payment_history?.length > 0 && (
                 <div>
@@ -212,6 +218,7 @@ const handleDelete = async (sale) => {
                         <span className="text-gray-400 text-xs">{format(new Date(p.created_at), 'dd/MM/yy HH:mm')}</span>
                       </div>
                       <p className="text-xs text-gray-500">{p.payment_method} {p.transaction_id ? '• ' + p.transaction_id : ''}</p>
+                      {p.sender_number && <p className="text-xs text-gray-500">পেমেন্ট নম্বর: {p.sender_number}</p>}
                       {p.payment_proof_url && (
                         <a href={p.payment_proof_url} target="_blank" rel="noreferrer" className="text-xs text-primary-500 underline">প্রুফ দেখুন</a>
                       )}

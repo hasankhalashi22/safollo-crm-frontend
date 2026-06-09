@@ -15,7 +15,6 @@ const PAYMENT_METHODS = [
 
 export default function NewSale() {
   const [courses, setCourses] = useState([]);
-  const [fieldConfigs, setFieldConfigs] = useState([]);
   const [executives, setExecutives] = useState([]);
   const [loading, setLoading] = useState(false);
   const [proofPreview, setProofPreview] = useState(null);
@@ -30,6 +29,7 @@ export default function NewSale() {
     course_price: '',
     collected_amount: '',
     payment_method: '',
+    sender_number: '',
     transaction_id: '',
     due_date: '',
     reference: '',
@@ -39,10 +39,7 @@ export default function NewSale() {
   });
 
   useEffect(() => {
-    Promise.all([coursesApi.getAll(), fieldConfigsApi.getAll()]).then(([cRes, fRes]) => {
-      setCourses(cRes.data || []);
-      setFieldConfigs(fRes.data || []);
-    });
+    coursesApi.getAll().then(r => setCourses(r.data || []));
     if (user?.role_level <= 3) {
       usersApi.getAll({ role: 'executive' }).then(r => setExecutives(r.data || []));
     }
@@ -62,17 +59,16 @@ export default function NewSale() {
     set('course_price', course?.default_price || '');
   };
 
-  const isFieldMandatory = (key) => {
-    const config = fieldConfigs.find(f => f.field_key === key);
-    return config?.is_mandatory || false;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.student_phone || form.student_phone.length !== 11) return toast.error('সঠিক মোবাইল নম্বর দিন');
+    if (!form.student_name) return toast.error('স্টুডেন্টের নাম দিন');
     if (!form.course_id) return toast.error('কোর্স বেছে নিন');
+    if (batches.length > 0 && !form.batch_id) return toast.error('ব্যাচ বেছে নিন');
+    if (!form.course_price) return toast.error('কোর্স মূল্য দিন');
     if (!form.collected_amount || Number(form.collected_amount) <= 0) return toast.error('সংগৃহীত টাকার পরিমাণ দিন');
     if (!form.payment_method) return toast.error('পেমেন্ট পদ্ধতি বেছে নিন');
+    if (!form.sender_number || form.sender_number.length !== 11) return toast.error('যে নম্বর হতে পেমেন্ট এসেছে দিন');
 
     setLoading(true);
     try {
@@ -107,7 +103,7 @@ export default function NewSale() {
                 onChange={e => set('student_phone', e.target.value.replace(/\D/g, '').slice(0, 11))} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-dark mb-1">নাম</label>
+              <label className="block text-sm font-medium text-dark mb-1">নাম *</label>
               <input type="text" className="input-field" placeholder="স্টুডেন্টের নাম"
                 value={form.student_name} onChange={e => set('student_name', e.target.value)} />
             </div>
@@ -137,7 +133,7 @@ export default function NewSale() {
             </div>
             {batches.length > 0 && (
               <div>
-                <label className="block text-sm font-medium text-dark mb-1">ব্যাচ</label>
+                <label className="block text-sm font-medium text-dark mb-1">ব্যাচ *</label>
                 <select className="input-field" value={form.batch_id} onChange={e => set('batch_id', e.target.value)}>
                   <option value="">-- ব্যাচ বেছে নিন --</option>
                   {batches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
@@ -145,7 +141,7 @@ export default function NewSale() {
               </div>
             )}
             <div>
-              <label className="block text-sm font-medium text-dark mb-1">কোর্স মূল্য (৳)</label>
+              <label className="block text-sm font-medium text-dark mb-1">কোর্স মূল্য (৳) *</label>
               <input type="number" className="input-field" value={form.course_price}
                 onChange={e => set('course_price', e.target.value)} />
             </div>
@@ -160,11 +156,6 @@ export default function NewSale() {
               <label className="block text-sm font-medium text-dark mb-1">সংগৃহীত টাকা (৳) *</label>
               <input type="number" className="input-field" placeholder="0"
                 value={form.collected_amount} onChange={e => set('collected_amount', e.target.value)} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-dark mb-1">ট্রানজেকশন আইডি</label>
-              <input type="text" className="input-field" placeholder="TXN ID"
-                value={form.transaction_id} onChange={e => set('transaction_id', e.target.value)} />
             </div>
           </div>
 
@@ -189,6 +180,17 @@ export default function NewSale() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-dark mb-1">যে নম্বর হতে পেমেন্ট এসেছে *</label>
+              <input type="tel" className="input-field" placeholder="01XXXXXXXXX"
+                value={form.sender_number}
+                onChange={e => set('sender_number', e.target.value.replace(/\D/g, '').slice(0, 11))} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-dark mb-1">ট্রানজেকশন আইডি</label>
+              <input type="text" className="input-field" placeholder="TXN ID"
+                value={form.transaction_id} onChange={e => set('transaction_id', e.target.value)} />
+            </div>
             {dueAmount > 0 && (
               <div>
                 <label className="block text-sm font-medium text-dark mb-1">বাকি দেওয়ার তারিখ</label>
