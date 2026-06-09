@@ -42,11 +42,9 @@ const [duePayments, setDuePayments] = useState([]);
   };
 
 const handleCancel = async (sale) => {
-    if (!window.confirm('এই সেল entry বাতিল করবেন?')) return;
-    console.log('Cancelling sale:', sale.id);
+    console.log('Cancel clicked for sale:', sale.id);
     try {
-      const res = await salesApi.delete(sale.id);
-      console.log('Delete response:', res);
+      await salesApi.delete(sale.id);
       toast.success('সেল বাতিল হয়েছে ✅');
       fetchMyPending();
     } catch (err) {
@@ -54,7 +52,6 @@ const handleCancel = async (sale) => {
       toast.error(err.message || 'সমস্যা হয়েছে');
     }
   };
-
   if (loading) return <div className="flex justify-center h-64 items-center"><div className="spinner w-8 h-8" /></div>;
 
   return (
