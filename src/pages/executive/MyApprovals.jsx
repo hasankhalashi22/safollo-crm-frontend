@@ -53,7 +53,8 @@ export default function MyApprovals() {
     }
   };
 
-  const handleResubmitDue = async (payment) => {
+const handleResubmitDue = async (payment) => {
+    console.log('Resubmit due clicked:', payment.id);
     try {
       await approvalsApi.resubmitDuePayment(payment.id);
       toast.success('Resubmit হয়েছে ✅');
@@ -61,7 +62,8 @@ export default function MyApprovals() {
     } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
   };
 
-  const handleCancelDue = async (payment) => {
+const handleCancelDue = async (payment) => {
+    console.log('Cancel due clicked:', payment.id);
     try {
       await paymentsApi.cancel(payment.id);
       toast.success('বাতিল হয়েছে ✅');
