@@ -137,7 +137,11 @@ export default function AuditLog() {
                 <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
                   {format(new Date(l.created_at), 'dd/MM/yy HH:mm')}
                 </td>
-                <td className="px-4 py-3 font-medium">{l.user_name || '—'}</td>
+              <td className="px-4 py-3 font-medium">
+  {l.user_name || l.staff_name
+    ? `${l.user_name}${l.staff_name ? ' (' + l.staff_name + ')' : ''}`
+    : '—'}
+</td>
                 <td className="px-4 py-3 text-gray-500">{l.user_role || '—'}</td>
                 <td className="px-4 py-3">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${ACTION_LABELS[l.action]?.cls || 'bg-gray-100 text-gray-600'}`}>
