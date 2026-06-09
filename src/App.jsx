@@ -26,7 +26,7 @@ function ProtectedRoute({ children, allowedLevels }) {
   if (loading) return <div className="flex items-center justify-center h-screen"><div className="spinner w-10 h-10" /></div>;
   if (!user) return <Navigate to="/login" replace />;
 
-  const needsProfile = user.role !== 'super_admin' && user.role !== 'advisor' || user.role === 'manager';
+  const needsProfile = user.role === 'manager' || (user.role !== 'super_admin' && user.role !== 'advisor' && user.role_level >= 4);
   if (needsProfile && !user.is_profile_complete) {
     return <Navigate to="/complete-profile" replace />;
   }
@@ -64,6 +64,7 @@ function AppRoutes() {
       <Route path="/manager/due" element={<ProtectedRoute allowedLevels={[3]}><AdminLayout><AdminDueList /></AdminLayout></ProtectedRoute>} />
       <Route path="/manager/performance" element={<ProtectedRoute allowedLevels={[3]}><AdminLayout><MyPerformance /></AdminLayout></ProtectedRoute>} />
       <Route path="/manager/approvals" element={<ProtectedRoute allowedLevels={[3]}><AdminLayout><SaleApproval /></AdminLayout></ProtectedRoute>} />
+      <Route path="/manager/profile" element={<ProtectedRoute allowedLevels={[3]}><AdminLayout><Profile /></AdminLayout></ProtectedRoute>} />
 
       <Route path="/admin" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/new-sale" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><NewSale /></AdminLayout></ProtectedRoute>} />
@@ -75,6 +76,7 @@ function AppRoutes() {
       <Route path="/admin/settings" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><AdminSettings /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/audit" element={<ProtectedRoute allowedLevels={[1]}><AdminLayout><AuditLog /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/approvals" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><SaleApproval /></AdminLayout></ProtectedRoute>} />
+      <Route path="/admin/profile" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><Profile /></AdminLayout></ProtectedRoute>} />
 
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="*" element={<Navigate to="/login" replace />} />

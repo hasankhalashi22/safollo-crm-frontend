@@ -91,6 +91,7 @@ export function AdminLayout({ children }) {
     { to: '/manager/sales', icon: BarChart2, label: 'সেলস রিপোর্ট' },
     { to: '/manager/due', icon: Clock, label: 'বকেয়া তালিকা' },
     { to: '/manager/performance', icon: TrendingUp, label: 'পারফরম্যান্স' },
+    { to: '/manager/profile', icon: User, label: 'আমার প্রোফাইল' },
   ];
 
   const adminNav = [
@@ -103,6 +104,7 @@ export function AdminLayout({ children }) {
     { to: '/admin/roles', icon: Shield, label: 'Role Management' },
     { to: '/admin/courses', icon: BookOpen, label: 'কোর্স ম্যানেজমেন্ট' },
     { to: '/admin/settings', icon: Settings, label: 'সেটিংস' },
+    { to: '/admin/profile', icon: User, label: 'আমার প্রোফাইল' },
     ...(isSuperAdmin ? [{ to: '/admin/audit', icon: Activity, label: 'Activity Log' }] : []),
   ];
 
