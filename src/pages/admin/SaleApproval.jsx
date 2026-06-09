@@ -250,11 +250,14 @@ function ApprovalModal({ sale, onApprove, onReject, onClose, onZoom }) {
                     onChange={e => setEditData(p => ({ ...p, notes: e.target.value }))} />
                 </div>
               </div>
-            ) : (
+           ) : (
               <div className="grid grid-cols-2 gap-3">
                 <InfoCard label="কোর্স মূল্য" value={`৳${Number(sale.course_price).toLocaleString()}`} />
                 <InfoCard label="সংগৃহীত" value={`৳${Number(sale.total_collected).toLocaleString()}`} />
                 <InfoCard label="বাকি" value={`৳${Number(sale.due_amount || 0).toLocaleString()}`} />
+                {Number(sale.due_amount) > 0 && sale.payment_history?.[0]?.due_date && (
+                  <InfoCard label="বাকি দেওয়ার তারিখ" value={format(new Date(sale.payment_history[0].due_date), 'dd/MM/yyyy')} />
+                )}
                 <InfoCard label="নোট" value={sale.notes || '—'} />
               </div>
             )}
