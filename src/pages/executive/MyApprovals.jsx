@@ -42,10 +42,11 @@ const [duePayments, setDuePayments] = useState([]);
   };
 
 const handleCancel = async (sale) => {
-    const confirmed = window.confirm('এই সেল entry বাতিল করবেন?');
-    if (!confirmed) return;
+    if (!window.confirm('এই সেল entry বাতিল করবেন?')) return;
+    console.log('Cancelling sale:', sale.id);
     try {
-      await salesApi.delete(sale.id);
+      const res = await salesApi.delete(sale.id);
+      console.log('Delete response:', res);
       toast.success('সেল বাতিল হয়েছে ✅');
       fetchMyPending();
     } catch (err) {
