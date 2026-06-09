@@ -97,7 +97,7 @@ const handleCancel = async (sale) => {
                     className="flex-1 flex items-center gap-2 justify-center py-2 bg-primary-50 text-primary-600 rounded-xl text-sm font-medium active:scale-95">
                     <Edit size={16} /> Edit করে Resubmit
                   </button>
-                  <button onClick={() => handleCancel(sale)}
+                 <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleCancel(sale); }}
                     className="flex items-center gap-2 px-3 py-2 bg-red-50 text-red-500 rounded-xl text-sm font-medium active:scale-95">
                     <Trash2 size={16} /> বাতিল
                   </button>
