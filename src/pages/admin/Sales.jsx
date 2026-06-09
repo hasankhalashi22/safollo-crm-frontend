@@ -141,10 +141,10 @@ export default function AdminSales() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {loading ? (
-                <tr><td colSpan={11} className="text-center py-12 text-gray-400">লোড হচ্ছে...</td></tr>
+             {loading ? (
+                <tr><td colSpan={12} className="text-center py-12 text-gray-400">লোড হচ্ছে...</td></tr>
               ) : sales.length === 0 ? (
-                <tr><td colSpan={11} className="text-center py-12 text-gray-400">কোনো রেকর্ড নেই</td></tr>
+                <tr><td colSpan={12} className="text-center py-12 text-gray-400">কোনো রেকর্ড নেই</td></tr>
               ) : sales.map(s => (
                 <tr key={s.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setSelected(s)}>
                   <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{format(new Date(s.created_at), 'dd/MM/yy')}</td>
