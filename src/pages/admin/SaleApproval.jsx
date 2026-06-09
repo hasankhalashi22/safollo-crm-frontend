@@ -201,6 +201,7 @@ function ApprovalModal({ sale, onApprove, onReject, onClose, onZoom }) {
   const [editMode, setEditMode] = useState(false);
   const [editData, setEditData] = useState({
     course_price: sale.course_price,
+    collected_amount: sale.total_collected,
     reference: sale.reference || '',
     notes: sale.notes || '',
   });
@@ -226,12 +227,17 @@ function ApprovalModal({ sale, onApprove, onReject, onClose, onZoom }) {
 
           <div className="card bg-gray-50 p-4">
             <h3 className="font-semibold mb-3">পেমেন্ট তথ্য</h3>
-            {editMode ? (
+           {editMode ? (
               <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium mb-1">কোর্স মূল্য</label>
                   <input type="number" className="input-field" value={editData.course_price}
                     onChange={e => setEditData(p => ({ ...p, course_price: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">সংগৃহীত টাকা</label>
+                  <input type="number" className="input-field" value={editData.collected_amount}
+                    onChange={e => setEditData(p => ({ ...p, collected_amount: e.target.value }))} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">রেফারেন্স</label>
@@ -257,12 +263,14 @@ function ApprovalModal({ sale, onApprove, onReject, onClose, onZoom }) {
           {sale.payment_history?.length > 0 && (
             <div className="card p-4">
               <h3 className="font-semibold mb-3">পেমেন্ট ইতিহাস</h3>
-              {sale.payment_history.map((p, i) => (
+             {sale.payment_history.map((p, i) => (
                 <div key={i} className="bg-gray-50 rounded-xl p-3 mb-2">
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="font-medium">৳{Number(p.amount).toLocaleString()}</p>
                       <p className="text-sm text-gray-500">{p.payment_method} {p.transaction_id ? '• ' + p.transaction_id : ''}</p>
+                      {p.sender_number && <p className="text-sm text-gray-500">নম্বর: {p.sender_number}</p>}
+                      {p.due_date && <p className="text-sm text-orange-500">বাকি তারিখ: {format(new Date(p.due_date), 'dd/MM/yyyy')}</p>}
                     </div>
                     <p className="text-xs text-gray-400">{p.created_at ? format(new Date(p.created_at), 'dd/MM/yy HH:mm') : ''}</p>
                   </div>
