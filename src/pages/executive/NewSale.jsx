@@ -70,6 +70,7 @@ export default function NewSale() {
     if (!form.payment_method) return toast.error('পেমেন্ট পদ্ধতি বেছে নিন');
     if (!form.sender_number || form.sender_number.length !== 11) return toast.error('যে নম্বর হতে পেমেন্ট এসেছে দিন');
 if (!form.payment_proof) return toast.error('পেমেন্ট প্রুফ আপলোড করুন');
+if (dueAmount > 0 && !form.due_date) return toast.error('বাকি দেওয়ার তারিখ দিন');
 
     setLoading(true);
     try {
