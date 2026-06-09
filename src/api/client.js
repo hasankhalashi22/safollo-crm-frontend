@@ -7,14 +7,12 @@ const api = axios.create({
   timeout: 30000,
 });
 
-// Request interceptor — token add
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('crm_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// Response interceptor — 401 handle
 api.interceptors.response.use(
   (response) => response.data,
   (error) => {
@@ -27,7 +25,6 @@ api.interceptors.response.use(
   }
 );
 
-// Auth
 export const authApi = {
   sendOtp:          (phone) => api.post('/api/auth/send-otp', { phone }),
   verifyOtp:        (phone, code) => api.post('/api/auth/verify-otp', { phone, code }),
@@ -40,21 +37,19 @@ export const authApi = {
   getMe:            () => api.get('/api/auth/me'),
 };
 
-// Users
 export const usersApi = {
   getAll:       (params) => api.get('/api/users', { params }),
   getById:      (id) => api.get(`/api/users/${id}`),
   create:       (data) => api.post('/api/users', data),
   update:       (id, data) => api.patch(`/api/users/${id}`, data),
   toggleActive: (id) => api.patch(`/api/users/${id}/toggle`),
-  getRoles: () => api.get('/api/users/roles').then(r => Array.isArray(r) ? { data: r } : r),
+  getRoles:     () => api.get('/api/users/roles').then(r => Array.isArray(r) ? { data: r } : r),
   createRole:   (data) => api.post('/api/users/roles', data),
   updateRole:   (id, data) => api.patch(`/api/users/roles/${id}`, data),
   deleteRole:   (id) => api.delete(`/api/users/roles/${id}`),
-deleteUser: (id) => api.delete(`/api/users/${id}`),
+  deleteUser:   (id) => api.delete(`/api/users/${id}`),
 };
 
-// Profiles
 export const profilesApi = {
   getMe:       () => api.get('/api/profiles/me'),
   updateMe:    (data) => api.patch('/api/profiles/me', data),
@@ -69,7 +64,6 @@ export const profilesApi = {
   }),
 };
 
-// Courses
 export const coursesApi = {
   getAll:       () => api.get('/api/courses'),
   getById:      (id) => api.get(`/api/courses/${id}`),
@@ -77,11 +71,10 @@ export const coursesApi = {
   update:       (id, data) => api.patch(`/api/courses/${id}`, data),
   createBatch:  (data) => api.post('/api/courses/batches', data),
   updateBatch:  (id, data) => api.patch(`/api/courses/batches/${id}`, data),
-delete:       (id) => api.delete(`/api/courses/${id}`),
-deleteBatch:  (id) => api.delete(`/api/courses/batches/${id}`),
+  delete:       (id) => api.delete(`/api/courses/${id}`),
+  deleteBatch:  (id) => api.delete(`/api/courses/batches/${id}`),
 };
 
-// Sales
 export const salesApi = {
   create:    (formData) => api.post('/api/sales', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
@@ -91,17 +84,16 @@ export const salesApi = {
   getDueList:(params) => api.get('/api/sales/due', { params }),
   edit:      (id, data) => api.patch(`/api/sales/${id}`, data),
   reassign:  (id, newExecutiveId) => api.patch(`/api/sales/${id}/reassign`, { new_executive_id: newExecutiveId }),
-delete: (id) => api.delete(`/api/sales/${id}`),
+  delete:    (id) => api.delete(`/api/sales/${id}`),
 };
 
-// Payments
 export const paymentsApi = {
-  add: (formData) => api.post('/api/payments', formData, {
+  add:    (formData) => api.post('/api/payments', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
+  cancel: (id) => api.delete(`/api/payments/${id}`),
 };
 
-// Reports
 export const reportsApi = {
   daily:         (params) => api.get('/api/reports/daily', { params }),
   monthly:       (params) => api.get('/api/reports/monthly', { params }),
@@ -109,29 +101,26 @@ export const reportsApi = {
   myPerformance: (params) => api.get('/api/reports/my-performance', { params }),
 };
 
-// Field configs
 export const fieldConfigsApi = {
   getAll: () => api.get('/api/field-configs'),
   update: (key, data) => api.patch(`/api/field-configs/${key}`, data),
 };
 
-// Audit logs
 export const auditApi = {
   getLogs: (params) => api.get('/api/audit', { params }),
 };
-// Approvals
+
 export const approvalsApi = {
-  getPending:          () => api.get('/api/approvals'),
-  getPendingDue:       () => api.get('/api/approvals/due-payments'),
-  getMyPending:        () => api.get('/api/approvals/my-pending'),
-  getMyPendingDue:     () => api.get('/api/approvals/my-pending-due'),
-  approve:             (id, data) => api.patch(`/api/approvals/${id}/approve`, data),
-  reject:              (id, reason) => api.patch(`/api/approvals/${id}/reject`, { reason }),
-  resubmit:            (id, data) => api.patch(`/api/approvals/${id}/resubmit`, data),
-  approveDuePayment:   (id) => api.patch(`/api/approvals/payments/${id}/approve`),
-  rejectDuePayment:    (id, reason) => api.patch(`/api/approvals/payments/${id}/reject`, { reason }),
+  getPending:           () => api.get('/api/approvals'),
+  getPendingDue:        () => api.get('/api/approvals/due-payments'),
+  getMyPending:         () => api.get('/api/approvals/my-pending'),
+  getMyPendingDue:      () => api.get('/api/approvals/my-pending-due'),
+  approve:              (id, data) => api.patch(`/api/approvals/${id}/approve`, data),
+  reject:               (id, reason) => api.patch(`/api/approvals/${id}/reject`, { reason }),
+  resubmit:             (id, data) => api.patch(`/api/approvals/${id}/resubmit`, data),
+  approveDuePayment:    (id) => api.patch(`/api/approvals/payments/${id}/approve`),
+  rejectDuePayment:     (id, reason) => api.patch(`/api/approvals/payments/${id}/reject`, { reason }),
+  resubmitDuePayment:   (id) => api.patch(`/api/approvals/payments/${id}/resubmit`),
 };
 
-
 export default api;
-

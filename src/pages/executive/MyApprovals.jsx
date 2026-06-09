@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { approvalsApi, salesApi, coursesApi } from '../../api/client';
+import { approvalsApi, salesApi, coursesApi, paymentsApi } from '../../api/client';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { Edit, Trash2, Camera, X } from 'lucide-react';
+
 
 const PAYMENT_METHODS = [
   { value: 'bkash',  label: 'বিকাশ' },
@@ -52,6 +53,23 @@ const handleCancel = async (sale) => {
       toast.error(err.message || 'সমস্যা হয়েছে');
     }
   };
+
+const handleResubmitDue = async (payment) => {
+    try {
+      await approvalsApi.resubmitDuePayment(payment.id);
+      toast.success('Resubmit হয়েছে ✅');
+      fetchMyPending();
+    } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
+  };
+
+  const handleCancelDue = async (payment) => {
+    try {
+      await paymentsApi.cancel(payment.id);
+      toast.success('বাতিল হয়েছে ✅');
+      fetchMyPending();
+    } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
+  };
+
   if (loading) return <div className="flex justify-center h-64 items-center"><div className="spinner w-8 h-8" /></div>;
 
   return (
@@ -128,10 +146,20 @@ const handleCancel = async (sale) => {
                   <p className="text-sm text-red-700">{payment.rejection_reason}</p>
                 </div>
               )}
+              <div className="flex gap-2 mt-3">
+                {payment.approval_status === 'rejected' && (
+                  <button onClick={() => handleResubmitDue(payment)}
+                    className="flex-1 flex items-center gap-2 justify-center py-2 bg-primary-50 text-primary-600 rounded-xl text-sm font-medium">
+                    <Edit size={16} /> আবার Submit করুন
+                  </button>
+                )}
+                <button onClick={() => handleCancelDue(payment)}
+                  className="flex items-center gap-2 px-3 py-2 bg-red-50 text-red-500 rounded-xl text-sm font-medium">
+                  <Trash2 size={16} /> বাতিল
+                </button>
+              </div>
             </div>
           ))}
-        </div>
-      )}
 
       {resubmitModal && (
         <ResubmitModal
