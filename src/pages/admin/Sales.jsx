@@ -57,7 +57,7 @@ export default function AdminSales() {
 
   const handleExport = () => {
     if (sales.length === 0) return toast.error('কোনো ডেটা নেই');
-    const headers = ['তারিখ', 'স্টুডেন্টের নাম', 'ফোন নম্বর', 'কোর্স', 'ব্যাচ', 'কোর্স মূল্য', 'সংগৃহীত', 'বাকি', 'স্ট্যাটাস', 'পেমেন্ট নম্বর', 'Executive', 'Approver', 'রেফারেন্স'];
+    const headers = ['তারিখ', 'স্টুডেন্টের নাম', 'ফোন নম্বর', 'কোর্স', 'ব্যাচ', 'কোর্স মূল্য', 'সংগৃহীত', 'বাকি', 'স্ট্যাটাস', 'পেমেন্ট পদ্ধতি', 'পেমেন্ট নম্বর', 'Executive', 'Approver', 'রেফারেন্স'];
     const rows = sales.map(s => [
       format(new Date(s.created_at), 'dd/MM/yyyy'),
       s.student_name || '',
@@ -68,6 +68,7 @@ export default function AdminSales() {
       s.total_collected,
       s.due_amount || 0,
       s.payment_status === 'paid' ? 'পেইড' : s.payment_status === 'due' ? 'বকেয়া' : 'আংশিক',
+      s.payment_history?.[0]?.payment_method || '',
       s.payment_history?.[0]?.sender_number || '',
       s.executive_name || '',
       s.approver_name || '',
@@ -96,7 +97,6 @@ export default function AdminSales() {
         </button>
       </div>
 
-      {/* Filters */}
       <div className="card mb-4 space-y-3">
         <div className="flex items-center gap-2">
           <Filter size={16} className="text-gray-400" />
@@ -129,19 +129,18 @@ export default function AdminSales() {
         <button onClick={() => fetchSales()} className="btn-primary py-2 max-w-xs">খুঁজুন</button>
       </div>
 
-      {/* Table */}
       <div className="card overflow-hidden p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-               {['তারিখ', 'স্টুডেন্ট', 'কোর্স', 'মূল্য', 'সংগৃহীত', 'বাকি', 'স্ট্যাটাস', 'পেমেন্ট পদ্ধতি', 'পেমেন্ট নম্বর', 'Executive', 'Approver', 'অ্যাকশন'].map(h => (
+                {['তারিখ', 'স্টুডেন্ট', 'কোর্স', 'মূল্য', 'সংগৃহীত', 'বাকি', 'স্ট্যাটাস', 'পেমেন্ট পদ্ধতি', 'পেমেন্ট নম্বর', 'Executive', 'Approver', 'অ্যাকশন'].map(h => (
                   <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-             {loading ? (
+              {loading ? (
                 <tr><td colSpan={12} className="text-center py-12 text-gray-400">লোড হচ্ছে...</td></tr>
               ) : sales.length === 0 ? (
                 <tr><td colSpan={12} className="text-center py-12 text-gray-400">কোনো রেকর্ড নেই</td></tr>
@@ -163,6 +162,7 @@ export default function AdminSales() {
                     <span className={STATUS_LABELS[s.payment_status]?.cls || 'badge-due'}>
                       {STATUS_LABELS[s.payment_status]?.label || s.payment_status}
                     </span>
+                  </td>
                   <td className="px-4 py-3 text-gray-500">
                     {s.payment_history?.[0]?.payment_method || '—'}
                   </td>
@@ -171,15 +171,15 @@ export default function AdminSales() {
                   </td>
                   <td className="px-4 py-3 text-gray-500">{s.executive_name || '—'}</td>
                   <td className="px-4 py-3 text-gray-500">{s.approver_name || '—'}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                     {(user?.role === 'super_admin' || user?.role === 'advisor') && (
-                      <button onClick={(e) => { e.stopPropagation(); setEditModal(s); }}
+                      <button onClick={() => setEditModal(s)}
                         className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium">
                         ✏️ Edit
                       </button>
                     )}
                     {user?.role === 'super_admin' && (
-                      <button onClick={(e) => { e.stopPropagation(); handleDelete(s); }}
+                      <button onClick={() => handleDelete(s)}
                         className="px-2 py-1 bg-red-50 text-red-500 rounded-lg text-xs font-medium ml-1">
                         🗑️
                       </button>
@@ -192,7 +192,6 @@ export default function AdminSales() {
         </div>
       </div>
 
-      {/* Detail Modal */}
       {selected && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto p-5">
@@ -233,7 +232,6 @@ export default function AdminSales() {
         </div>
       )}
 
-      {/* Edit Modal */}
       {editModal && (
         <EditSaleModal
           sale={editModal}
