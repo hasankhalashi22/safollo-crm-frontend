@@ -108,17 +108,26 @@ const handleCancel = async (sale) => {
 
      {duePayments.length > 0 && (
         <div className="mt-4">
-          <h3 className="font-semibold text-dark mb-3">Pending বকেয়া Payment</h3>
+          <h3 className="font-semibold text-dark mb-3">বকেয়া Payment Status</h3>
           {duePayments.map(payment => (
             <div key={payment.id} className="card mb-3">
               <div className="flex justify-between items-start">
                 <div>
                   <p className="font-semibold">{payment.student_name || payment.student_phone}</p>
                   <p className="text-sm text-gray-500">{payment.course_name}</p>
-                  <p className="font-bold text-green-600 mt-1">৳{Number(payment.amount).toLocaleString()} পাঠিয়েছি</p>
+                  <p className="font-bold text-green-600 mt-1">৳{Number(payment.amount).toLocaleString()} পাঠিয়েছিলাম</p>
                 </div>
-                <span className="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full">⏳ Pending</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium
+                  ${payment.approval_status === 'pending' ? 'bg-orange-100 text-orange-600' : 'bg-red-100 text-red-600'}`}>
+                  {payment.approval_status === 'pending' ? '⏳ Pending' : '❌ Rejected'}
+                </span>
               </div>
+              {payment.rejection_reason && (
+                <div className="mt-2 p-2.5 bg-red-50 rounded-xl">
+                  <p className="text-xs text-red-600 font-medium">Reject-এর কারণ:</p>
+                  <p className="text-sm text-red-700">{payment.rejection_reason}</p>
+                </div>
+              )}
             </div>
           ))}
         </div>
