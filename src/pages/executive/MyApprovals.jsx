@@ -41,13 +41,17 @@ const [duePayments, setDuePayments] = useState([]);
     } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
   };
 
-  const handleCancel = async (sale) => {
-    if (!confirm('এই সেল entry বাতিল করবেন?')) return;
+const handleCancel = async (sale) => {
+    const confirmed = window.confirm('এই সেল entry বাতিল করবেন?');
+    if (!confirmed) return;
     try {
       await salesApi.delete(sale.id);
-      toast.success('সেল বাতিল হয়েছে');
+      toast.success('সেল বাতিল হয়েছে ✅');
       fetchMyPending();
-    } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
+    } catch (err) {
+      console.error('Cancel error:', err);
+      toast.error(err.message || 'সমস্যা হয়েছে');
+    }
   };
 
   if (loading) return <div className="flex justify-center h-64 items-center"><div className="spinner w-8 h-8" /></div>;
