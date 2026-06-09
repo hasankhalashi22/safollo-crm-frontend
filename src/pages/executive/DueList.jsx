@@ -6,11 +6,11 @@ import { Phone, ChevronDown, ChevronUp, Search, Download } from 'lucide-react';
 
 export default function DueList() {
   const [dues, setDues] = useState([]);
-const [filtered, setFiltered] = useState([]);
-const [search, setSearch] = useState('');
-const [loading, setLoading] = useState(true);
-const [expanded, setExpanded] = useState(null);
-const [payModal, setPayModal] = useState(null);
+  const [filtered, setFiltered] = useState([]);
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState(null);
+  const [payModal, setPayModal] = useState(null);
 
   const fetchDues = () => {
     salesApi.getDueList({ limit: 500 }).then(res => {
@@ -34,7 +34,6 @@ const [payModal, setPayModal] = useState(null);
 
   const handleExport = () => {
     if (filtered.length === 0) return toast.error('কোনো ডেটা নেই');
-
     const headers = ['স্টুডেন্টের নাম', 'ফোন নম্বর', 'কোর্স', 'ব্যাচ', 'কোর্স মূল্য', 'সংগৃহীত', 'বাকি', 'শেষ তারিখ'];
     const rows = filtered.map(d => [
       d.student_name || '',
@@ -46,11 +45,7 @@ const [payModal, setPayModal] = useState(null);
       d.due_amount,
       d.last_due_date ? format(new Date(d.last_due_date), 'dd/MM/yyyy') : '',
     ]);
-
-    const csvContent = [headers, ...rows]
-      .map(row => row.map(cell => `"${cell}"`).join(','))
-      .join('\n');
-
+    const csvContent = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
     const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -71,31 +66,23 @@ const [payModal, setPayModal] = useState(null);
 
   return (
     <div className="p-4">
-     <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-display font-bold text-dark">
           বকেয়া তালিকা
           <span className="ml-2 text-sm font-normal text-red-500 bg-red-50 px-2 py-0.5 rounded-full">
             {filtered.length}টি
           </span>
         </h2>
-        <button
-          onClick={handleExport}
-          className="flex items-center gap-1.5 bg-green-500 text-white px-3 py-2 rounded-xl text-sm font-medium active:scale-95"
-        >
+        <button onClick={handleExport}
+          className="flex items-center gap-1.5 bg-green-500 text-white px-3 py-2 rounded-xl text-sm font-medium active:scale-95">
           <Download size={16} /> Excel
         </button>
       </div>
 
-      {/* Search */}
       <div className="relative mb-4">
         <Search size={16} className="absolute left-3 top-3.5 text-gray-400" />
-        <input
-          type="tel"
-          className="input-field pl-9"
-          placeholder="ফোন নম্বর বা নাম দিয়ে খুঁজুন..."
-          value={search}
-          onChange={e => handleSearch(e.target.value)}
-        />
+        <input type="tel" className="input-field pl-9" placeholder="ফোন নম্বর বা নাম দিয়ে খুঁজুন..."
+          value={search} onChange={e => handleSearch(e.target.value)} />
       </div>
 
       {dues.length === 0 ? (
@@ -107,19 +94,15 @@ const [payModal, setPayModal] = useState(null);
         <div className="space-y-3">
           {filtered.map(due => (
             <div key={due.id} className="card">
-              <div
-                className="flex items-start justify-between cursor-pointer"
-                onClick={() => setExpanded(expanded === due.id ? null : due.id)}
-              >
+              <div className="flex items-start justify-between cursor-pointer"
+                onClick={() => setExpanded(expanded === due.id ? null : due.id)}>
                 <div className="flex-1">
                   <p className="font-semibold">{due.student_name || due.student_phone}</p>
                   <p className="text-xs text-gray-500">{due.course_name} • {due.batch_name}</p>
                   <div className="flex items-center gap-2 mt-1.5">
                     <span className="badge-due">বকেয়া ৳{Number(due.due_amount).toLocaleString()}</span>
                     {due.last_due_date && (
-                      <span className="text-xs text-gray-400">
-                        {format(new Date(due.last_due_date), 'dd/MM/yyyy')}
-                      </span>
+                      <span className="text-xs text-gray-400">{format(new Date(due.last_due_date), 'dd/MM/yyyy')}</span>
                     )}
                   </div>
                 </div>
@@ -146,18 +129,13 @@ const [payModal, setPayModal] = useState(null);
                       <p className="font-bold text-red-600">৳{Number(due.due_amount).toLocaleString()}</p>
                     </div>
                   </div>
-
                   <div className="flex gap-2">
-                    <a
-                      href={`tel:${due.student_phone}`}
-                      className="flex-1 flex items-center justify-center gap-2 py-2 bg-green-50 text-green-600 rounded-xl text-sm font-medium"
-                    >
+                    <a href={`tel:${due.student_phone}`}
+                      className="flex-1 flex items-center justify-center gap-2 py-2 bg-green-50 text-green-600 rounded-xl text-sm font-medium">
                       <Phone size={16} /> কল করুন
                     </a>
-                    <button
-                      onClick={() => setPayModal(due)}
-                      className="flex-1 py-2 bg-primary-500 text-white rounded-xl text-sm font-medium active:scale-95"
-                    >
+                    <button onClick={() => setPayModal(due)}
+                      className="flex-1 py-2 bg-primary-500 text-white rounded-xl text-sm font-medium active:scale-95">
                       পেমেন্ট নিন
                     </button>
                   </div>
@@ -168,7 +146,6 @@ const [payModal, setPayModal] = useState(null);
         </div>
       )}
 
-      {/* Payment Modal */}
       {payModal && (
         <PaymentModal
           due={payModal}
@@ -181,32 +158,36 @@ const [payModal, setPayModal] = useState(null);
 }
 
 function PaymentModal({ due, onClose, onSuccess }) {
- const [amount, setAmount] = useState('');
-const [method, setMethod] = useState('');
-const [txnId, setTxnId] = useState('');
-const [dueDate, setDueDate] = useState('');
-const [proof, setProof] = useState(null);
-const [proofPreview, setProofPreview] = useState(null);
-const [loading, setLoading] = useState(false);
+  const [amount, setAmount] = useState('');
+  const [method, setMethod] = useState('');
+  const [txnId, setTxnId] = useState('');
+  const [senderNumber, setSenderNumber] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const [proof, setProof] = useState(null);
+  const [proofPreview, setProofPreview] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const maxAmount = due.course_price - due.total_collected;
+  const remainingAfterPayment = maxAmount - Number(amount || 0);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!amount || Number(amount) <= 0) return toast.error('টাকার পরিমাণ দিন');
     if (!method) return toast.error('পেমেন্ট পদ্ধতি বেছে নিন');
-    if (!txnId) return toast.error('ট্রানজেকশন আইডি দিন');
+    if (!senderNumber || senderNumber.length !== 11) return toast.error('যে নম্বর হতে পেমেন্ট এসেছে দিন');
     if (!proof) return toast.error('পেমেন্ট প্রুফ আপলোড করুন');
+    if (remainingAfterPayment > 0 && !dueDate) return toast.error('বাকি দেওয়ার তারিখ দিন');
 
     setLoading(true);
     try {
-    const formData = new FormData();
+      const formData = new FormData();
       formData.append('enrollment_id', due.id);
       formData.append('amount', amount);
       formData.append('payment_method', method);
-      formData.append('transaction_id', txnId);
+      formData.append('sender_number', senderNumber);
+      if (txnId) formData.append('transaction_id', txnId);
       if (dueDate) formData.append('due_date', dueDate);
-      if (proof) formData.append('payment_proof', proof);
+      formData.append('payment_proof', proof);
 
       await paymentsApi.add(formData);
       toast.success('পেমেন্ট রেকর্ড হয়েছে ✅');
@@ -220,7 +201,7 @@ const [loading, setLoading] = useState(false);
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
-      <div className="bg-white w-full rounded-t-3xl p-5 space-y-4">
+      <div className="bg-white w-full rounded-t-3xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center">
           <h3 className="font-display font-bold text-lg">পেমেন্ট নিন</h3>
           <button onClick={onClose} className="p-1.5 rounded-full bg-gray-100">✕</button>
@@ -233,49 +214,79 @@ const [loading, setLoading] = useState(false);
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
-          <input
-            type="number"
-            className="input-field"
-            placeholder={`সর্বোচ্চ ৳${maxAmount}`}
-            value={amount}
-            onChange={e => setAmount(Math.min(e.target.value, maxAmount))}
-          />
-
-          <div className="flex flex-wrap gap-2">
-            {['bkash','nagad','rocket','cash','cod'].map(m => (
-              <button key={m} type="button"
-                onClick={() => setMethod(m)}
-                className={`px-3 py-1.5 rounded-lg text-sm border transition-all
-                  ${method === m ? 'bg-primary-500 text-white border-primary-500' : 'bg-gray-50 text-gray-500 border-gray-200'}`}
-              >
-                {m === 'bkash' ? 'বিকাশ' : m === 'nagad' ? 'নগদ' : m === 'rocket' ? 'রকেট' : m === 'cash' ? 'ক্যাশ' : 'COD'}
-              </button>
-            ))}
+          <div>
+            <label className="block text-sm font-medium mb-1">সংগৃহীত টাকা (৳) *</label>
+            <input type="number" className="input-field"
+              placeholder={`সর্বোচ্চ ৳${maxAmount}`}
+              value={amount}
+              onChange={e => setAmount(Math.min(e.target.value, maxAmount))} />
           </div>
 
-          <input type="text" className="input-field" placeholder="ট্রানজেকশন আইডি" value={txnId} onChange={e => setTxnId(e.target.value)} />
+          {amount && Number(amount) > 0 && remainingAfterPayment > 0 && (
+            <div className="bg-red-50 rounded-xl p-3 flex justify-between">
+              <span className="text-sm text-red-600">পেমেন্টের পর বাকি থাকবে</span>
+              <span className="font-bold text-red-600">৳{remainingAfterPayment.toLocaleString()}</span>
+            </div>
+          )}
 
-{/* Payment proof */}
-{proofPreview ? (
-  <div className="relative">
-    <img src={proofPreview} alt="proof" className="w-full h-28 object-cover rounded-xl" />
-    <button type="button"
-      onClick={() => { setProof(null); setProofPreview(null); }}
-      className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs">✕</button>
-  </div>
-) : (
-  <label className="flex items-center gap-3 p-3 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer">
-    <span className="text-gray-400 text-sm">📷 পেমেন্ট প্রুফ আপলোড করুন *</span>
-    <input type="file" accept="image/*" className="hidden"
-      onChange={e => {
-        const file = e.target.files[0];
-        if (file) { setProof(file); setProofPreview(URL.createObjectURL(file)); }
-      }} />
-  </label>
-)}
+          {amount && Number(amount) > 0 && remainingAfterPayment === 0 && (
+            <div className="bg-green-50 rounded-xl p-3 text-center">
+              <span className="text-sm text-green-600 font-medium">✅ সম্পূর্ণ পরিশোধ হবে</span>
+            </div>
+          )}
 
-          {Number(amount) < maxAmount && (
-            <input type="date" className="input-field" value={dueDate} onChange={e => setDueDate(e.target.value)} />
+          <div>
+            <label className="block text-sm font-medium mb-2">পেমেন্ট পদ্ধতি *</label>
+            <div className="flex flex-wrap gap-2">
+              {['bkash', 'nagad', 'rocket', 'cash', 'cod'].map(m => (
+                <button key={m} type="button" onClick={() => setMethod(m)}
+                  className={`px-3 py-1.5 rounded-lg text-sm border transition-all
+                    ${method === m ? 'bg-primary-500 text-white border-primary-500' : 'bg-gray-50 text-gray-500 border-gray-200'}`}>
+                  {m === 'bkash' ? 'বিকাশ' : m === 'nagad' ? 'নগদ' : m === 'rocket' ? 'রকেট' : m === 'cash' ? 'ক্যাশ' : 'COD'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">যে নম্বর হতে পেমেন্ট এসেছে *</label>
+            <input type="tel" className="input-field" placeholder="01XXXXXXXXX"
+              value={senderNumber}
+              onChange={e => setSenderNumber(e.target.value.replace(/\D/g, '').slice(0, 11))} />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">ট্রানজেকশন আইডি</label>
+            <input type="text" className="input-field" placeholder="ঐচ্ছিক"
+              value={txnId} onChange={e => setTxnId(e.target.value)} />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">পেমেন্ট প্রুফ *</label>
+            {proofPreview ? (
+              <div className="relative">
+                <img src={proofPreview} alt="proof" className="w-full h-28 object-cover rounded-xl" />
+                <button type="button" onClick={() => { setProof(null); setProofPreview(null); }}
+                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-xs">✕</button>
+              </div>
+            ) : (
+              <label className="flex items-center gap-3 p-3 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer">
+                <span className="text-gray-400 text-sm">📷 পেমেন্ট প্রুফ আপলোড করুন</span>
+                <input type="file" accept="image/*" className="hidden"
+                  onChange={e => {
+                    const file = e.target.files[0];
+                    if (file) { setProof(file); setProofPreview(URL.createObjectURL(file)); }
+                  }} />
+              </label>
+            )}
+          </div>
+
+          {remainingAfterPayment > 0 && amount && Number(amount) > 0 && (
+            <div>
+              <label className="block text-sm font-medium mb-1">বাকি দেওয়ার তারিখ *</label>
+              <input type="date" className="input-field" value={dueDate}
+                onChange={e => setDueDate(e.target.value)} />
+            </div>
           )}
 
           <button type="submit" className="btn-primary" disabled={loading}>
