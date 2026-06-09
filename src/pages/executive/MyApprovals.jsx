@@ -4,7 +4,6 @@ import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { Edit, Trash2, Camera, X } from 'lucide-react';
 
-
 const PAYMENT_METHODS = [
   { value: 'bkash',  label: 'বিকাশ' },
   { value: 'nagad',  label: 'নগদ' },
@@ -15,9 +14,9 @@ const PAYMENT_METHODS = [
 
 export default function MyApprovals() {
   const [sales, setSales] = useState([]);
+  const [duePayments, setDuePayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [resubmitModal, setResubmitModal] = useState(null);
-const [duePayments, setDuePayments] = useState([]);
 
   const fetchMyPending = () => {
     setLoading(true);
@@ -42,7 +41,7 @@ const [duePayments, setDuePayments] = useState([]);
     } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
   };
 
-const handleCancel = async (sale) => {
+  const handleCancel = async (sale) => {
     console.log('Cancel clicked for sale:', sale.id);
     try {
       await salesApi.delete(sale.id);
@@ -54,7 +53,7 @@ const handleCancel = async (sale) => {
     }
   };
 
-const handleResubmitDue = async (payment) => {
+  const handleResubmitDue = async (payment) => {
     try {
       await approvalsApi.resubmitDuePayment(payment.id);
       toast.success('Resubmit হয়েছে ✅');
@@ -113,7 +112,7 @@ const handleResubmitDue = async (payment) => {
                     className="flex-1 flex items-center gap-2 justify-center py-2 bg-primary-50 text-primary-600 rounded-xl text-sm font-medium active:scale-95">
                     <Edit size={16} /> Edit করে Resubmit
                   </button>
-                 <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleCancel(sale); }}
+                  <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleCancel(sale); }}
                     className="flex items-center gap-2 px-3 py-2 bg-red-50 text-red-500 rounded-xl text-sm font-medium active:scale-95">
                     <Trash2 size={16} /> বাতিল
                   </button>
@@ -124,7 +123,7 @@ const handleResubmitDue = async (payment) => {
         </div>
       )}
 
-     {duePayments.length > 0 && (
+      {duePayments.length > 0 && (
         <div className="mt-4">
           <h3 className="font-semibold text-dark mb-3">বকেয়া Payment Status</h3>
           {duePayments.map(payment => (
@@ -140,12 +139,14 @@ const handleResubmitDue = async (payment) => {
                   {payment.approval_status === 'pending' ? '⏳ Pending' : '❌ Rejected'}
                 </span>
               </div>
+
               {payment.rejection_reason && (
                 <div className="mt-2 p-2.5 bg-red-50 rounded-xl">
                   <p className="text-xs text-red-600 font-medium">Reject-এর কারণ:</p>
                   <p className="text-sm text-red-700">{payment.rejection_reason}</p>
                 </div>
               )}
+
               <div className="flex gap-2 mt-3">
                 {payment.approval_status === 'rejected' && (
                   <button onClick={() => handleResubmitDue(payment)}
@@ -160,6 +161,8 @@ const handleResubmitDue = async (payment) => {
               </div>
             </div>
           ))}
+        </div>
+      )}
 
       {resubmitModal && (
         <ResubmitModal
@@ -226,7 +229,6 @@ function ResubmitModal({ sale, onResubmit, onClose }) {
           )}
 
           <form onSubmit={handleSubmit} className="p-5 space-y-4">
-            {/* Student */}
             <div className="card space-y-3">
               <h4 className="font-semibold text-sm text-gray-600 uppercase">স্টুডেন্ট তথ্য</h4>
               <div>
@@ -240,7 +242,6 @@ function ResubmitModal({ sale, onResubmit, onClose }) {
               </div>
             </div>
 
-            {/* Course */}
             <div className="card space-y-3">
               <h4 className="font-semibold text-sm text-gray-600 uppercase">কোর্স তথ্য</h4>
               <div>
@@ -268,7 +269,6 @@ function ResubmitModal({ sale, onResubmit, onClose }) {
               </div>
             </div>
 
-            {/* Payment */}
             <div className="card space-y-3">
               <h4 className="font-semibold text-sm text-gray-600 uppercase">পেমেন্ট তথ্য</h4>
               <div>
@@ -286,8 +286,7 @@ function ResubmitModal({ sale, onResubmit, onClose }) {
                 <label className="block text-sm font-medium mb-2">পেমেন্ট পদ্ধতি *</label>
                 <div className="flex flex-wrap gap-2">
                   {PAYMENT_METHODS.map(m => (
-                    <button key={m.value} type="button"
-                      onClick={() => set('payment_method', m.value)}
+                    <button key={m.value} type="button" onClick={() => set('payment_method', m.value)}
                       className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all
                         ${form.payment_method === m.value ? 'bg-primary-500 text-white border-primary-500' : 'bg-gray-50 text-gray-500 border-gray-200'}`}>
                       {m.label}
@@ -330,7 +329,6 @@ function ResubmitModal({ sale, onResubmit, onClose }) {
               )}
             </div>
 
-            {/* Extra */}
             <div className="card space-y-3">
               <h4 className="font-semibold text-sm text-gray-600 uppercase">অতিরিক্ত তথ্য</h4>
               <div>
