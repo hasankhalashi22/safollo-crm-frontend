@@ -116,7 +116,7 @@ export default function AdminSales() {
     doc.setFontSize(14);
     doc.text(title, 14, 15);
     doc.setFontSize(10);
-    doc.text(`তারিখ: ${format(new Date(), 'dd/MM/yyyy')}`, 14, 22);
+   doc.text(`Date: ${format(new Date(), 'dd/MM/yyyy')}`, 14, 22);
     autoTable(doc, {
       head: [headers],
       body: rows,
@@ -145,7 +145,7 @@ export default function AdminSales() {
 
   const handleExportEnrollmentPdf = () => {
     if (sales.length === 0) return toast.error('কোনো ডেটা নেই');
-    const headers = ['তারিখ', 'স্টুডেন্ট', 'ফোন', 'কোর্স', 'মূল্য', 'সংগৃহীত', 'বাকি', 'স্ট্যাটাস', 'Executive'];
+    const headers = ['Date', 'Student', 'Phone', 'Course', 'Price', 'Collected', 'Due', 'Status', 'Executive'];
     const rows = sales.map(s => [
       format(new Date(s.created_at), 'dd/MM/yyyy'),
       s.student_name || '', s.student_phone, s.course_name,
@@ -153,7 +153,7 @@ export default function AdminSales() {
       s.payment_status === 'paid' ? 'Paid' : s.payment_status === 'due' ? 'Due' : 'Partial',
       s.executive_name || '',
     ]);
-    exportPdf(headers, rows, `এনরোলমেন্ট_${format(new Date(), 'dd-MM-yyyy')}.pdf`, 'Enrollment Report - Safollo Academy');
+    exportPdf(headers, rows, `Enrollment_Report_${format(new Date(), 'dd-MM-yyyy')}.pdf`, 'Enrollment Report - Safollo Academy');
   };
 
   const handleExportRevenueCsv = () => {
@@ -171,14 +171,7 @@ export default function AdminSales() {
 
   const handleExportRevenuePdf = () => {
     if (revenue.length === 0) return toast.error('কোনো ডেটা নেই');
-    const headers = ['পেমেন্ট তারিখ', 'স্টুডেন্ট', 'ফোন', 'কোর্স', 'পরিমাণ', 'পেমেন্ট পদ্ধতি', 'Executive', 'ধরন'];
-    const rows = revenue.map(r => [
-      format(new Date(r.payment_date), 'dd/MM/yyyy'),
-      r.student_name || '', r.student_phone, r.course_name,
-      r.amount, r.payment_method, r.executive_name || '',
-      r.is_due_payment ? 'Due' : 'First',
-    ]);
-    exportPdf(headers, rows, `রেভিনিউ_${format(new Date(), 'dd-MM-yyyy')}.pdf`, 'Revenue Report - Safollo Academy');
+   notepad src/pages/admin/Sales.jsxe
   };
 
   return (
