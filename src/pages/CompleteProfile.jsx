@@ -8,7 +8,7 @@ import { Camera } from 'lucide-react';
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
 
 export default function CompleteProfile() {
-  const { user, login } = useAuth();
+  const { user, login, logout } = useAuth();
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
   const [nidFile, setNidFile] = useState(null);
@@ -112,6 +112,10 @@ export default function CompleteProfile() {
           <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-12 mx-auto mb-3" />
           <h1 className="text-2xl font-display font-bold text-dark">প্রোফাইল সম্পন্ন করুন</h1>
           <p className="text-gray-500 text-sm mt-1">কাজ শুরু করার আগে আপনার তথ্য পূরণ করুন</p>
+          <button onClick={async () => { await logout(); navigate('/login'); toast.success('লগআউট হয়েছে'); }}
+            className="mt-3 text-sm text-red-500 underline">
+            লগআউট করুন
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
