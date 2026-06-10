@@ -85,6 +85,7 @@ export const salesApi = {
   edit:      (id, data) => api.patch(`/api/sales/${id}`, data),
   reassign:  (id, newExecutiveId) => api.patch(`/api/sales/${id}/reassign`, { new_executive_id: newExecutiveId }),
   delete:    (id) => api.delete(`/api/sales/${id}`),
+getRevenue: (params) => api.get('/api/sales/revenue', { params }),
 };
 
 export const paymentsApi = {

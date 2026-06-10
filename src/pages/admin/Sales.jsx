@@ -13,14 +13,18 @@ const STATUS_LABELS = {
 
 export default function AdminSales() {
   const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState('enrollment');
   const [sales, setSales] = useState([]);
+  const [revenue, setRevenue] = useState([]);
   const [total, setTotal] = useState(0);
+  const [revenueTotal, setRevenueTotal] = useState(0);
   const [courses, setCourses] = useState([]);
   const [executives, setExecutives] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
   const [editModal, setEditModal] = useState(null);
   const [filters, setFilters] = useState({ search: '', course_id: '', payment_status: '', date_from: '', date_to: '', executive_id: '' });
+  const [revenueFilters, setRevenueFilters] = useState({ search: '', course_id: '', date_from: '', date_to: '', executive_id: '' });
 
   const fetchSales = (f = filters) => {
     setLoading(true);
@@ -34,6 +38,21 @@ export default function AdminSales() {
     salesApi.getAll(params).then(res => {
       setSales(res.data || []);
       setTotal(res.total || 0);
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  };
+
+  const fetchRevenue = (f = revenueFilters) => {
+    setLoading(true);
+    const params = { revenue_mode: true };
+    if (f.search) params.search = f.search;
+    if (f.course_id) params.course_id = f.course_id;
+    if (f.date_from) params.date_from = f.date_from;
+    if (f.date_to) params.date_to = f.date_to;
+    if (f.executive_id) params.executive_id = f.executive_id;
+    salesApi.getRevenue(params).then(res => {
+      setRevenue(res.data || []);
+      setRevenueTotal(res.total || 0);
       setLoading(false);
     }).catch(() => setLoading(false));
   };
@@ -53,9 +72,14 @@ export default function AdminSales() {
     fetchSales();
   }, []);
 
-  const setFilter = (k, v) => setFilters(p => ({ ...p, [k]: v }));
+  useEffect(() => {
+    if (activeTab === 'revenue') fetchRevenue();
+  }, [activeTab]);
 
-  const handleExport = () => {
+  const setFilter = (k, v) => setFilters(p => ({ ...p, [k]: v }));
+  const setRevenueFilter = (k, v) => setRevenueFilters(p => ({ ...p, [k]: v }));
+
+  const handleExportEnrollment = () => {
     if (sales.length === 0) return toast.error('কোনো ডেটা নেই');
     const headers = ['তারিখ', 'স্টুডেন্টের নাম', 'ফোন নম্বর', 'কোর্স', 'ব্যাচ', 'কোর্স মূল্য', 'সংগৃহীত', 'বাকি', 'স্ট্যাটাস', 'পেমেন্ট পদ্ধতি', 'পেমেন্ট নম্বর', 'Executive', 'Approver', 'রেফারেন্স'];
     const rows = sales.map(s => [
@@ -74,15 +98,38 @@ export default function AdminSales() {
       s.approver_name || '',
       s.reference || '',
     ]);
+    exportCsv(headers, rows, `এনরোলমেন্ট_রিপোর্ট_${format(new Date(), 'dd-MM-yyyy')}.csv`);
+  };
+
+  const handleExportRevenue = () => {
+    if (revenue.length === 0) return toast.error('কোনো ডেটা নেই');
+    const headers = ['পেমেন্ট তারিখ', 'স্টুডেন্টের নাম', 'ফোন নম্বর', 'কোর্স', 'ব্যাচ', 'পেমেন্ট পরিমাণ', 'পেমেন্ট পদ্ধতি', 'পেমেন্ট নম্বর', 'ট্রানজেকশন আইডি', 'Executive', 'ধরন'];
+    const rows = revenue.map(r => [
+      format(new Date(r.payment_date), 'dd/MM/yyyy'),
+      r.student_name || '',
+      r.student_phone,
+      r.course_name,
+      r.batch_name || '',
+      r.amount,
+      r.payment_method,
+      r.sender_number || '',
+      r.transaction_id || '',
+      r.executive_name || '',
+      r.is_due_payment ? 'বকেয়া পেমেন্ট' : 'প্রথম পেমেন্ট',
+    ]);
+    exportCsv(headers, rows, `রেভিনিউ_রিপোর্ট_${format(new Date(), 'dd-MM-yyyy')}.csv`);
+  };
+
+  const exportCsv = (headers, rows, filename) => {
     const csvContent = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
     const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `সেলস_রিপোর্ট_${format(new Date(), 'dd-MM-yyyy')}.csv`;
+    link.download = filename;
     link.click();
     URL.revokeObjectURL(url);
-    toast.success('Excel-এ export হয়েছে ✅');
+    toast.success('Download হয়েছে ✅');
   };
 
   return (
@@ -90,108 +137,196 @@ export default function AdminSales() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-display font-bold text-dark">সেলস রিপোর্ট</h1>
-          <p className="text-gray-500 text-sm">মোট {total}টি রেকর্ড</p>
+          <p className="text-gray-500 text-sm">মোট {activeTab === 'enrollment' ? total : revenueTotal}টি রেকর্ড</p>
         </div>
-        <button onClick={handleExport} className="flex items-center gap-2 bg-green-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium active:scale-95">
+        <button onClick={activeTab === 'enrollment' ? handleExportEnrollment : handleExportRevenue}
+          className="flex items-center gap-2 bg-green-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium active:scale-95">
           <Download size={16} /> Excel Download
         </button>
       </div>
 
-      <div className="card mb-4 space-y-3">
-        <div className="flex items-center gap-2">
-          <Filter size={16} className="text-gray-400" />
-          <span className="text-sm font-medium text-gray-600">ফিল্টার</span>
-        </div>
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-          <div className="relative">
-            <Search size={16} className="absolute left-3 top-3.5 text-gray-400" />
-            <input className="input-field pl-9" placeholder="ফোন বা নাম" value={filters.search}
-              onChange={e => setFilter('search', e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && fetchSales()} />
+      {/* Tabs */}
+      <div className="flex bg-gray-100 rounded-xl p-1 mb-6 max-w-sm">
+        <button onClick={() => setActiveTab('enrollment')}
+          className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'enrollment' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-500'}`}>
+          এনরোলমেন্ট রিপোর্ট
+        </button>
+        <button onClick={() => setActiveTab('revenue')}
+          className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'revenue' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-500'}`}>
+          রেভিনিউ রিপোর্ট
+        </button>
+      </div>
+
+      {activeTab === 'enrollment' ? (
+        <>
+          {/* Enrollment Filters */}
+          <div className="card mb-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <Filter size={16} className="text-gray-400" />
+              <span className="text-sm font-medium text-gray-600">ফিল্টার</span>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="relative">
+                <Search size={16} className="absolute left-3 top-3.5 text-gray-400" />
+                <input className="input-field pl-9" placeholder="ফোন বা নাম" value={filters.search}
+                  onChange={e => setFilter('search', e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && fetchSales()} />
+              </div>
+              <select className="input-field" value={filters.course_id} onChange={e => setFilter('course_id', e.target.value)}>
+                <option value="">সব কোর্স</option>
+                {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+              <select className="input-field" value={filters.payment_status} onChange={e => setFilter('payment_status', e.target.value)}>
+                <option value="">সব স্ট্যাটাস</option>
+                <option value="paid">পেইড</option>
+                <option value="due">বকেয়া</option>
+                <option value="partial">আংশিক</option>
+              </select>
+              <select className="input-field" value={filters.executive_id} onChange={e => setFilter('executive_id', e.target.value)}>
+                <option value="">সব Executive</option>
+                {executives.map(e => <option key={e.id} value={e.id}>{e.full_name || e.phone}</option>)}
+              </select>
+              <input type="date" className="input-field" value={filters.date_from} onChange={e => setFilter('date_from', e.target.value)} />
+              <input type="date" className="input-field" value={filters.date_to} onChange={e => setFilter('date_to', e.target.value)} />
+            </div>
+            <button onClick={() => fetchSales()} className="btn-primary py-2 max-w-xs">খুঁজুন</button>
           </div>
-          <select className="input-field" value={filters.course_id} onChange={e => setFilter('course_id', e.target.value)}>
-            <option value="">সব কোর্স</option>
-            {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-          <select className="input-field" value={filters.payment_status} onChange={e => setFilter('payment_status', e.target.value)}>
-            <option value="">সব স্ট্যাটাস</option>
-            <option value="paid">পেইড</option>
-            <option value="due">বকেয়া</option>
-            <option value="partial">আংশিক</option>
-          </select>
-          <select className="input-field" value={filters.executive_id} onChange={e => setFilter('executive_id', e.target.value)}>
-            <option value="">সব Executive</option>
-            {executives.map(e => <option key={e.id} value={e.id}>{e.full_name || e.phone}</option>)}
-          </select>
-          <input type="date" className="input-field" value={filters.date_from} onChange={e => setFilter('date_from', e.target.value)} />
-          <input type="date" className="input-field" value={filters.date_to} onChange={e => setFilter('date_to', e.target.value)} />
-        </div>
-        <button onClick={() => fetchSales()} className="btn-primary py-2 max-w-xs">খুঁজুন</button>
-      </div>
 
-      <div className="card overflow-hidden p-0">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-100">
-              <tr>
-                {['তারিখ', 'স্টুডেন্ট', 'কোর্স', 'মূল্য', 'সংগৃহীত', 'বাকি', 'স্ট্যাটাস', 'পেমেন্ট পদ্ধতি', 'পেমেন্ট নম্বর', 'Executive', 'Approver', 'অ্যাকশন'].map(h => (
-                  <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {loading ? (
-                <tr><td colSpan={12} className="text-center py-12 text-gray-400">লোড হচ্ছে...</td></tr>
-              ) : sales.length === 0 ? (
-                <tr><td colSpan={12} className="text-center py-12 text-gray-400">কোনো রেকর্ড নেই</td></tr>
-              ) : sales.map(s => (
-                <tr key={s.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setSelected(s)}>
-                  <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{format(new Date(s.created_at), 'dd/MM/yy')}</td>
-                  <td className="px-4 py-3">
-                    <p className="font-medium">{s.student_name || '—'}</p>
-                    <p className="text-xs text-gray-400">{s.student_phone}</p>
-                  </td>
-                  <td className="px-4 py-3">
-                    <p>{s.course_name}</p>
-                    <p className="text-xs text-gray-400">{s.batch_name}</p>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">৳{Number(s.course_price).toLocaleString()}</td>
-                  <td className="px-4 py-3 text-green-600 font-medium whitespace-nowrap">৳{Number(s.total_collected).toLocaleString()}</td>
-                  <td className="px-4 py-3 text-red-600 whitespace-nowrap">৳{Number(s.due_amount || 0).toLocaleString()}</td>
-                  <td className="px-4 py-3">
-                    <span className={STATUS_LABELS[s.payment_status]?.cls || 'badge-due'}>
-                      {STATUS_LABELS[s.payment_status]?.label || s.payment_status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">
-                    {s.payment_history?.[0]?.payment_method || '—'}
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">
-                    {s.payment_history?.[0]?.sender_number || '—'}
-                  </td>
-                  <td className="px-4 py-3 text-gray-500">{s.executive_name || '—'}</td>
-                  <td className="px-4 py-3 text-gray-500">{s.approver_name || '—'}</td>
-                  <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
-                    {(user?.role === 'super_admin' || user?.role === 'advisor') && (
-                      <button onClick={() => setEditModal(s)}
-                        className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium">
-                        ✏️ Edit
-                      </button>
-                    )}
-                    {user?.role === 'super_admin' && (
-                      <button onClick={() => handleDelete(s)}
-                        className="px-2 py-1 bg-red-50 text-red-500 rounded-lg text-xs font-medium ml-1">
-                        🗑️
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+          {/* Enrollment Table */}
+          <div className="card overflow-hidden p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    {['তারিখ', 'স্টুডেন্ট', 'কোর্স', 'মূল্য', 'সংগৃহীত', 'বাকি', 'স্ট্যাটাস', 'পেমেন্ট পদ্ধতি', 'পেমেন্ট নম্বর', 'Executive', 'Approver', 'অ্যাকশন'].map(h => (
+                      <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {loading ? (
+                    <tr><td colSpan={12} className="text-center py-12 text-gray-400">লোড হচ্ছে...</td></tr>
+                  ) : sales.length === 0 ? (
+                    <tr><td colSpan={12} className="text-center py-12 text-gray-400">কোনো রেকর্ড নেই</td></tr>
+                  ) : sales.map(s => (
+                    <tr key={s.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setSelected(s)}>
+                      <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{format(new Date(s.created_at), 'dd/MM/yy')}</td>
+                      <td className="px-4 py-3">
+                        <p className="font-medium">{s.student_name || '—'}</p>
+                        <p className="text-xs text-gray-400">{s.student_phone}</p>
+                      </td>
+                      <td className="px-4 py-3">
+                        <p>{s.course_name}</p>
+                        <p className="text-xs text-gray-400">{s.batch_name}</p>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">৳{Number(s.course_price).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-green-600 font-medium whitespace-nowrap">৳{Number(s.total_collected).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-red-600 whitespace-nowrap">৳{Number(s.due_amount || 0).toLocaleString()}</td>
+                      <td className="px-4 py-3">
+                        <span className={STATUS_LABELS[s.payment_status]?.cls || 'badge-due'}>
+                          {STATUS_LABELS[s.payment_status]?.label || s.payment_status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-500">{s.payment_history?.[0]?.payment_method || '—'}</td>
+                      <td className="px-4 py-3 text-gray-500">{s.payment_history?.[0]?.sender_number || '—'}</td>
+                      <td className="px-4 py-3 text-gray-500">{s.executive_name || '—'}</td>
+                      <td className="px-4 py-3 text-gray-500">{s.approver_name || '—'}</td>
+                      <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                        {(user?.role === 'super_admin' || user?.role === 'advisor') && (
+                          <button onClick={() => setEditModal(s)}
+                            className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium">
+                            ✏️ Edit
+                          </button>
+                        )}
+                        {user?.role === 'super_admin' && (
+                          <button onClick={() => handleDelete(s)}
+                            className="px-2 py-1 bg-red-50 text-red-500 rounded-lg text-xs font-medium ml-1">
+                            🗑️
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          {/* Revenue Filters */}
+          <div className="card mb-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <Filter size={16} className="text-gray-400" />
+              <span className="text-sm font-medium text-gray-600">ফিল্টার</span>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="relative">
+                <Search size={16} className="absolute left-3 top-3.5 text-gray-400" />
+                <input className="input-field pl-9" placeholder="ফোন বা নাম" value={revenueFilters.search}
+                  onChange={e => setRevenueFilter('search', e.target.value)} />
+              </div>
+              <select className="input-field" value={revenueFilters.course_id} onChange={e => setRevenueFilter('course_id', e.target.value)}>
+                <option value="">সব কোর্স</option>
+                {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+              <select className="input-field" value={revenueFilters.executive_id} onChange={e => setRevenueFilter('executive_id', e.target.value)}>
+                <option value="">সব Executive</option>
+                {executives.map(e => <option key={e.id} value={e.id}>{e.full_name || e.phone}</option>)}
+              </select>
+              <input type="date" className="input-field" value={revenueFilters.date_from} onChange={e => setRevenueFilter('date_from', e.target.value)} />
+              <input type="date" className="input-field" value={revenueFilters.date_to} onChange={e => setRevenueFilter('date_to', e.target.value)} />
+            </div>
+            <button onClick={() => fetchRevenue(revenueFilters)} className="btn-primary py-2 max-w-xs">খুঁজুন</button>
+          </div>
 
+          {/* Revenue Table */}
+          <div className="card overflow-hidden p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    {['পেমেন্ট তারিখ', 'স্টুডেন্ট', 'কোর্স', 'পরিমাণ', 'পেমেন্ট পদ্ধতি', 'পেমেন্ট নম্বর', 'ট্রানজেকশন আইডি', 'Executive', 'ধরন'].map(h => (
+                      <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {loading ? (
+                    <tr><td colSpan={9} className="text-center py-12 text-gray-400">লোড হচ্ছে...</td></tr>
+                  ) : revenue.length === 0 ? (
+                    <tr><td colSpan={9} className="text-center py-12 text-gray-400">কোনো রেকর্ড নেই</td></tr>
+                  ) : revenue.map(r => (
+                    <tr key={r.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{format(new Date(r.payment_date), 'dd/MM/yy')}</td>
+                      <td className="px-4 py-3">
+                        <p className="font-medium">{r.student_name || '—'}</p>
+                        <p className="text-xs text-gray-400">{r.student_phone}</p>
+                      </td>
+                      <td className="px-4 py-3">
+                        <p>{r.course_name}</p>
+                        <p className="text-xs text-gray-400">{r.batch_name}</p>
+                      </td>
+                      <td className="px-4 py-3 text-green-600 font-bold whitespace-nowrap">৳{Number(r.amount).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-gray-500">{r.payment_method}</td>
+                      <td className="px-4 py-3 text-gray-500">{r.sender_number || '—'}</td>
+                      <td className="px-4 py-3 text-gray-500">{r.transaction_id || '—'}</td>
+                      <td className="px-4 py-3 text-gray-500">{r.executive_name || '—'}</td>
+                      <td className="px-4 py-3">
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${r.is_due_payment ? 'bg-orange-100 text-orange-600' : 'bg-green-100 text-green-600'}`}>
+                          {r.is_due_payment ? 'বকেয়া' : 'প্রথম'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Detail Modal */}
       {selected && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto p-5">
