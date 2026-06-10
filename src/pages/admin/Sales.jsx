@@ -259,16 +259,19 @@ export default function AdminSales() {
       </div>
 
       {/* Tabs */}
-      <div className="flex bg-gray-100 rounded-xl p-1 mb-6 max-w-sm">
-        <button onClick={() => setActiveTab('enrollment')}
-          className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'enrollment' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-500'}`}>
-          এনরোলমেন্ট রিপোর্ট
-        </button>
-        <button onClick={() => setActiveTab('revenue')}
-          className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'revenue' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-500'}`}>
-          রেভিনিউ রিপোর্ট
-        </button>
-      </div>
+      {/* Tabs */}
+      {user?.role !== 'manager' && (
+        <div className="flex bg-gray-100 rounded-xl p-1 mb-6 max-w-sm">
+          <button onClick={() => setActiveTab('enrollment')}
+            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'enrollment' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-500'}`}>
+            এনরোলমেন্ট রিপোর্ট
+          </button>
+          <button onClick={() => setActiveTab('revenue')}
+            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'revenue' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-500'}`}>
+            রেভিনিউ রিপোর্ট
+          </button>
+        </div>
+      )}
 
       {activeTab === 'enrollment' ? (
         <>
