@@ -217,8 +217,12 @@ export function CourseManagement() {
   const [editCourse, setEditCourse] = useState(null);
   const [editBatch, setEditBatch] = useState(null);
 
-  const fetchCourses = () => {
-    coursesApi.getAll().then(r => { setCourses(r.data || []); setLoading(false); });
+ const fetchCourses = () => {
+    coursesApi.getAll().then(r => {
+      const data = Array.isArray(r) ? r : (r.data || []);
+      setCourses(data);
+      setLoading(false);
+    }).catch(() => setLoading(false));
   };
 
   useEffect(() => { fetchCourses(); }, []);
