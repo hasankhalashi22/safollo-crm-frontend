@@ -111,12 +111,16 @@ export default function AdminSales() {
   };
 
   // PDF Export
- const exportPdf = (headers, rows, filename, title) => {
+ const exportPdf = (headers, rows, filename, title, filterInfo) => {
     const printWindow = window.open('', '_blank');
     const tableRows = rows.map(row =>
       `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`
     ).join('');
     const tableHeaders = headers.map(h => `<th>${h}</th>`).join('');
+    const filterRows = filterInfo ? filterInfo.map(f =>
+      `<span style="background:#f0f9f7;border:1px solid #1A7A6E;color:#1A7A6E;padding:3px 8px;border-radius:12px;font-size:11px;margin-right:6px;">${f}</span>`
+    ).join('') : '';
+
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
@@ -125,22 +129,37 @@ export default function AdminSales() {
         <title>${title}</title>
         <style>
           body { font-family: Arial, sans-serif; font-size: 12px; padding: 20px; }
-          h2 { color: #1A7A6E; margin-bottom: 5px; }
-          p { color: #666; margin-bottom: 15px; }
-          table { width: 100%; border-collapse: collapse; }
+          .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #1A7A6E; padding-bottom: 10px; }
+          .header-left h2 { color: #1A7A6E; margin: 0 0 3px 0; }
+          .header-left p { color: #666; margin: 0; font-size: 11px; }
+          .logo { height: 50px; }
+          .filters { background: #f9f9f9; padding: 10px; border-radius: 8px; margin-bottom: 15px; }
+          .filters p { margin: 0 0 6px 0; font-size: 11px; color: #444; font-weight: bold; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
           th { background: #1A7A6E; color: white; padding: 8px; text-align: left; font-size: 11px; }
           td { padding: 6px 8px; border-bottom: 1px solid #eee; font-size: 11px; }
           tr:nth-child(even) { background: #f9f9f9; }
-          @media print { body { padding: 0; } }
+          .footer { margin-top: 20px; padding-top: 10px; border-top: 1px solid #eee; display: flex; justify-content: space-between; font-size: 11px; color: #666; }
+          @media print { body { padding: 10px; } }
         </style>
       </head>
       <body>
-        <h2>${title}</h2>
-        <p>তারিখ: ${format(new Date(), 'dd/MM/yyyy')}</p>
+        <div class="header">
+          <div class="header-left">
+            <h2>${title}</h2>
+            <p>তৈরির তারিখ: ${format(new Date(), 'dd/MM/yyyy HH:mm')}</p>
+          </div>
+          <img src="https://safollo-crm-frontend.vercel.app/logo.png" class="logo" alt="Safollo Academy" />
+        </div>
+        ${filterRows ? `<div class="filters"><p>ফিল্টার:</p>${filterRows}</div>` : ''}
         <table>
           <thead><tr>${tableHeaders}</tr></thead>
           <tbody>${tableRows}</tbody>
         </table>
+        <div class="footer">
+          <span>মোট রেকর্ড: ${rows.length}</span>
+          <span>প্রস্তুতকারী: ${user?.full_name || user?.phone || 'N/A'} (${user?.role_label || ''})</span>
+        </div>
       </body>
       </html>
     `);
@@ -175,7 +194,13 @@ export default function AdminSales() {
       s.payment_status === 'paid' ? 'Paid' : s.payment_status === 'due' ? 'Due' : 'Partial',
       s.executive_name || '',
     ]);
-    exportPdf(headers, rows, `Enrollment_Report_${format(new Date(), 'dd-MM-yyyy')}.pdf`, 'Enrollment Report - Safollo Academy');
+    const filterInfo = [];
+    if (filters.date_from) filterInfo.push(`From: ${filters.date_from}`);
+    if (filters.date_to) filterInfo.push(`To: ${filters.date_to}`);
+    if (filters.course_id) filterInfo.push(`Course: ${courses.find(c => c.id == filters.course_id)?.name || ''}`);
+    if (filters.payment_status) filterInfo.push(`Status: ${filters.payment_status}`);
+    if (filters.executive_id) filterInfo.push(`Executive: ${executives.find(e => e.id == filters.executive_id)?.full_name || ''}`);
+    exportPdf(headers, rows, `Enrollment_Report_${format(new Date(), 'dd-MM-yyyy')}.pdf`, 'Enrollment Report - Safollo Academy', filterInfo);
   };
 
   const handleExportRevenueCsv = () => {
@@ -201,7 +226,13 @@ export default function AdminSales() {
       r.transaction_id || '', r.executive_name || '',
       r.is_due_payment ? 'Due' : 'First',
     ]);
-    exportPdf(headers, rows, `Revenue_Report_${format(new Date(), 'dd-MM-yyyy')}.pdf`, 'Revenue Report - Safollo Academy');
+    const filterInfo = [];
+    if (revenueFilters.date_from) filterInfo.push(`From: ${revenueFilters.date_from}`);
+    if (revenueFilters.date_to) filterInfo.push(`To: ${revenueFilters.date_to}`);
+    if (revenueFilters.course_id) filterInfo.push(`Course: ${courses.find(c => c.id == revenueFilters.course_id)?.name || ''}`);
+    if (revenueFilters.payment_method) filterInfo.push(`Method: ${revenueFilters.payment_method}`);
+    if (revenueFilters.executive_id) filterInfo.push(`Executive: ${executives.find(e => e.id == revenueFilters.executive_id)?.full_name || ''}`);
+    exportPdf(headers, rows, `Revenue_Report_${format(new Date(), 'dd-MM-yyyy')}.pdf`, 'Revenue Report - Safollo Academy', filterInfo);
   };
 
   return (
