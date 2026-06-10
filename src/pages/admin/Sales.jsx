@@ -24,7 +24,7 @@ export default function AdminSales() {
   const [selected, setSelected] = useState(null);
   const [editModal, setEditModal] = useState(null);
   const [filters, setFilters] = useState({ search: '', course_id: '', payment_status: '', date_from: '', date_to: '', executive_id: '' });
-  const [revenueFilters, setRevenueFilters] = useState({ search: '', course_id: '', date_from: '', date_to: '', executive_id: '' });
+ const [revenueFilters, setRevenueFilters] = useState({ search: '', course_id: '', date_from: '', date_to: '', executive_id: '', payment_method: '' });
 
   const fetchSales = (f = filters) => {
     setLoading(true);
@@ -50,6 +50,7 @@ export default function AdminSales() {
     if (f.date_from) params.date_from = f.date_from;
     if (f.date_to) params.date_to = f.date_to;
     if (f.executive_id) params.executive_id = f.executive_id;
+if (f.payment_method) params.payment_method = f.payment_method;
     salesApi.getRevenue(params).then(res => {
       setRevenue(res.data || []);
       setRevenueTotal(res.total || 0);
@@ -274,6 +275,16 @@ export default function AdminSales() {
                 <option value="">সব Executive</option>
                 {executives.map(e => <option key={e.id} value={e.id}>{e.full_name || e.phone}</option>)}
               </select>
+
+<select className="input-field" value={revenueFilters.payment_method} onChange={e => setRevenueFilter('payment_method', e.target.value)}>
+  <option value="">সব পেমেন্ট পদ্ধতি</option>
+  <option value="bkash">বিকাশ</option>
+  <option value="nagad">নগদ</option>
+  <option value="rocket">রকেট</option>
+  <option value="cash">ক্যাশ</option>
+  <option value="cod">COD</option>
+</select>
+
               <input type="date" className="input-field" value={revenueFilters.date_from} onChange={e => setRevenueFilter('date_from', e.target.value)} />
               <input type="date" className="input-field" value={revenueFilters.date_to} onChange={e => setRevenueFilter('date_to', e.target.value)} />
             </div>
