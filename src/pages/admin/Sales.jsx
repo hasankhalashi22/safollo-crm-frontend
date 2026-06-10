@@ -4,12 +4,17 @@ import { format } from 'date-fns';
 import { Search, Filter, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../hooks/useAuth';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const STATUS_LABELS = {
   paid: { label: 'পেইড', cls: 'badge-paid' },
   due: { label: 'বকেয়া', cls: 'badge-due' },
   partial: { label: 'আংশিক', cls: 'badge-partial' }
 };
+
+const EMPTY_ENROLLMENT_FILTERS = { search: '', course_id: '', payment_status: '', date_from: '', date_to: '', executive_id: '' };
+const EMPTY_REVENUE_FILTERS = { search: '', course_id: '', date_from: '', date_to: '', executive_id: '', payment_method: '' };
 
 export default function AdminSales() {
   const { user } = useAuth();
@@ -18,13 +23,14 @@ export default function AdminSales() {
   const [revenue, setRevenue] = useState([]);
   const [total, setTotal] = useState(0);
   const [revenueTotal, setRevenueTotal] = useState(0);
+  const [revenueTotalAmount, setRevenueTotalAmount] = useState(0);
   const [courses, setCourses] = useState([]);
   const [executives, setExecutives] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
   const [editModal, setEditModal] = useState(null);
-  const [filters, setFilters] = useState({ search: '', course_id: '', payment_status: '', date_from: '', date_to: '', executive_id: '' });
- const [revenueFilters, setRevenueFilters] = useState({ search: '', course_id: '', date_from: '', date_to: '', executive_id: '', payment_method: '' });
+  const [filters, setFilters] = useState(EMPTY_ENROLLMENT_FILTERS);
+  const [revenueFilters, setRevenueFilters] = useState(EMPTY_REVENUE_FILTERS);
 
   const fetchSales = (f = filters) => {
     setLoading(true);
@@ -44,16 +50,17 @@ export default function AdminSales() {
 
   const fetchRevenue = (f = revenueFilters) => {
     setLoading(true);
-    const params = { revenue_mode: true };
+    const params = {};
     if (f.search) params.search = f.search;
     if (f.course_id) params.course_id = f.course_id;
     if (f.date_from) params.date_from = f.date_from;
     if (f.date_to) params.date_to = f.date_to;
     if (f.executive_id) params.executive_id = f.executive_id;
-if (f.payment_method) params.payment_method = f.payment_method;
+    if (f.payment_method) params.payment_method = f.payment_method;
     salesApi.getRevenue(params).then(res => {
       setRevenue(res.data || []);
       setRevenueTotal(res.total || 0);
+      setRevenueTotalAmount(res.total_amount || 0);
       setLoading(false);
     }).catch(() => setLoading(false));
   };
@@ -80,47 +87,17 @@ if (f.payment_method) params.payment_method = f.payment_method;
   const setFilter = (k, v) => setFilters(p => ({ ...p, [k]: v }));
   const setRevenueFilter = (k, v) => setRevenueFilters(p => ({ ...p, [k]: v }));
 
-  const handleExportEnrollment = () => {
-    if (sales.length === 0) return toast.error('কোনো ডেটা নেই');
-    const headers = ['তারিখ', 'স্টুডেন্টের নাম', 'ফোন নম্বর', 'কোর্স', 'ব্যাচ', 'কোর্স মূল্য', 'সংগৃহীত', 'বাকি', 'স্ট্যাটাস', 'পেমেন্ট পদ্ধতি', 'পেমেন্ট নম্বর', 'Executive', 'Approver', 'রেফারেন্স'];
-    const rows = sales.map(s => [
-      format(new Date(s.created_at), 'dd/MM/yyyy'),
-      s.student_name || '',
-      s.student_phone,
-      s.course_name,
-      s.batch_name || '',
-      s.course_price,
-      s.total_collected,
-      s.due_amount || 0,
-      s.payment_status === 'paid' ? 'পেইড' : s.payment_status === 'due' ? 'বকেয়া' : 'আংশিক',
-      s.payment_history?.[0]?.payment_method || '',
-      s.payment_history?.[0]?.sender_number || '',
-      s.executive_name || '',
-      s.approver_name || '',
-      s.reference || '',
-    ]);
-    exportCsv(headers, rows, `এনরোলমেন্ট_রিপোর্ট_${format(new Date(), 'dd-MM-yyyy')}.csv`);
+  const resetEnrollmentFilters = () => {
+    setFilters(EMPTY_ENROLLMENT_FILTERS);
+    fetchSales(EMPTY_ENROLLMENT_FILTERS);
   };
 
-  const handleExportRevenue = () => {
-    if (revenue.length === 0) return toast.error('কোনো ডেটা নেই');
-    const headers = ['পেমেন্ট তারিখ', 'স্টুডেন্টের নাম', 'ফোন নম্বর', 'কোর্স', 'ব্যাচ', 'পেমেন্ট পরিমাণ', 'পেমেন্ট পদ্ধতি', 'পেমেন্ট নম্বর', 'ট্রানজেকশন আইডি', 'Executive', 'ধরন'];
-    const rows = revenue.map(r => [
-      format(new Date(r.payment_date), 'dd/MM/yyyy'),
-      r.student_name || '',
-      r.student_phone,
-      r.course_name,
-      r.batch_name || '',
-      r.amount,
-      r.payment_method,
-      r.sender_number || '',
-      r.transaction_id || '',
-      r.executive_name || '',
-      r.is_due_payment ? 'বকেয়া পেমেন্ট' : 'প্রথম পেমেন্ট',
-    ]);
-    exportCsv(headers, rows, `রেভিনিউ_রিপোর্ট_${format(new Date(), 'dd-MM-yyyy')}.csv`);
+  const resetRevenueFilters = () => {
+    setRevenueFilters(EMPTY_REVENUE_FILTERS);
+    fetchRevenue(EMPTY_REVENUE_FILTERS);
   };
 
+  // CSV Export
   const exportCsv = (headers, rows, filename) => {
     const csvContent = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
     const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -130,7 +107,78 @@ if (f.payment_method) params.payment_method = f.payment_method;
     link.download = filename;
     link.click();
     URL.revokeObjectURL(url);
-    toast.success('Download হয়েছে ✅');
+    toast.success('Excel Download হয়েছে ✅');
+  };
+
+  // PDF Export
+  const exportPdf = (headers, rows, filename, title) => {
+    const doc = new jsPDF({ orientation: 'landscape' });
+    doc.setFontSize(14);
+    doc.text(title, 14, 15);
+    doc.setFontSize(10);
+    doc.text(`তারিখ: ${format(new Date(), 'dd/MM/yyyy')}`, 14, 22);
+    autoTable(doc, {
+      head: [headers],
+      body: rows,
+      startY: 28,
+      styles: { fontSize: 8, cellPadding: 2 },
+      headStyles: { fillColor: [26, 122, 110] },
+    });
+    doc.save(filename);
+    toast.success('PDF Download হয়েছে ✅');
+  };
+
+  const handleExportEnrollmentCsv = () => {
+    if (sales.length === 0) return toast.error('কোনো ডেটা নেই');
+    const headers = ['তারিখ', 'স্টুডেন্ট', 'ফোন', 'কোর্স', 'ব্যাচ', 'মূল্য', 'সংগৃহীত', 'বাকি', 'স্ট্যাটাস', 'পেমেন্ট পদ্ধতি', 'পেমেন্ট নম্বর', 'Executive', 'Approver'];
+    const rows = sales.map(s => [
+      format(new Date(s.created_at), 'dd/MM/yyyy'),
+      s.student_name || '', s.student_phone, s.course_name, s.batch_name || '',
+      s.course_price, s.total_collected, s.due_amount || 0,
+      s.payment_status === 'paid' ? 'পেইড' : s.payment_status === 'due' ? 'বকেয়া' : 'আংশিক',
+      s.payment_history?.[0]?.payment_method || '',
+      s.payment_history?.[0]?.sender_number || '',
+      s.executive_name || '', s.approver_name || '',
+    ]);
+    exportCsv(headers, rows, `এনরোলমেন্ট_${format(new Date(), 'dd-MM-yyyy')}.csv`);
+  };
+
+  const handleExportEnrollmentPdf = () => {
+    if (sales.length === 0) return toast.error('কোনো ডেটা নেই');
+    const headers = ['তারিখ', 'স্টুডেন্ট', 'ফোন', 'কোর্স', 'মূল্য', 'সংগৃহীত', 'বাকি', 'স্ট্যাটাস', 'Executive'];
+    const rows = sales.map(s => [
+      format(new Date(s.created_at), 'dd/MM/yyyy'),
+      s.student_name || '', s.student_phone, s.course_name,
+      s.course_price, s.total_collected, s.due_amount || 0,
+      s.payment_status === 'paid' ? 'Paid' : s.payment_status === 'due' ? 'Due' : 'Partial',
+      s.executive_name || '',
+    ]);
+    exportPdf(headers, rows, `এনরোলমেন্ট_${format(new Date(), 'dd-MM-yyyy')}.pdf`, 'Enrollment Report - Safollo Academy');
+  };
+
+  const handleExportRevenueCsv = () => {
+    if (revenue.length === 0) return toast.error('কোনো ডেটা নেই');
+    const headers = ['পেমেন্ট তারিখ', 'স্টুডেন্ট', 'ফোন', 'কোর্স', 'পরিমাণ', 'পেমেন্ট পদ্ধতি', 'পেমেন্ট নম্বর', 'ট্রানজেকশন', 'Executive', 'ধরন'];
+    const rows = revenue.map(r => [
+      format(new Date(r.payment_date), 'dd/MM/yyyy'),
+      r.student_name || '', r.student_phone, r.course_name,
+      r.amount, r.payment_method, r.sender_number || '',
+      r.transaction_id || '', r.executive_name || '',
+      r.is_due_payment ? 'বকেয়া' : 'প্রথম',
+    ]);
+    exportCsv(headers, rows, `রেভিনিউ_${format(new Date(), 'dd-MM-yyyy')}.csv`);
+  };
+
+  const handleExportRevenuePdf = () => {
+    if (revenue.length === 0) return toast.error('কোনো ডেটা নেই');
+    const headers = ['পেমেন্ট তারিখ', 'স্টুডেন্ট', 'ফোন', 'কোর্স', 'পরিমাণ', 'পেমেন্ট পদ্ধতি', 'Executive', 'ধরন'];
+    const rows = revenue.map(r => [
+      format(new Date(r.payment_date), 'dd/MM/yyyy'),
+      r.student_name || '', r.student_phone, r.course_name,
+      r.amount, r.payment_method, r.executive_name || '',
+      r.is_due_payment ? 'Due' : 'First',
+    ]);
+    exportPdf(headers, rows, `রেভিনিউ_${format(new Date(), 'dd-MM-yyyy')}.pdf`, 'Revenue Report - Safollo Academy');
   };
 
   return (
@@ -138,12 +186,22 @@ if (f.payment_method) params.payment_method = f.payment_method;
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-display font-bold text-dark">সেলস রিপোর্ট</h1>
-          <p className="text-gray-500 text-sm">মোট {activeTab === 'enrollment' ? total : revenueTotal}টি রেকর্ড</p>
+          <p className="text-gray-500 text-sm">মোট {activeTab === 'enrollment' ? total : revenueTotal}টি রেকর্ড
+            {activeTab === 'revenue' && revenueTotalAmount > 0 && (
+              <span className="ml-2 text-green-600 font-medium">• মোট ৳{Number(revenueTotalAmount).toLocaleString()}</span>
+            )}
+          </p>
         </div>
-        <button onClick={activeTab === 'enrollment' ? handleExportEnrollment : handleExportRevenue}
-          className="flex items-center gap-2 bg-green-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium active:scale-95">
-          <Download size={16} /> Excel Download
-        </button>
+        <div className="flex gap-2">
+          <button onClick={activeTab === 'enrollment' ? handleExportEnrollmentCsv : handleExportRevenueCsv}
+            className="flex items-center gap-2 bg-green-500 text-white px-3 py-2 rounded-xl text-sm font-medium active:scale-95">
+            <Download size={16} /> Excel
+          </button>
+          <button onClick={activeTab === 'enrollment' ? handleExportEnrollmentPdf : handleExportRevenuePdf}
+            className="flex items-center gap-2 bg-red-500 text-white px-3 py-2 rounded-xl text-sm font-medium active:scale-95">
+            <Download size={16} /> PDF
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -160,7 +218,6 @@ if (f.payment_method) params.payment_method = f.payment_method;
 
       {activeTab === 'enrollment' ? (
         <>
-          {/* Enrollment Filters */}
           <div className="card mb-4 space-y-3">
             <div className="flex items-center gap-2">
               <Filter size={16} className="text-gray-400" />
@@ -190,10 +247,12 @@ if (f.payment_method) params.payment_method = f.payment_method;
               <input type="date" className="input-field" value={filters.date_from} onChange={e => setFilter('date_from', e.target.value)} />
               <input type="date" className="input-field" value={filters.date_to} onChange={e => setFilter('date_to', e.target.value)} />
             </div>
-            <button onClick={() => fetchSales()} className="btn-primary py-2 max-w-xs">খুঁজুন</button>
+            <div className="flex gap-2">
+              <button onClick={() => fetchSales()} className="btn-primary py-2 px-6">খুঁজুন</button>
+              <button onClick={resetEnrollmentFilters} className="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl text-sm font-medium">রিসেট</button>
+            </div>
           </div>
 
-          {/* Enrollment Table */}
           <div className="card overflow-hidden p-0">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -255,7 +314,6 @@ if (f.payment_method) params.payment_method = f.payment_method;
         </>
       ) : (
         <>
-          {/* Revenue Filters */}
           <div className="card mb-4 space-y-3">
             <div className="flex items-center gap-2">
               <Filter size={16} className="text-gray-400" />
@@ -271,27 +329,27 @@ if (f.payment_method) params.payment_method = f.payment_method;
                 <option value="">সব কোর্স</option>
                 {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
+              <select className="input-field" value={revenueFilters.payment_method} onChange={e => setRevenueFilter('payment_method', e.target.value)}>
+                <option value="">সব পেমেন্ট পদ্ধতি</option>
+                <option value="bkash">বিকাশ</option>
+                <option value="nagad">নগদ</option>
+                <option value="rocket">রকেট</option>
+                <option value="cash">ক্যাশ</option>
+                <option value="cod">COD</option>
+              </select>
               <select className="input-field" value={revenueFilters.executive_id} onChange={e => setRevenueFilter('executive_id', e.target.value)}>
                 <option value="">সব Executive</option>
                 {executives.map(e => <option key={e.id} value={e.id}>{e.full_name || e.phone}</option>)}
               </select>
-
-<select className="input-field" value={revenueFilters.payment_method} onChange={e => setRevenueFilter('payment_method', e.target.value)}>
-  <option value="">সব পেমেন্ট পদ্ধতি</option>
-  <option value="bkash">বিকাশ</option>
-  <option value="nagad">নগদ</option>
-  <option value="rocket">রকেট</option>
-  <option value="cash">ক্যাশ</option>
-  <option value="cod">COD</option>
-</select>
-
               <input type="date" className="input-field" value={revenueFilters.date_from} onChange={e => setRevenueFilter('date_from', e.target.value)} />
               <input type="date" className="input-field" value={revenueFilters.date_to} onChange={e => setRevenueFilter('date_to', e.target.value)} />
             </div>
-            <button onClick={() => fetchRevenue(revenueFilters)} className="btn-primary py-2 max-w-xs">খুঁজুন</button>
+            <div className="flex gap-2">
+              <button onClick={() => fetchRevenue(revenueFilters)} className="btn-primary py-2 px-6">খুঁজুন</button>
+              <button onClick={resetRevenueFilters} className="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl text-sm font-medium">রিসেট</button>
+            </div>
           </div>
 
-          {/* Revenue Table */}
           <div className="card overflow-hidden p-0">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -337,7 +395,6 @@ if (f.payment_method) params.payment_method = f.payment_method;
         </>
       )}
 
-      {/* Detail Modal */}
       {selected && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto p-5">
@@ -417,9 +474,7 @@ function EditSaleModal({ sale, executives, onClose, onSuccess }) {
       onSuccess();
     } catch (err) {
       toast.error(err.message || 'সমস্যা হয়েছে');
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   return (
