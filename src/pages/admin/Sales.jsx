@@ -169,9 +169,17 @@ export default function AdminSales() {
     exportCsv(headers, rows, `রেভিনিউ_${format(new Date(), 'dd-MM-yyyy')}.csv`);
   };
 
-  const handleExportRevenuePdf = () => {
+ const handleExportRevenuePdf = () => {
     if (revenue.length === 0) return toast.error('কোনো ডেটা নেই');
-   notepad src/pages/admin/Sales.jsxe
+    const headers = ['Date', 'Student', 'Phone', 'Course', 'Amount', 'Method', 'Sender No', 'Transaction', 'Executive', 'Type'];
+    const rows = revenue.map(r => [
+      format(new Date(r.payment_date), 'dd/MM/yyyy'),
+      r.student_name || '', r.student_phone, r.course_name,
+      r.amount, r.payment_method, r.sender_number || '',
+      r.transaction_id || '', r.executive_name || '',
+      r.is_due_payment ? 'Due' : 'First',
+    ]);
+    exportPdf(headers, rows, `Revenue_Report_${format(new Date(), 'dd-MM-yyyy')}.pdf`, 'Revenue Report - Safollo Academy');
   };
 
   return (
