@@ -111,21 +111,43 @@ export default function AdminSales() {
   };
 
   // PDF Export
-  const exportPdf = (headers, rows, filename, title) => {
-    const doc = new jsPDF({ orientation: 'landscape' });
-    doc.setFontSize(14);
-    doc.text(title, 14, 15);
-    doc.setFontSize(10);
-   doc.text(`Date: ${format(new Date(), 'dd/MM/yyyy')}`, 14, 22);
-    autoTable(doc, {
-      head: [headers],
-      body: rows,
-      startY: 28,
-      styles: { fontSize: 8, cellPadding: 2 },
-      headStyles: { fillColor: [26, 122, 110] },
-    });
-    doc.save(filename);
-    toast.success('PDF Download হয়েছে ✅');
+ const exportPdf = (headers, rows, filename, title) => {
+    const printWindow = window.open('', '_blank');
+    const tableRows = rows.map(row =>
+      `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`
+    ).join('');
+    const tableHeaders = headers.map(h => `<th>${h}</th>`).join('');
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>${title}</title>
+        <style>
+          body { font-family: Arial, sans-serif; font-size: 12px; padding: 20px; }
+          h2 { color: #1A7A6E; margin-bottom: 5px; }
+          p { color: #666; margin-bottom: 15px; }
+          table { width: 100%; border-collapse: collapse; }
+          th { background: #1A7A6E; color: white; padding: 8px; text-align: left; font-size: 11px; }
+          td { padding: 6px 8px; border-bottom: 1px solid #eee; font-size: 11px; }
+          tr:nth-child(even) { background: #f9f9f9; }
+          @media print { body { padding: 0; } }
+        </style>
+      </head>
+      <body>
+        <h2>${title}</h2>
+        <p>তারিখ: ${format(new Date(), 'dd/MM/yyyy')}</p>
+        <table>
+          <thead><tr>${tableHeaders}</tr></thead>
+          <tbody>${tableRows}</tbody>
+        </table>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => { printWindow.print(); }, 500);
+    toast.success('Print/PDF window খুলেছে ✅');
   };
 
   const handleExportEnrollmentCsv = () => {
