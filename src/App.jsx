@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './hooks/useAuth';
+import { useNotifications } from './hooks/useNotifications';
 
 import Login from './pages/Login';
 import CompleteProfile from './pages/CompleteProfile';
@@ -39,7 +40,10 @@ function ProtectedRoute({ children, allowedLevels }) {
   return children;
 }
 
+
 function AppRoutes() {
+useNotifications();
+
   const { user } = useAuth();
 
   return (
