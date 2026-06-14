@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
 import { accountingApi } from '../../api/client';
+import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
-import { Plus, Trash2, Camera, X, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight } from 'lucide-react';
+import { Trash2, Camera, X, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Edit2 } from 'lucide-react';
 
 export default function Transactions() {
+  const { user } = useAuth();
   const [transactions, setTransactions] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [entryMode, setEntryMode] = useState(null); // 'in', 'out', 'transfer'
+  const [editTxn, setEditTxn] = useState(null);
   const [filters, setFilters] = useState({ date_from: '', date_to: '', transaction_type: '' });
 
   const fetchTransactions = (f = filters) => {
@@ -37,6 +40,8 @@ export default function Transactions() {
     } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
   };
 
+  const isSuperAdmin = user?.role === 'super_admin';
+
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
@@ -51,12 +56,12 @@ export default function Transactions() {
         <button onClick={() => setEntryMode('in')}
           className="flex flex-col items-center gap-2 p-4 bg-green-50 text-green-600 rounded-2xl border-2 border-green-100 active:scale-95 transition-all">
           <ArrowDownCircle size={28} />
-          <span className="font-semibold text-sm">টাকা এসেছে</span>
+          <span className="font-semibold text-sm">Cash In</span>
         </button>
         <button onClick={() => setEntryMode('out')}
           className="flex flex-col items-center gap-2 p-4 bg-red-50 text-red-600 rounded-2xl border-2 border-red-100 active:scale-95 transition-all">
           <ArrowUpCircle size={28} />
-          <span className="font-semibold text-sm">টাকা গেছে</span>
+          <span className="font-semibold text-sm">Cash Out</span>
         </button>
         <button onClick={() => setEntryMode('transfer')}
           className="flex flex-col items-center gap-2 p-4 bg-blue-50 text-blue-600 rounded-2xl border-2 border-blue-100 active:scale-95 transition-all">
@@ -68,8 +73,8 @@ export default function Transactions() {
       {/* Filters */}
       <div className="card mb-4 space-y-3">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-          <input type="date" className="input-field" value={filters.date_from} onChange={e => setFilter('date_from', e.target.value)} placeholder="শুরুর তারিখ" />
-          <input type="date" className="input-field" value={filters.date_to} onChange={e => setFilter('date_to', e.target.value)} placeholder="শেষ তারিখ" />
+          <input type="date" className="input-field" value={filters.date_from} onChange={e => setFilter('date_from', e.target.value)} />
+          <input type="date" className="input-field" value={filters.date_to} onChange={e => setFilter('date_to', e.target.value)} />
         </div>
         <div className="flex gap-2">
           <button onClick={() => fetchTransactions()} className="btn-primary py-2 px-6">খুঁজুন</button>
@@ -84,34 +89,53 @@ export default function Transactions() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                {['তারিখ', 'বিবরণ', 'একাউন্ট', 'পরিমাণ', 'তৈরি করেছেন', 'অ্যাকশন'].map(h => (
+                {['তারিখ', 'বিবরণ', 'একাউন্ট', 'Cash In', 'Cash Out', 'তৈরি করেছেন', 'অ্যাকশন'].map(h => (
                   <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
-                <tr><td colSpan={6} className="text-center py-12 text-gray-400">লোড হচ্ছে...</td></tr>
+                <tr><td colSpan={7} className="text-center py-12 text-gray-400">লোড হচ্ছে...</td></tr>
               ) : transactions.length === 0 ? (
-                <tr><td colSpan={6} className="text-center py-12 text-gray-400">কোনো রেকর্ড নেই</td></tr>
-              ) : transactions.map(t => (
-                <tr key={t.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{format(new Date(t.transaction_date), 'dd/MM/yy')}</td>
-                  <td className="px-4 py-3 text-gray-600">{t.description || '—'}</td>
-                  <td className="px-4 py-3 text-gray-500">
-                    <p className="text-xs">{t.debit_account_name}</p>
-                    <p className="text-xs text-gray-400">← {t.credit_account_name}</p>
-                  </td>
-                  <td className="px-4 py-3 font-medium whitespace-nowrap">৳{Number(t.amount).toLocaleString()}</td>
-                  <td className="px-4 py-3 text-gray-500">{t.created_by_name || t.created_by_phone || '—'}</td>
-                  <td className="px-4 py-3">
-                    <button onClick={() => handleDelete(t)}
-                      className="px-2 py-1 bg-red-50 text-red-500 rounded-lg text-xs font-medium">
-                      <Trash2 size={14} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                <tr><td colSpan={7} className="text-center py-12 text-gray-400">কোনো রেকর্ড নেই</td></tr>
+              ) : transactions.map(t => {
+                const isCashIn = t.transaction_type === 'revenue';
+                const isCashOut = t.transaction_type === 'expense';
+                const isTransfer = !isCashIn && !isCashOut;
+                return (
+                  <tr key={t.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{format(new Date(t.transaction_date), 'dd/MM/yy')}</td>
+                    <td className="px-4 py-3 text-gray-600">{t.description || '—'}</td>
+                    <td className="px-4 py-3 text-gray-500">
+                      <p className="text-xs">{t.debit_account_name}</p>
+                      <p className="text-xs text-gray-400">← {t.credit_account_name}</p>
+                      {isTransfer && <span className="text-xs bg-blue-50 text-blue-500 px-1.5 py-0.5 rounded">ট্রান্সফার</span>}
+                    </td>
+                    <td className="px-4 py-3 font-medium whitespace-nowrap text-green-600">
+                      {isCashIn ? `৳${Number(t.amount).toLocaleString()}` : '—'}
+                    </td>
+                    <td className="px-4 py-3 font-medium whitespace-nowrap text-red-600">
+                      {isCashOut ? `৳${Number(t.amount).toLocaleString()}` : '—'}
+                    </td>
+                    <td className="px-4 py-3 text-gray-500">{t.created_by_name || t.created_by_phone || '—'}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-1">
+                        {isSuperAdmin && (
+                          <button onClick={() => setEditTxn(t)}
+                            className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium">
+                            <Edit2 size={14} />
+                          </button>
+                        )}
+                        <button onClick={() => handleDelete(t)}
+                          className="px-2 py-1 bg-red-50 text-red-500 rounded-lg text-xs font-medium">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -122,6 +146,14 @@ export default function Transactions() {
           mode={entryMode}
           onClose={() => setEntryMode(null)}
           onSuccess={() => { setEntryMode(null); fetchTransactions(); }}
+        />
+      )}
+
+      {editTxn && (
+        <EditModal
+          txn={editTxn}
+          onClose={() => setEditTxn(null)}
+          onSuccess={() => { setEditTxn(null); fetchTransactions(); }}
         />
       )}
     </div>
@@ -135,8 +167,8 @@ function EntryModal({ mode, onClose, onSuccess }) {
   const [form, setForm] = useState({
     transaction_date: format(new Date(), 'yyyy-MM-dd'),
     amount: '',
-    account_id: '',      // bank/cash/wallet account
-    category_id: '',     // revenue/expense category
+    account_id: '',
+    category_id: '',
     party: '',
     description: '',
     proof: null,
@@ -154,14 +186,12 @@ function EntryModal({ mode, onClose, onSuccess }) {
   const expenseAccounts = accounts.filter(a => a.is_active && a.account_type === 'expense');
   const liabilityAccounts = accounts.filter(a => a.is_active && a.account_type === 'liability');
 
-  // For "Cash In", category can be revenue or liability (e.g. investor deposit, loan)
   const inCategoryOptions = [...revenueAccounts, ...liabilityAccounts];
-  // For "Cash Out", category can be expense or liability (e.g. credit card payment, investor payout, loan repayment)
   const outCategoryOptions = [...expenseAccounts, ...liabilityAccounts];
 
   const titles = {
-    in: 'টাকা এসেছে (Cash In)',
-    out: 'টাকা গেছে (Cash Out)',
+    in: 'Cash In',
+    out: 'Cash Out',
     transfer: 'ট্রান্সফার',
   };
 
@@ -174,19 +204,19 @@ function EntryModal({ mode, onClose, onSuccess }) {
 
     if (mode === 'in') {
       if (!form.category_id) return toast.error('কী বাবদ এসেছে বেছে নিন');
-      debit_account_id = form.account_id;     // asset increases
-      credit_account_id = form.category_id;   // revenue/liability
+      debit_account_id = form.account_id;
+      credit_account_id = form.category_id;
       transaction_type = 'revenue';
     } else if (mode === 'out') {
       if (!form.category_id) return toast.error('কী বাবদ খরচ বেছে নিন');
-      debit_account_id = form.category_id;    // expense/liability
-      credit_account_id = form.account_id;    // asset decreases
+      debit_account_id = form.category_id;
+      credit_account_id = form.account_id;
       transaction_type = 'expense';
     } else {
       if (!form.category_id) return toast.error('কোথায় যাচ্ছে বেছে নিন');
       if (form.account_id === form.category_id) return toast.error('From ও To একাউন্ট একই হতে পারবে না');
-      debit_account_id = form.category_id;    // destination asset increases
-      credit_account_id = form.account_id;    // source asset decreases
+      debit_account_id = form.category_id;
+      credit_account_id = form.account_id;
       transaction_type = 'fund_transfer';
     }
 
@@ -335,6 +365,163 @@ function EntryModal({ mode, onClose, onSuccess }) {
 
             <button type="submit" className="btn-primary" disabled={loading}>
               {loading ? 'সেভ হচ্ছে...' : '✅ এন্ট্রি সেভ করুন'}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EditModal({ txn, onClose, onSuccess }) {
+  const [accounts, setAccounts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [proofPreview, setProofPreview] = useState(null);
+  const [form, setForm] = useState({
+    transaction_date: txn.transaction_date?.split('T')[0] || '',
+    transaction_type: txn.transaction_type,
+    amount: txn.amount,
+    debit_account_id: txn.debit_account_id,
+    credit_account_id: txn.credit_account_id,
+    description: txn.description || '',
+    reference_no: txn.reference_no || '',
+    proof: null,
+  });
+
+  useEffect(() => {
+    accountingApi.getAllAccounts().then(r => setAccounts(r.data || []));
+  }, []);
+
+  const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.amount || Number(form.amount) <= 0) return toast.error('সঠিক পরিমাণ দিন');
+    if (!form.debit_account_id || !form.credit_account_id) return toast.error('একাউন্ট বেছে নিন');
+    if (form.debit_account_id === form.credit_account_id) return toast.error('Debit ও Credit একাউন্ট একই হতে পারবে না');
+
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('transaction_date', form.transaction_date);
+      formData.append('transaction_type', form.transaction_type);
+      formData.append('amount', form.amount);
+      formData.append('debit_account_id', form.debit_account_id);
+      formData.append('credit_account_id', form.credit_account_id);
+      formData.append('description', form.description);
+      formData.append('reference_no', form.reference_no);
+      if (form.proof) formData.append('proof', form.proof);
+
+      await accountingApi.updateTransaction(txn.id, formData);
+      toast.success('এন্ট্রি আপডেট হয়েছে ✅');
+      onSuccess();
+    } catch (err) {
+      toast.error(err.message || 'সমস্যা হয়েছে');
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 overflow-y-auto">
+      <div className="min-h-screen flex items-end lg:items-center justify-center p-4">
+        <div className="bg-white w-full lg:max-w-lg rounded-t-3xl lg:rounded-2xl">
+          <div className="p-5 border-b border-gray-100 flex justify-between items-center">
+            <h3 className="font-bold text-lg">এন্ট্রি এডিট করুন</h3>
+            <button onClick={onClose} className="p-1.5 bg-gray-100 rounded-full">✕</button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="p-5 space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1.5">তারিখ *</label>
+              <input type="date" className="input-field" value={form.transaction_date}
+                onChange={e => set('transaction_date', e.target.value)} />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1.5">টাইপ *</label>
+              <select className="input-field" value={form.transaction_type}
+                onChange={e => set('transaction_type', e.target.value)}>
+                <option value="revenue">আয় (Revenue)</option>
+                <option value="expense">খরচ (Expense)</option>
+                <option value="fund_transfer">ট্রান্সফার</option>
+                <option value="bank_withdrawal">ব্যাংক উইথড্রয়াল</option>
+                <option value="credit_card_payment">ক্রেডিট কার্ড পেমেন্ট</option>
+                <option value="investor_payment">ইনভেস্টর পেমেন্ট</option>
+                <option value="salary_payment">বেতন পেমেন্ট</option>
+                <option value="teacher_payment">টিচার পেমেন্ট</option>
+                <option value="steadfast_withdrawal">Steadfast উইথড্রয়াল</option>
+                <option value="adjusting_entry">এডজাস্টিং এন্ট্রি</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1.5">পরিমাণ (৳) *</label>
+              <input type="number" className="input-field" value={form.amount}
+                onChange={e => set('amount', e.target.value)} />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Debit একাউন্ট *</label>
+              <select className="input-field" value={form.debit_account_id}
+                onChange={e => set('debit_account_id', e.target.value)}>
+                {accounts.filter(a => a.is_active).map(a => (
+                  <option key={a.id} value={a.id}>[{a.account_type}] {a.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Credit একাউন্ট *</label>
+              <select className="input-field" value={form.credit_account_id}
+                onChange={e => set('credit_account_id', e.target.value)}>
+                {accounts.filter(a => a.is_active).map(a => (
+                  <option key={a.id} value={a.id}>[{a.account_type}] {a.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1.5">বিবরণ</label>
+              <textarea className="input-field resize-none" rows={2} value={form.description}
+                onChange={e => set('description', e.target.value)} />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1.5">রেফারেন্স নম্বর</label>
+              <input type="text" className="input-field" value={form.reference_no}
+                onChange={e => set('reference_no', e.target.value)} />
+            </div>
+
+            {txn.proof_url && (
+              <div>
+                <label className="block text-sm font-medium mb-1.5">বর্তমান প্রুফ</label>
+                <a href={txn.proof_url} target="_blank" rel="noreferrer" className="text-primary-500 underline text-sm">প্রুফ দেখুন</a>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium mb-1.5">নতুন প্রুফ আপলোড (ঐচ্ছিক)</label>
+              {proofPreview ? (
+                <div className="relative">
+                  <img src={proofPreview} className="w-full h-32 object-cover rounded-xl" alt="proof" />
+                  <button type="button" onClick={() => { setProofPreview(null); set('proof', null); }}
+                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1">
+                    <X size={14} />
+                  </button>
+                </div>
+              ) : (
+                <label className="flex items-center gap-3 p-3 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer">
+                  <Camera size={20} className="text-gray-400" />
+                  <span className="text-sm text-gray-400">নতুন ছবি আপলোড করুন</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={e => {
+                    const file = e.target.files[0];
+                    if (file) { set('proof', file); setProofPreview(URL.createObjectURL(file)); }
+                  }} />
+                </label>
+              )}
+            </div>
+
+            <button type="submit" className="btn-primary" disabled={loading}>
+              {loading ? 'আপডেট হচ্ছে...' : '✅ আপডেট করুন'}
             </button>
           </form>
         </div>

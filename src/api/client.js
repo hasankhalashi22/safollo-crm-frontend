@@ -136,6 +136,10 @@ export const accountingApi = {
   }),
   getTransactions: (params) => api.get('/api/accounting/transactions', { params }),
   deleteTransaction: (id) => api.delete(`/api/accounting/transactions/${id}`),
+updateTransaction: (id, formData) => api.patch(`/api/accounting/transactions/${id}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+
 };
 
 export default api;
