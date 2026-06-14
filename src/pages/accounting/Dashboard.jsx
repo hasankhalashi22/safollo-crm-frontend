@@ -22,27 +22,43 @@ export default function AccountingDashboard() {
 const highlightNames = ['BRAC Bank', 'Nagad Wallet', 'Dutch Bangla Bank', 'Petty Cash'];
   const highlightAccounts = highlightNames.map(name => assets.find(a => a.name === name)).filter(Boolean);
 
+  const BRAND_STYLES = {
+    'বিকাশ': { bg: 'bg-pink-50', border: 'border-pink-100', text: 'text-pink-600', badge: 'bg-pink-500', initial: 'বি' },
+    'BRAC Bank': { bg: 'bg-blue-50', border: 'border-blue-100', text: 'text-blue-600', badge: 'bg-blue-600', initial: 'B' },
+    'Nagad Wallet': { bg: 'bg-orange-50', border: 'border-orange-100', text: 'text-orange-600', badge: 'bg-orange-500', initial: 'N' },
+    'Dutch Bangla Bank': { bg: 'bg-green-50', border: 'border-green-100', text: 'text-green-600', badge: 'bg-green-600', initial: 'D' },
+    'Petty Cash': { bg: 'bg-primary-50', border: 'border-primary-100', text: 'text-primary-600', badge: 'bg-primary-500', initial: '৳' },
+  };
+
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-display font-bold text-dark">একাউন্টিং ড্যাশবোর্ড</h1>
 
-      {/* Today's bKash */}
-      <div className="card bg-gradient-to-br from-pink-50 to-white border border-pink-100">
-        <p className="text-sm text-gray-500 mb-1">আজকের বিকাশ কালেকশন</p>
-        <p className="text-2xl font-bold text-pink-600">৳{Number(data.today_bkash).toLocaleString()}</p>
-        <p className="text-xs text-gray-400 mt-1">রাত ১:০০ টায় রিসেট ও সেটেলমেন্ট হবে</p>
-      </div>
-
-      {/* Key account balances */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {highlightAccounts.map(a => (
-          <div key={a.id} className="card bg-gradient-to-br from-primary-50 to-white border border-primary-100">
-            <p className="text-sm text-gray-500 mb-1">{a.name}</p>
-            <p className={`text-xl font-bold ${a.balance < 0 ? 'text-red-500' : 'text-primary-600'}`}>৳{Number(a.balance).toLocaleString()}</p>
+      {/* Key balances row: bKash + 4 highlight accounts */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        {/* bKash collection */}
+        <div className={`card ${BRAND_STYLES['বিকাশ'].bg} border ${BRAND_STYLES['বিকাশ'].border}`}>
+          <div className={`w-8 h-8 rounded-full ${BRAND_STYLES['বিকাশ'].badge} text-white flex items-center justify-center font-bold text-sm mb-2`}>
+            {BRAND_STYLES['বিকাশ'].initial}
           </div>
-        ))}
+          <p className="text-sm text-gray-500 mb-1">আজকের বিকাশ</p>
+          <p className={`text-xl font-bold ${BRAND_STYLES['বিকাশ'].text}`}>৳{Number(data.today_bkash).toLocaleString()}</p>
+        </div>
+
+        {highlightAccounts.map(a => {
+          const style = BRAND_STYLES[a.name] || { bg: 'bg-gray-50', border: 'border-gray-100', text: 'text-dark', badge: 'bg-gray-400', initial: a.name[0] };
+          return (
+            <div key={a.id} className={`card ${style.bg} border ${style.border}`}>
+              <div className={`w-8 h-8 rounded-full ${style.badge} text-white flex items-center justify-center font-bold text-sm mb-2`}>
+                {style.initial}
+              </div>
+              <p className="text-sm text-gray-500 mb-1">{a.name}</p>
+              <p className={`text-xl font-bold ${a.balance < 0 ? 'text-red-500' : style.text}`}>৳{Number(a.balance).toLocaleString()}</p>
+            </div>
+          );
+        })}
       </div>
-      {/* Today/Month summary */}
+      <p className="text-xs text-gray-400">আজকের বিকাশ — রাত ১:০০ টায় রিসেট ও সেটেলমেন্ট হবে</p>      {/* Today/Month summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard icon={<TrendingUp className="text-green-500" size={20} />} label="আজকের আয়" value={summary.today_in} bg="bg-green-50" />
         <StatCard icon={<TrendingDown className="text-red-500" size={20} />} label="আজকের খরচ" value={summary.today_out} bg="bg-red-50" />
