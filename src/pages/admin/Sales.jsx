@@ -515,10 +515,13 @@ function Row({ label, value }) {
 
 function EditSaleModal({ sale, executives, onClose, onSuccess }) {
   const [form, setForm] = useState({
-    reference: sale.reference || '',
-    notes: sale.notes || '',
+    student_name: sale.student_name || '',
+    student_phone: sale.student_phone || '',
+    created_at: sale.created_at?.split('T')[0] || '',
     course_price: sale.course_price || '',
     executive_id: sale.executive_id || '',
+    reference: sale.reference || '',
+    notes: sale.notes || '',
   });
   const [loading, setLoading] = useState(false);
 
@@ -546,6 +549,23 @@ function EditSaleModal({ sale, executives, onClose, onSuccess }) {
           <p className="text-gray-500">{sale.course_name} • {sale.batch_name}</p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium mb-1.5">নাম</label>
+              <input type="text" className="input-field" value={form.student_name}
+                onChange={e => setForm(p => ({ ...p, student_name: e.target.value }))} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5">মোবাইল</label>
+              <input type="tel" className="input-field" value={form.student_phone}
+                onChange={e => setForm(p => ({ ...p, student_phone: e.target.value.replace(/\D/g, '').slice(0, 11) }))} />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5">এনরোলমেন্ট তারিখ</label>
+            <input type="date" className="input-field" value={form.created_at}
+              onChange={e => setForm(p => ({ ...p, created_at: e.target.value }))} />
+          </div>
           <div>
             <label className="block text-sm font-medium mb-1.5">কোর্স মূল্য</label>
             <input type="number" className="input-field" value={form.course_price}
