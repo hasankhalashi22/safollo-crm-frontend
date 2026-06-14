@@ -5,7 +5,8 @@ import { useNotifications } from './hooks/useNotifications';
 
 import Login from './pages/Login';
 import CompleteProfile from './pages/CompleteProfile';
-import { ExecutiveLayout, AdminLayout } from './components/Layout/AppLayout';
+import { ExecutiveLayout, AdminLayout, AccountingLayout } from './components/Layout/AppLayout';
+import Accounts from './pages/accounting/Accounts';
 
 import ExecutiveDashboard from './pages/executive/Dashboard';
 import NewSale from './pages/executive/NewSale';
@@ -81,6 +82,9 @@ useNotifications();
       <Route path="/admin/audit" element={<ProtectedRoute allowedLevels={[1]}><AdminLayout><AuditLog /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/approvals" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><SaleApproval /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/profile" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><Profile /></AdminLayout></ProtectedRoute>} />
+
+      <Route path="/accounting" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><Accounts /></AccountingLayout></ProtectedRoute>} />
+      <Route path="/accounting/accounts" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><Accounts /></AccountingLayout></ProtectedRoute>} />
 
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="*" element={<Navigate to="/login" replace />} />

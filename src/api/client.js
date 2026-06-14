@@ -124,4 +124,18 @@ export const approvalsApi = {
   resubmitDuePayment:   (id) => api.patch(`/api/approvals/payments/${id}/resubmit`),
 };
 
+
+export const accountingApi = {
+  getAccounts: (type) => api.get('/api/accounting/accounts', { params: type ? { type } : {} }),
+  getAllAccounts: () => api.get('/api/accounting/accounts/all'),
+  createAccount: (data) => api.post('/api/accounting/accounts', data),
+  updateAccount: (id, data) => api.patch(`/api/accounting/accounts/${id}`, data),
+  getAccountBalance: (id) => api.get(`/api/accounting/accounts/${id}/balance`),
+  createTransaction: (formData) => api.post('/api/accounting/transactions', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  getTransactions: (params) => api.get('/api/accounting/transactions', { params }),
+  deleteTransaction: (id) => api.delete(`/api/accounting/transactions/${id}`),
+};
+
 export default api;
