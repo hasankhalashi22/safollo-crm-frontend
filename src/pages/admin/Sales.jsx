@@ -349,7 +349,7 @@ export default function AdminSales() {
                       <td className="px-4 py-3 text-gray-500">{s.executive_name || '—'}</td>
                       <td className="px-4 py-3 text-gray-500">{s.approver_name || '—'}</td>
                       <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
-                        {(user?.role === 'super_admin' || user?.role === 'advisor') && (
+                       {user?.role === 'super_admin' && (
                           <button onClick={() => setEditModal(s)}
                             className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium">
                             ✏️ Edit
