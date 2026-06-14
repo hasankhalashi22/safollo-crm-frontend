@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './hooks/useAuth';
 import { useNotifications } from './hooks/useNotifications';
 import Transactions from './pages/accounting/Transactions';
 import AccountingDashboard from './pages/accounting/Dashboard';
+import Ledger from './pages/accounting/Ledger';
 
 import Login from './pages/Login';
 import CompleteProfile from './pages/CompleteProfile';
@@ -90,6 +91,8 @@ useNotifications();
       <Route path="/accounting/accounts" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><Accounts /></AccountingLayout></ProtectedRoute>} />
 
 <Route path="/accounting/transactions" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><Transactions /></AccountingLayout></ProtectedRoute>} />
+
+<Route path="/accounting/ledger" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><Ledger /></AccountingLayout></ProtectedRoute>} />
 
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
