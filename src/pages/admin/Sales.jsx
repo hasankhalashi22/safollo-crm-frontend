@@ -537,9 +537,10 @@ function EditSaleModal({ sale, executives, onClose, onSuccess }) {
     } finally { setLoading(false); }
   };
 
-  return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md p-5">
+return (
+    <div className="fixed inset-0 bg-black/50 z-50 overflow-y-auto">
+      <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md p-5 my-8">
         <div className="flex justify-between mb-4">
           <h3 className="font-bold text-lg">সেল এডিট করুন</h3>
           <button onClick={onClose} className="p-1.5 bg-gray-100 rounded-full">✕</button>
@@ -590,10 +591,11 @@ function EditSaleModal({ sale, executives, onClose, onSuccess }) {
             <textarea className="input-field resize-none" rows={2} value={form.notes}
               onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} />
           </div>
-          <button type="submit" className="btn-primary" disabled={loading}>
+        <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? 'আপডেট হচ্ছে...' : '✅ আপডেট করুন'}
           </button>
         </form>
+      </div>
       </div>
     </div>
   );
