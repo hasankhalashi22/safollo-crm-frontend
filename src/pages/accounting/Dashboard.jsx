@@ -24,6 +24,7 @@ const highlightNames = ['BRAC Bank', 'Nagad Wallet', 'Dutch Bangla Bank', 'Petty
 
   const BRAND_STYLES = {
     'বিকাশ': { bg: 'bg-pink-50', border: 'border-pink-100', text: 'text-pink-600', badge: 'bg-pink-500', initial: 'বি' },
+    'রকেট': { bg: 'bg-purple-50', border: 'border-purple-100', text: 'text-purple-600', badge: 'bg-purple-600', initial: 'র' },
     'BRAC Bank': { bg: 'bg-blue-50', border: 'border-blue-100', text: 'text-blue-600', badge: 'bg-blue-600', initial: 'B' },
     'Nagad Wallet': { bg: 'bg-orange-50', border: 'border-orange-100', text: 'text-orange-600', badge: 'bg-orange-500', initial: 'N' },
     'Dutch Bangla Bank': { bg: 'bg-green-50', border: 'border-green-100', text: 'text-green-600', badge: 'bg-green-600', initial: 'D' },
@@ -34,8 +35,8 @@ const highlightNames = ['BRAC Bank', 'Nagad Wallet', 'Dutch Bangla Bank', 'Petty
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-display font-bold text-dark">একাউন্টিং ড্যাশবোর্ড</h1>
 
-      {/* Key balances row: bKash + 4 highlight accounts */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+      {/* Key balances row: bKash + Rocket + 4 highlight accounts */}
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
         {/* bKash collection */}
         <div className={`card ${BRAND_STYLES['বিকাশ'].bg} border ${BRAND_STYLES['বিকাশ'].border}`}>
           <div className={`w-8 h-8 rounded-full ${BRAND_STYLES['বিকাশ'].badge} text-white flex items-center justify-center font-bold text-sm mb-2`}>
@@ -43,6 +44,15 @@ const highlightNames = ['BRAC Bank', 'Nagad Wallet', 'Dutch Bangla Bank', 'Petty
           </div>
           <p className="text-sm text-gray-500 mb-1">আজকের বিকাশ</p>
           <p className={`text-xl font-bold ${BRAND_STYLES['বিকাশ'].text}`}>৳{Number(data.today_bkash).toLocaleString()}</p>
+        </div>
+
+        {/* Rocket collection */}
+        <div className={`card ${BRAND_STYLES['রকেট'].bg} border ${BRAND_STYLES['রকেট'].border}`}>
+          <div className={`w-8 h-8 rounded-full ${BRAND_STYLES['রকেট'].badge} text-white flex items-center justify-center font-bold text-sm mb-2`}>
+            {BRAND_STYLES['রকেট'].initial}
+          </div>
+          <p className="text-sm text-gray-500 mb-1">আজকের রকেট</p>
+          <p className={`text-xl font-bold ${BRAND_STYLES['রকেট'].text}`}>৳{Number(data.today_rocket).toLocaleString()}</p>
         </div>
 
         {highlightAccounts.map(a => {
@@ -58,7 +68,9 @@ const highlightNames = ['BRAC Bank', 'Nagad Wallet', 'Dutch Bangla Bank', 'Petty
           );
         })}
       </div>
-      <p className="text-xs text-gray-400">আজকের বিকাশ — রাত ১:০০ টায় রিসেট ও সেটেলমেন্ট হবে</p>      {/* Today/Month summary */}
+      <p className="text-xs text-gray-400">আজকের বিকাশ/রকেট — রাত ১:০০ টায় রিসেট ও সেটেলমেন্ট হবে</p>
+
+ {/* Today/Month summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard icon={<TrendingUp className="text-green-500" size={20} />} label="আজকের আয়" value={summary.today_in} bg="bg-green-50" />
         <StatCard icon={<TrendingDown className="text-red-500" size={20} />} label="আজকের খরচ" value={summary.today_out} bg="bg-red-50" />
