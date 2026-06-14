@@ -26,6 +26,13 @@ const highlightNames = ['BRAC Bank', 'Nagad Wallet', 'Dutch Bangla Bank', 'Petty
     <div className="p-6 space-y-6">
       <h1 className="text-2xl font-display font-bold text-dark">একাউন্টিং ড্যাশবোর্ড</h1>
 
+      {/* Today's bKash */}
+      <div className="card bg-gradient-to-br from-pink-50 to-white border border-pink-100">
+        <p className="text-sm text-gray-500 mb-1">আজকের বিকাশ কালেকশন</p>
+        <p className="text-2xl font-bold text-pink-600">৳{Number(data.today_bkash).toLocaleString()}</p>
+        <p className="text-xs text-gray-400 mt-1">রাত ১:০০ টায় রিসেট ও সেটেলমেন্ট হবে</p>
+      </div>
+
       {/* Key account balances */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {highlightAccounts.map(a => (
@@ -35,7 +42,6 @@ const highlightNames = ['BRAC Bank', 'Nagad Wallet', 'Dutch Bangla Bank', 'Petty
           </div>
         ))}
       </div>
-
       {/* Today/Month summary */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard icon={<TrendingUp className="text-green-500" size={20} />} label="আজকের আয়" value={summary.today_in} bg="bg-green-50" />
