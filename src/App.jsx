@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { useNotifications } from './hooks/useNotifications';
 import Transactions from './pages/accounting/Transactions';
+import AccountingDashboard from './pages/accounting/Dashboard';
 
 import Login from './pages/Login';
 import CompleteProfile from './pages/CompleteProfile';
@@ -84,7 +85,8 @@ useNotifications();
       <Route path="/admin/approvals" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><SaleApproval /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/profile" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><Profile /></AdminLayout></ProtectedRoute>} />
 
-      <Route path="/accounting" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><Accounts /></AccountingLayout></ProtectedRoute>} />
+   <Route path="/accounting" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><AccountingDashboard /></AccountingLayout></ProtectedRoute>} />
+
       <Route path="/accounting/accounts" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><Accounts /></AccountingLayout></ProtectedRoute>} />
 
 <Route path="/accounting/transactions" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><Transactions /></AccountingLayout></ProtectedRoute>} />

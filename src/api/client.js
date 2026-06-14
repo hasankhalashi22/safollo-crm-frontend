@@ -131,6 +131,8 @@ export const accountingApi = {
   createAccount: (data) => api.post('/api/accounting/accounts', data),
   updateAccount: (id, data) => api.patch(`/api/accounting/accounts/${id}`, data),
   getAccountBalance: (id) => api.get(`/api/accounting/accounts/${id}/balance`),
+getDashboard: () => api.get('/api/accounting/dashboard'),
+
   createTransaction: (formData) => api.post('/api/accounting/transactions', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
