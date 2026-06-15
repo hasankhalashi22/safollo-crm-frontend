@@ -39,8 +39,9 @@ export default function NewSale() {
     notes: '',
     payment_proof: null,
     override_executive_id: '',
-    payment_type: 'full',     // 'full' or 'cod' — only relevant for books
+  payment_type: 'full',     // 'full' or 'cod' — only relevant for books
     delivery_charge: '',      // only used when payment_type === 'cod'
+    cod_book_price: '',       // editable, defaults to course default_price
   });
 
   useEffect(() => {
@@ -57,20 +58,22 @@ export default function NewSale() {
   const codBookPrice = Number(selectedCourse?.default_price || 0);
 
   // Sync course_price & collected_amount when in COD mode
+// Sync course_price & collected_amount when in COD mode
   useEffect(() => {
     if (isCOD) {
       const delivery = Number(form.delivery_charge || 0);
-      const total = delivery + codBookPrice;
+      const bookPrice = Number(form.cod_book_price || 0);
+      const total = delivery + bookPrice;
       setForm(prev => ({ ...prev, course_price: total, collected_amount: delivery }));
     }
-  }, [isCOD, form.delivery_charge, codBookPrice]);
+  }, [isCOD, form.delivery_charge, form.cod_book_price]);
 
   const dueAmount = form.course_price && form.collected_amount
     ? Math.max(0, Number(form.course_price) - Number(form.collected_amount)) : 0;
 
   const set = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
 
-  const handleCourseChange = (courseId) => {
+const handleCourseChange = (courseId) => {
     const course = courses.find(c => c.id == courseId);
     set('course_id', courseId);
     set('batch_id', '');
@@ -78,6 +81,7 @@ export default function NewSale() {
     set('collected_amount', '');
     set('payment_type', 'full');
     set('delivery_charge', '');
+    set('cod_book_price', course?.default_price || '');
     set('payment_method', '');
   };
 
@@ -103,8 +107,8 @@ export default function NewSale() {
     setLoading(true);
     try {
       const formData = new FormData();
-      Object.entries(form).forEach(([key, val]) => {
-        if (val !== null && val !== '' && key !== 'payment_proof' && key !== 'payment_type' && key !== 'delivery_charge') {
+     Object.entries(form).forEach(([key, val]) => {
+        if (val !== null && val !== '' && key !== 'payment_proof' && key !== 'payment_type' && key !== 'delivery_charge' && key !== 'cod_book_price') {
           formData.append(key, val);
         }
       });
@@ -207,9 +211,10 @@ export default function NewSale() {
                 <input type="number" className="input-field" placeholder="যেমন: 140"
                   value={form.delivery_charge} onChange={e => set('delivery_charge', e.target.value)} />
               </div>
-              <div>
+             <div>
                 <label className="block text-sm font-medium text-dark mb-1">COD বই মূল্য (৳)</label>
-                <input type="number" className="input-field bg-gray-50" value={codBookPrice} readOnly />
+                <input type="number" className="input-field" value={form.cod_book_price}
+                  onChange={e => set('cod_book_price', e.target.value)} />
               </div>
             </div>
             <div className="bg-blue-50 rounded-xl p-3 flex justify-between items-center">
