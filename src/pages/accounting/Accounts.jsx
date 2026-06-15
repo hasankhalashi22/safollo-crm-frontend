@@ -4,11 +4,11 @@ import toast from 'react-hot-toast';
 import { Plus, Edit2 } from 'lucide-react';
 
 const TYPE_LABELS = {
-  asset: 'সম্পদ (Asset)',
-  liability: 'দায় (Liability)',
-  equity: 'মালিকানা (Equity)',
-  revenue: 'আয় (Revenue)',
-  expense: 'খরচ (Expense)',
+  asset: 'Asset',
+  liability: 'Liability',
+  equity: 'Equity',
+  revenue: 'Revenue',
+  expense: 'Expense',
 };
 
 const TYPE_ORDER = ['asset', 'liability', 'equity', 'revenue', 'expense'];
@@ -40,10 +40,10 @@ export default function Accounts() {
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-display font-bold text-dark">একাউন্ট ম্যানেজমেন্ট</h1>
+        <h1 className="text-2xl font-display font-bold text-dark">Chart of Accounts</h1>
         <button onClick={() => setCreateModal(true)}
           className="flex items-center gap-2 bg-primary-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium active:scale-95">
-          <Plus size={16} /> নতুন একাউন্ট
+          <Plus size={16} /> New Account
         </button>
       </div>
 
@@ -55,7 +55,7 @@ export default function Accounts() {
             </div>
             <div className="divide-y divide-gray-50">
               {group.accounts.length === 0 ? (
-                <p className="text-center py-6 text-gray-400 text-sm">কোনো একাউন্ট নেই</p>
+                <p className="text-center py-6 text-gray-400 text-sm">No accounts</p>
               ) : group.accounts.map(acc => (
                 <div key={acc.id} className="flex items-center justify-between px-4 py-3">
                   <div>
@@ -65,7 +65,7 @@ export default function Accounts() {
                       {acc.bank_name && <span className="text-gray-400 text-xs ml-2">({acc.bank_name})</span>}
                     </p>
                     {acc.account_subtype && <p className="text-xs text-gray-400">{acc.account_subtype}</p>}
-                    {!acc.is_active && <span className="text-xs text-red-500">নিষ্ক্রিয়</span>}
+                    {!acc.is_active && <span className="text-xs text-red-500">Inactive</span>}
                   </div>
                   <button onClick={() => setEditModal(acc)}
                     className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium">
@@ -118,19 +118,19 @@ function AccountModal({ account, onClose, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.name) return toast.error('একাউন্টের নাম দিন');
+    if (!form.name) return toast.error('Enter account name');
     setLoading(true);
     try {
       if (isEdit) {
         await accountingApi.updateAccount(account.id, form);
-        toast.success('একাউন্ট আপডেট হয়েছে ✅');
+        toast.success('Account updated ✅');
       } else {
         await accountingApi.createAccount(form);
-        toast.success('একাউন্ট তৈরি হয়েছে ✅');
+        toast.success('Account created ✅');
       }
       onSuccess();
     } catch (err) {
-      toast.error(err.message || 'সমস্যা হয়েছে');
+      toast.error(err.message || 'Something went wrong');
     } finally { setLoading(false); }
   };
 
@@ -138,56 +138,56 @@ function AccountModal({ account, onClose, onSuccess }) {
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl w-full max-w-md p-5 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between mb-4">
-          <h3 className="font-bold text-lg">{isEdit ? 'একাউন্ট এডিট করুন' : 'নতুন একাউন্ট'}</h3>
+          <h3 className="font-bold text-lg">{isEdit ? 'Edit Account' : 'New Account'}</h3>
           <button onClick={onClose} className="p-1.5 bg-gray-100 rounded-full">✕</button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-3">
           {!isEdit && (
             <div>
-              <label className="block text-sm font-medium mb-1.5">টাইপ *</label>
+              <label className="block text-sm font-medium mb-1.5">Type *</label>
               <select className="input-field" value={form.account_type}
                 onChange={e => set('account_type', e.target.value)}>
-                <option value="asset">সম্পদ (Asset)</option>
-                <option value="liability">দায় (Liability)</option>
-                <option value="equity">মালিকানা (Equity)</option>
-                <option value="revenue">আয় (Revenue)</option>
-                <option value="expense">খরচ (Expense)</option>
+                <option value="asset">Asset</option>
+                <option value="liability">Liability</option>
+                <option value="equity">Equity</option>
+                <option value="revenue">Revenue</option>
+                <option value="expense">Expense</option>
               </select>
             </div>
           )}
           <div>
-            <label className="block text-sm font-medium mb-1.5">নাম *</label>
+            <label className="block text-sm font-medium mb-1.5">Name *</label>
             <input type="text" className="input-field" value={form.name}
               onChange={e => set('name', e.target.value)} />
           </div>
           {!isEdit && (
             <div>
-              <label className="block text-sm font-medium mb-1.5">কোড</label>
-              <input type="text" className="input-field" placeholder="যেমন: 5009" value={form.code}
+              <label className="block text-sm font-medium mb-1.5">Code</label>
+              <input type="text" className="input-field" placeholder="e.g. 5009" value={form.code}
                 onChange={e => set('code', e.target.value)} />
             </div>
           )}
           <div>
-            <label className="block text-sm font-medium mb-1.5">সাব-টাইপ</label>
-            <input type="text" className="input-field" placeholder="যেমন: credit_card, investor_loan"
+            <label className="block text-sm font-medium mb-1.5">Subtype</label>
+            <input type="text" className="input-field" placeholder="e.g. credit_card, investor_loan"
               value={form.account_subtype} onChange={e => set('account_subtype', e.target.value)} />
           </div>
 
           {(form.account_type === 'liability' && form.account_subtype === 'credit_card') && (
             <>
               <div>
-                <label className="block text-sm font-medium mb-1.5">ব্যাংকের নাম</label>
+                <label className="block text-sm font-medium mb-1.5">Bank Name</label>
                 <input type="text" className="input-field" value={form.bank_name}
                   onChange={e => set('bank_name', e.target.value)} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">ক্রেডিট লিমিট</label>
+                  <label className="block text-sm font-medium mb-1.5">Credit Limit</label>
                   <input type="number" className="input-field" value={form.credit_limit}
                     onChange={e => set('credit_limit', e.target.value)} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">ইন্টারেস্ট রেট %</label>
+                  <label className="block text-sm font-medium mb-1.5">Interest Rate %</label>
                   <input type="number" className="input-field" value={form.interest_rate}
                     onChange={e => set('interest_rate', e.target.value)} />
                 </div>
@@ -198,30 +198,30 @@ function AccountModal({ account, onClose, onSuccess }) {
           {(form.account_subtype === 'investor_loan') && (
             <>
               <div>
-                <label className="block text-sm font-medium mb-1.5">ইনভেস্টরের নাম</label>
+                <label className="block text-sm font-medium mb-1.5">Investor Name</label>
                 <input type="text" className="input-field" value={form.investor_name}
                   onChange={e => set('investor_name', e.target.value)} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">মূলধন</label>
+                  <label className="block text-sm font-medium mb-1.5">Principal Amount</label>
                   <input type="number" className="input-field" value={form.principal_amount}
                     onChange={e => set('principal_amount', e.target.value)} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">প্রফিট রেট %</label>
+                  <label className="block text-sm font-medium mb-1.5">Profit Rate %</label>
                   <input type="number" className="input-field" value={form.profit_rate}
                     onChange={e => set('profit_rate', e.target.value)} />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">চুক্তি শুরু</label>
+                  <label className="block text-sm font-medium mb-1.5">Contract Start</label>
                   <input type="date" className="input-field" value={form.contract_start_date}
                     onChange={e => set('contract_start_date', e.target.value)} />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">চুক্তি শেষ</label>
+                  <label className="block text-sm font-medium mb-1.5">Contract End</label>
                   <input type="date" className="input-field" value={form.contract_end_date}
                     onChange={e => set('contract_end_date', e.target.value)} />
                 </div>
@@ -233,12 +233,12 @@ function AccountModal({ account, onClose, onSuccess }) {
             <div className="flex items-center gap-2">
               <input type="checkbox" checked={form.is_active}
                 onChange={e => set('is_active', e.target.checked)} />
-              <label className="text-sm">সক্রিয়</label>
+              <label className="text-sm">Active</label>
             </div>
           )}
 
           <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? 'সেভ হচ্ছে...' : '✅ সেভ করুন'}
+            {loading ? 'Saving...' : '✅ Save'}
           </button>
         </form>
       </div>
