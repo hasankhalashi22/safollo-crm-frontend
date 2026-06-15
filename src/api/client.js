@@ -149,4 +149,9 @@ updateTransaction: (id, formData) => api.patch(`/api/accounting/transactions/${i
 
 };
 
+export const bookApi = {
+  confirmDelivery: (enrollment_id, reference_number) => api.post('/api/book/delivered', { enrollment_id, reference_number }),
+  markReturned: (enrollment_id, reference_number) => api.post('/api/book/returned', { enrollment_id, reference_number }),
+};
+
 export default api;

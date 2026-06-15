@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { salesApi, paymentsApi } from '../../api/client';
+import { salesApi, paymentsApi, bookApi } from '../../api/client';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { Phone, ChevronDown, ChevronUp, Search, Download } from 'lucide-react';
@@ -134,10 +134,17 @@ export default function DueList() {
                       className="flex-1 flex items-center justify-center gap-2 py-2 bg-green-50 text-green-600 rounded-xl text-sm font-medium">
                       <Phone size={16} /> কল করুন
                     </a>
-                    <button onClick={() => setPayModal(due)}
-                      className="flex-1 py-2 bg-primary-500 text-white rounded-xl text-sm font-medium active:scale-95">
-                      পেমেন্ট নিন
-                    </button>
+                    {due.is_book ? (
+                      <button onClick={() => setPayModal(due)}
+                        className="flex-1 py-2 bg-primary-500 text-white rounded-xl text-sm font-medium active:scale-95">
+                        ডেলিভারি স্ট্যাটাস
+                      </button>
+                    ) : (
+                      <button onClick={() => setPayModal(due)}
+                        className="flex-1 py-2 bg-primary-500 text-white rounded-xl text-sm font-medium active:scale-95">
+                        পেমেন্ট নিন
+                      </button>
+                    )}
                   </div>
                 </div>
               )}
@@ -146,12 +153,20 @@ export default function DueList() {
         </div>
       )}
 
-      {payModal && (
-        <PaymentModal
-          due={payModal}
-          onClose={() => setPayModal(null)}
-          onSuccess={() => { setPayModal(null); fetchDues(); }}
-        />
+   {payModal && (
+        payModal.is_book ? (
+          <BookDeliveryModal
+            due={payModal}
+            onClose={() => setPayModal(null)}
+            onSuccess={() => { setPayModal(null); fetchDues(); }}
+          />
+        ) : (
+          <PaymentModal
+            due={payModal}
+            onClose={() => setPayModal(null)}
+            onSuccess={() => { setPayModal(null); fetchDues(); }}
+          />
+        )
       )}
     </div>
   );
@@ -291,6 +306,79 @@ function PaymentModal({ due, onClose, onSuccess }) {
 
           <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? 'সেভ হচ্ছে...' : '✅ পেমেন্ট সেভ করুন'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function BookDeliveryModal({ due, onClose, onSuccess }) {
+  const [status, setStatus] = useState(''); // 'delivered' or 'returned'
+  const [referenceNumber, setReferenceNumber] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const dueAmount = due.course_price - due.total_collected;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!status) return toast.error('স্ট্যাটাস বেছে নিন');
+    if (!referenceNumber) return toast.error('Steadfast রেফারেন্স নম্বর দিন');
+
+    setLoading(true);
+    try {
+      if (status === 'delivered') {
+        await bookApi.confirmDelivery(due.id, referenceNumber);
+        toast.success('ডেলিভারি কনফার্ম হয়েছে — Approval pending ✅');
+      } else {
+        await bookApi.markReturned(due.id, referenceNumber);
+        toast.success('রিটার্ন রেকর্ড হয়েছে ✅');
+      }
+      onSuccess();
+    } catch (err) {
+      toast.error(err.message || 'সমস্যা হয়েছে');
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
+      <div className="bg-white w-full rounded-t-3xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center">
+          <h3 className="font-display font-bold text-lg">বই ডেলিভারি স্ট্যাটাস</h3>
+          <button onClick={onClose} className="p-1.5 rounded-full bg-gray-100">✕</button>
+        </div>
+
+        <div className="bg-gray-50 rounded-xl p-3">
+          <p className="font-medium">{due.student_name || due.student_phone}</p>
+          <p className="text-sm text-gray-500">{due.course_name}</p>
+          <p className="text-red-600 font-bold mt-1">COD বই মূল্য: ৳{Number(dueAmount).toLocaleString()}</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div>
+            <label className="block text-sm font-medium mb-2">স্ট্যাটাস *</label>
+            <div className="flex gap-2">
+              <button type="button" onClick={() => setStatus('delivered')}
+                className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all
+                  ${status === 'delivered' ? 'bg-green-500 text-white border-green-500' : 'bg-gray-50 text-gray-500 border-gray-200'}`}>
+                ✅ ডেলিভারড
+              </button>
+              <button type="button" onClick={() => setStatus('returned')}
+                className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all
+                  ${status === 'returned' ? 'bg-red-500 text-white border-red-500' : 'bg-gray-50 text-gray-500 border-gray-200'}`}>
+                ↩️ রিটার্নড
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Steadfast রেফারেন্স নম্বর *</label>
+            <input type="text" className="input-field" placeholder="Steadfast একাউন্টে যেটা দেখাচ্ছে"
+              value={referenceNumber} onChange={e => setReferenceNumber(e.target.value)} />
+          </div>
+
+          <button type="submit" className="btn-primary" disabled={loading}>
+            {loading ? 'সেভ হচ্ছে...' : '✅ সাবমিট করুন'}
           </button>
         </form>
       </div>
