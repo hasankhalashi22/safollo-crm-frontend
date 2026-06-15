@@ -38,17 +38,17 @@ export default function Ledger() {
     accounts: accounts.filter(a => a.account_type === type && a.is_active),
   }));
 
-  const TYPE_LABELS = { asset: 'সম্পদ', liability: 'দায়', equity: 'মালিকানা', revenue: 'আয়', expense: 'খরচ' };
+  const TYPE_LABELS = { asset: 'Asset', liability: 'Liability', equity: 'Equity', revenue: 'Revenue', expense: 'Expense' };
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-display font-bold text-dark mb-6">লেজার</h1>
+      <h1 className="text-2xl font-display font-bold text-dark mb-6">Ledger</h1>
 
       <div className="card mb-4 space-y-3">
         <div>
-          <label className="block text-sm font-medium mb-1.5">একাউন্ট বেছে নিন *</label>
+          <label className="block text-sm font-medium mb-1.5">Select Account *</label>
           <select className="input-field" value={selectedAccount} onChange={e => handleAccountChange(e.target.value)}>
-            <option value="">-- বেছে নিন --</option>
+            <option value="">-- Select --</option>
             {groupedAccounts.map(g => (
               <optgroup key={g.type} label={TYPE_LABELS[g.type]}>
                 {g.accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
@@ -61,9 +61,9 @@ export default function Ledger() {
           <input type="date" className="input-field" value={filters.date_to} onChange={e => setFilter('date_to', e.target.value)} />
         </div>
         <div className="flex gap-2">
-          <button onClick={() => fetchLedger()} className="btn-primary py-2 px-6" disabled={!selectedAccount}>খুঁজুন</button>
+          <button onClick={() => fetchLedger()} className="btn-primary py-2 px-6" disabled={!selectedAccount}>Search</button>
           <button onClick={() => { setFilters({ date_from: '', date_to: '' }); fetchLedger(selectedAccount, { date_from: '', date_to: '' }); }}
-            className="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl text-sm font-medium">রিসেট</button>
+            className="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl text-sm font-medium">Reset</button>
         </div>
       </div>
 
@@ -73,12 +73,12 @@ export default function Ledger() {
         <>
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div className="card bg-gray-50">
-              <p className="text-sm text-gray-500 mb-1">শুরুর ব্যালেন্স</p>
-              <p className="text-xl font-bold">৳{Number(ledger.opening_balance).toLocaleString()}</p>
+              <p className="text-sm text-gray-500 mb-1">Opening Balance</p>
+              <p className="text-xl font-bold">Tk {Number(ledger.opening_balance).toLocaleString()}</p>
             </div>
             <div className="card bg-primary-50">
-              <p className="text-sm text-gray-500 mb-1">শেষ ব্যালেন্স</p>
-              <p className={`text-xl font-bold ${ledger.closing_balance < 0 ? 'text-red-500' : 'text-primary-600'}`}>৳{Number(ledger.closing_balance).toLocaleString()}</p>
+              <p className="text-sm text-gray-500 mb-1">Closing Balance</p>
+              <p className={`text-xl font-bold ${ledger.closing_balance < 0 ? 'text-red-500' : 'text-primary-600'}`}>Tk {Number(ledger.closing_balance).toLocaleString()}</p>
             </div>
           </div>
 
@@ -87,25 +87,25 @@ export default function Ledger() {
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b border-gray-100">
                   <tr>
-                    {['তারিখ', 'বিবরণ', 'Debit', 'Credit', 'ব্যালেন্স'].map(h => (
+                    {['Date', 'Description', 'Debit', 'Credit', 'Balance'].map(h => (
                       <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {ledger.entries.length === 0 ? (
-                    <tr><td colSpan={5} className="text-center py-12 text-gray-400">কোনো এন্ট্রি নেই</td></tr>
+                    <tr><td colSpan={5} className="text-center py-12 text-gray-400">No entries</td></tr>
                   ) : ledger.entries.map(e => (
                     <tr key={e.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{format(new Date(e.entry_date), 'dd/MM/yy')}</td>
                       <td className="px-4 py-3 text-gray-600">{e.description || '—'}</td>
                       <td className="px-4 py-3 text-green-600 font-medium whitespace-nowrap">
-                        {e.entry_type === 'debit' ? `৳${Number(e.amount).toLocaleString()}` : '—'}
+                        {e.entry_type === 'debit' ? `Tk ${Number(e.amount).toLocaleString()}` : '—'}
                       </td>
                       <td className="px-4 py-3 text-red-600 font-medium whitespace-nowrap">
-                        {e.entry_type === 'credit' ? `৳${Number(e.amount).toLocaleString()}` : '—'}
+                        {e.entry_type === 'credit' ? `Tk ${Number(e.amount).toLocaleString()}` : '—'}
                       </td>
-                      <td className="px-4 py-3 font-semibold whitespace-nowrap">৳{Number(e.running_balance).toLocaleString()}</td>
+                      <td className="px-4 py-3 font-semibold whitespace-nowrap">Tk {Number(e.running_balance).toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -114,7 +114,7 @@ export default function Ledger() {
           </div>
         </>
       ) : (
-        <div className="card text-center py-12 text-gray-400">একাউন্ট বেছে নিন</div>
+        <div className="card text-center py-12 text-gray-400">Select an account</div>
       )}
     </div>
   );
