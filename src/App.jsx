@@ -11,7 +11,7 @@ import BalanceSheet from './pages/accounting/BalanceSheet';
 import CashFlow from './pages/accounting/CashFlow';
 import EquityStatement from './pages/accounting/EquityStatement';
 import CreditCards from './pages/accounting/CreditCards';
-
+import Investors from './pages/accounting/Investors';
 
 
 
@@ -114,6 +114,8 @@ useNotifications();
 <Route path="/accounting/equity-statement" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><EquityStatement /></AccountingLayout></ProtectedRoute>} />
 
 <Route path="/accounting/credit-cards" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><CreditCards /></AccountingLayout></ProtectedRoute>} />
+
+<Route path="/accounting/investors" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><Investors /></AccountingLayout></ProtectedRoute>} />
 
 
 
