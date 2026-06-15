@@ -3,7 +3,7 @@ import { accountingApi } from '../../api/client';
 import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
-import { Trash2, Camera, X, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Edit2, CreditCard } from 'lucide-react';
+import { Trash2, Camera, X, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Edit2, CreditCard, TrendingUp } from 'lucide-react';
 
 export default function Transactions() {
   const { user } = useAuth();
@@ -54,7 +54,7 @@ export default function Transactions() {
 
 
      {/* Big action buttons */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
         <button onClick={() => setEntryMode('in')}
           className="flex flex-col items-center gap-2 p-4 bg-green-50 text-green-600 rounded-2xl border-2 border-green-100 active:scale-95 transition-all">
           <ArrowDownCircle size={28} />
@@ -74,6 +74,11 @@ export default function Transactions() {
           className="flex flex-col items-center gap-2 p-4 bg-purple-50 text-purple-600 rounded-2xl border-2 border-purple-100 active:scale-95 transition-all">
           <CreditCard size={28} />
           <span className="font-semibold text-sm">Card Charge</span>
+        </button>
+<button onClick={() => setEntryMode('investor_profit')}
+          className="flex flex-col items-center gap-2 p-4 bg-amber-50 text-amber-600 rounded-2xl border-2 border-amber-100 active:scale-95 transition-all">
+          <TrendingUp size={28} />
+          <span className="font-semibold text-sm">Investor Profit</span>
         </button>
       </div>
 
@@ -175,7 +180,7 @@ function EntryModal({ mode, onClose, onSuccess }) {
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [proofPreview, setProofPreview] = useState(null);
-  const [form, setForm] = useState({
+const [form, setForm] = useState({
     transaction_date: format(new Date(), 'yyyy-MM-dd'),
     amount: '',
     account_id: '',
@@ -184,6 +189,7 @@ function EntryModal({ mode, onClose, onSuccess }) {
     description: '',
     proof: null,
     proof_type: 'voucher',
+    investor_id: '',
   });
 
   useEffect(() => {
@@ -197,15 +203,19 @@ const assetAccounts = accounts.filter(a => a.is_active && (a.account_type === 'a
   const expenseAccounts = accounts.filter(a => a.is_active && a.account_type === 'expense');
   const liabilityAccounts = accounts.filter(a => a.is_active && a.account_type === 'liability');
   const creditCardAccounts = accounts.filter(a => a.is_active && a.account_subtype === 'credit_card');
+const investorAccounts = accounts.filter(a => a.is_active && a.account_subtype === 'investor_loan');
+  const profitExpenseAccount = accounts.find(a => a.name === 'Investor Profit Expense');
+
 
   const inCategoryOptions = [...revenueAccounts, ...liabilityAccounts];
   const outCategoryOptions = [...expenseAccounts, ...liabilityAccounts];
 
- const titles = {
+const titles = {
     in: 'Cash In',
     out: 'Cash Out',
     transfer: 'Transfer',
     card_charge: 'Credit Card Charge',
+    investor_profit: 'Investor Profit Payment',
   };
 
   const handleSubmit = async (e) => {
@@ -231,12 +241,19 @@ const assetAccounts = accounts.filter(a => a.is_active && (a.account_type === 'a
       debit_account_id = form.category_id;
       credit_account_id = form.account_id;
       transaction_type = 'fund_transfer';
-    } else {
+   } else if (mode === 'card_charge') {
       // card_charge: expense paid via credit card (no cash involved)
       if (!form.category_id) return toast.error('Select expense category');
       debit_account_id = form.category_id;   // expense
       credit_account_id = form.account_id;   // credit card liability
       transaction_type = 'credit_card_charge';
+    } else {
+      // investor_profit: profit payment from cash/bank to investor
+      if (!form.investor_id) return toast.error('Select investor');
+      if (!profitExpenseAccount) return toast.error('Investor Profit Expense account not found');
+      debit_account_id = profitExpenseAccount.id;  // expense
+      credit_account_id = form.account_id;          // cash/bank
+      transaction_type = 'investor_profit_payment';
     }
 
     setLoading(true);
@@ -249,6 +266,7 @@ const assetAccounts = accounts.filter(a => a.is_active && (a.account_type === 'a
       formData.append('credit_account_id', credit_account_id);
       formData.append('description', form.party ? `${form.party}${form.description ? ' — ' + form.description : ''}` : form.description);
       formData.append('proof_type', form.proof_type);
+      if (mode === 'investor_profit' && form.investor_id) formData.append('related_account_id', form.investor_id);
       if (form.proof) formData.append('proof', form.proof);
 
       await accountingApi.createTransaction(formData);
@@ -329,6 +347,27 @@ const assetAccounts = accounts.filter(a => a.is_active && (a.account_type === 'a
                   <label className="block text-sm font-medium mb-1.5">Paid to? (optional)</label>
                   <input type="text" className="input-field" value={form.party}
                     onChange={e => set('party', e.target.value)} placeholder="e.g. staff name, organization..." />
+                </div>
+              </>
+            )}
+
+{mode === 'investor_profit' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">Investor *</label>
+                  <select className="input-field" value={form.investor_id}
+                    onChange={e => set('investor_id', e.target.value)}>
+                    <option value="">-- Select --</option>
+                    {investorAccounts.map(a => <option key={a.id} value={a.id}>{a.investor_name || a.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">Paid From *</label>
+                  <select className="input-field" value={form.account_id}
+                    onChange={e => set('account_id', e.target.value)}>
+                    <option value="">-- Select --</option>
+                    {assetAccounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                  </select>
                 </div>
               </>
             )}

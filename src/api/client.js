@@ -143,6 +143,7 @@ getBalanceSheet: (as_of_date) => api.get('/api/accounting/balance-sheet', { para
 getCashFlow: (params) => api.get('/api/accounting/cash-flow', { params }),
 getEquityStatement: (params) => api.get('/api/accounting/equity-statement', { params }),
 getCreditCards: (params) => api.get('/api/accounting/credit-cards', { params }),
+getInvestors: () => api.get('/api/accounting/investors'),
 
 
 
