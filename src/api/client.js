@@ -141,6 +141,7 @@ getTrialBalance: (as_of_date) => api.get('/api/accounting/trial-balance', { para
 getIncomeStatement: (params) => api.get('/api/accounting/income-statement', { params }),
 getBalanceSheet: (as_of_date) => api.get('/api/accounting/balance-sheet', { params: as_of_date ? { as_of_date } : {} }),
 getCashFlow: (params) => api.get('/api/accounting/cash-flow', { params }),
+getEquityStatement: (params) => api.get('/api/accounting/equity-statement', { params }),
 
   createTransaction: (formData) => api.post('/api/accounting/transactions', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }

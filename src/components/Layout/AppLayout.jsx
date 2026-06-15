@@ -234,6 +234,7 @@ const navItems = [
     { to: '/accounting/income-statement', icon: TrendingUp, label: 'Income Statement' },
     { to: '/accounting/balance-sheet', icon: Landmark, label: 'Balance Sheet' },
     { to: '/accounting/cash-flow', icon: TrendingUp, label: 'Cash Flow' },
+{ to: '/accounting/equity-statement', icon: TrendingUp, label: 'Equity Statement' },
   ];
 
   const SidebarContent = () => (
