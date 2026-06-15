@@ -109,17 +109,19 @@ export default function Transactions() {
               ) : transactions.length === 0 ? (
                 <tr><td colSpan={7} className="text-center py-12 text-gray-400">No records</td></tr>
               ) : transactions.map(t => {
-                const isCashIn = t.transaction_type === 'revenue';
+              const isCashIn = t.transaction_type === 'revenue';
                 const isCashOut = t.transaction_type === 'expense';
-                const isTransfer = !isCashIn && !isCashOut;
+                const isCardCharge = t.transaction_type === 'credit_card_charge';
+                const isTransfer = !isCashIn && !isCashOut && !isCardCharge;
                 return (
                   <tr key={t.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{format(new Date(t.transaction_date), 'dd/MM/yy')}</td>
                     <td className="px-4 py-3 text-gray-600">{t.description || '—'}</td>
-                    <td className="px-4 py-3 text-gray-500">
+                  <td className="px-4 py-3 text-gray-500">
                       <p className="text-xs">{t.debit_account_name}</p>
                       <p className="text-xs text-gray-400">← {t.credit_account_name}</p>
                       {isTransfer && <span className="text-xs bg-blue-50 text-blue-500 px-1.5 py-0.5 rounded">Transfer</span>}
+                      {t.transaction_type === 'credit_card_charge' && <span className="text-xs bg-purple-50 text-purple-500 px-1.5 py-0.5 rounded">Card Charge</span>}
                     </td>
                     <td className="px-4 py-3 font-medium whitespace-nowrap text-green-600">
                       {isCashIn ? `Tk ${Number(t.amount).toLocaleString()}` : '—'}
