@@ -23,7 +23,7 @@ function TopModuleBar() {
       </button>
       <button onClick={() => navigate('/accounting')}
         className={`px-4 py-2.5 text-sm font-medium transition-all border-b-2 ${isAccounting ? 'text-white border-primary-400' : 'text-gray-400 border-transparent hover:text-gray-200'}`}>
-        একাউন্টিং
+        Accounting
       </button>
     </div>
   );
@@ -226,21 +226,21 @@ export function AccountingLayout({ children }) {
   };
 
 const navItems = [
-    { to: '/accounting', icon: BarChart2, label: 'ড্যাশবোর্ড', end: true },
-    { to: '/accounting/accounts', icon: Wallet, label: 'একাউন্ট ম্যানেজমেন্ট' },
-    { to: '/accounting/transactions', icon: FileText, label: 'ট্রানজেকশন' },
-    { to: '/accounting/ledger', icon: BookText, label: 'লেজার' },
-    { to: '/accounting/trial-balance', icon: Activity, label: 'ট্রায়াল ব্যালেন্স' },
-   { to: '/accounting/income-statement', icon: TrendingUp, label: 'আয়-ব্যয় বিবরণী' },
-{ to: '/accounting/balance-sheet', icon: Landmark, label: 'ব্যালেন্স শীট' },
-{ to: '/accounting/cash-flow', icon: TrendingUp, label: 'নগদ প্রবাহ বিবরণী' },
+    { to: '/accounting', icon: BarChart2, label: 'Dashboard', end: true },
+    { to: '/accounting/accounts', icon: Wallet, label: 'Chart of Accounts' },
+    { to: '/accounting/transactions', icon: FileText, label: 'Transactions' },
+    { to: '/accounting/ledger', icon: BookText, label: 'Ledger' },
+    { to: '/accounting/trial-balance', icon: Activity, label: 'Trial Balance' },
+    { to: '/accounting/income-statement', icon: TrendingUp, label: 'Income Statement' },
+    { to: '/accounting/balance-sheet', icon: Landmark, label: 'Balance Sheet' },
+    { to: '/accounting/cash-flow', icon: TrendingUp, label: 'Cash Flow' },
   ];
 
   const SidebarContent = () => (
     <>
       <div className="p-4 border-b border-gray-100">
         <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-10 mb-1" />
-        <p className="text-xs text-gray-400">একাউন্টিং মডিউল</p>
+      <p className="text-xs text-gray-400">Accounting Module</p>
       </div>
 
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
