@@ -519,6 +519,7 @@ function EditSaleModal({ sale, executives, onClose, onSuccess }) {
     student_phone: sale.student_phone || '',
     created_at: sale.created_at?.split('T')[0] || '',
     course_price: sale.course_price || '',
+    total_collected: sale.total_collected || '',
     executive_id: sale.executive_id || '',
     reference: sale.reference || '',
     notes: sale.notes || '',
@@ -567,10 +568,15 @@ return (
             <input type="date" className="input-field" value={form.created_at}
               onChange={e => setForm(p => ({ ...p, created_at: e.target.value }))} />
           </div>
-          <div>
+         <div>
             <label className="block text-sm font-medium mb-1.5">কোর্স মূল্য</label>
             <input type="number" className="input-field" value={form.course_price}
               onChange={e => setForm(p => ({ ...p, course_price: e.target.value }))} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5">সংগৃহীত টাকা (Total Collected)</label>
+            <input type="number" className="input-field" value={form.total_collected}
+              onChange={e => setForm(p => ({ ...p, total_collected: e.target.value }))} />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1.5">Executive পরিবর্তন</label>
