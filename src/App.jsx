@@ -6,6 +6,7 @@ import Transactions from './pages/accounting/Transactions';
 import AccountingDashboard from './pages/accounting/Dashboard';
 import Ledger from './pages/accounting/Ledger';
 import TrialBalance from './pages/accounting/TrialBalance';
+import IncomeStatement from './pages/accounting/IncomeStatement';
 
 import Login from './pages/Login';
 import CompleteProfile from './pages/CompleteProfile';
@@ -96,6 +97,10 @@ useNotifications();
 <Route path="/accounting/ledger" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><Ledger /></AccountingLayout></ProtectedRoute>} />
 
 <Route path="/accounting/trial-balance" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><TrialBalance /></AccountingLayout></ProtectedRoute>} />
+
+<Route path="/accounting/income-statement" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><IncomeStatement /></AccountingLayout></ProtectedRoute>} />
+
+
 
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="*" element={<Navigate to="/login" replace />} />

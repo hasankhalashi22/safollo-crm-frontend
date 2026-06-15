@@ -231,6 +231,7 @@ const navItems = [
     { to: '/accounting/transactions', icon: FileText, label: 'ট্রানজেকশন' },
     { to: '/accounting/ledger', icon: BookText, label: 'লেজার' },
     { to: '/accounting/trial-balance', icon: Activity, label: 'ট্রায়াল ব্যালেন্স' },
+   { to: '/accounting/income-statement', icon: TrendingUp, label: 'আয়-ব্যয় বিবরণী' },
   ];
 
   const SidebarContent = () => (
