@@ -51,20 +51,29 @@ export default function CashFlow() {
     exportAccountingPdf({ title: 'Statement of Cash Flows', period, tableHtml, mdName, ceoName });
   };
 
+  const TYPE_LABELS_EN = {
+    expense: 'Expense',
+    salary_payment: 'Salary Payment',
+    teacher_payment: 'Teacher Payment',
+    steadfast_withdrawal: 'Steadfast Withdrawal',
+    investor_payment: 'Investor Payment',
+    credit_card_payment: 'Credit Card Payment',
+  };
+
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-display font-bold text-dark mb-6">নগদ প্রবাহ বিবরণী (Cash Flow Statement)</h1>
+      <h1 className="text-2xl font-display font-bold text-dark mb-6">Cash Flow Statement</h1>
 
       <div className="card mb-4 flex flex-wrap items-end gap-3">
         <div>
-          <label className="block text-sm font-medium mb-1.5">শুরুর তারিখ</label>
+          <label className="block text-sm font-medium mb-1.5">Start Date</label>
           <input type="date" className="input-field" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1.5">শেষ তারিখ</label>
+          <label className="block text-sm font-medium mb-1.5">End Date</label>
           <input type="date" className="input-field" value={dateTo} onChange={e => setDateTo(e.target.value)} />
         </div>
-        <button onClick={fetchData} className="btn-primary py-2.5 px-6">দেখুন</button>
+        <button onClick={fetchData} className="btn-primary py-2.5 px-6">View</button>
         <button onClick={() => setShowSignModal(true)} className="flex items-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-xl text-sm font-medium ml-auto">
           <Download size={16} /> PDF
         </button>
@@ -76,51 +85,51 @@ export default function CashFlow() {
         <div className="card space-y-4">
           {/* Operating */}
           <div>
-            <h3 className="font-semibold text-gray-700 mb-2 pb-2 border-b border-gray-100">পরিচালনা কার্যক্রম থেকে নগদ প্রবাহ (Operating Activities)</h3>
+            <h3 className="font-semibold text-gray-700 mb-2 pb-2 border-b border-gray-100">Cash Flow from Operating Activities</h3>
             {data.operating_items.length === 0 ? (
-              <p className="text-gray-400 text-sm py-2">কোনো এন্ট্রি নেই</p>
+              <p className="text-gray-400 text-sm py-2">No entries</p>
             ) : data.operating_items.map((i, idx) => (
               <div key={idx} className="flex justify-between py-1.5 text-sm">
                 <span className="text-gray-600">{i.label}</span>
-                <span className={`font-medium ${i.amount < 0 ? 'text-red-500' : 'text-green-600'}`}>৳{Number(i.amount).toLocaleString()}</span>
+                <span className={`font-medium ${i.amount < 0 ? 'text-red-500' : 'text-green-600'}`}>Tk {Number(i.amount).toLocaleString()}</span>
               </div>
             ))}
             <div className="flex justify-between py-2 mt-1 border-t border-gray-100 font-semibold">
-              <span>নেট অপারেটিং নগদ প্রবাহ</span>
-              <span className={data.net_operating < 0 ? 'text-red-500' : 'text-green-600'}>৳{Number(data.net_operating).toLocaleString()}</span>
+              <span>Net Cash from Operating</span>
+              <span className={data.net_operating < 0 ? 'text-red-500' : 'text-green-600'}>Tk {Number(data.net_operating).toLocaleString()}</span>
             </div>
           </div>
 
           {/* Financing */}
           <div>
-            <h3 className="font-semibold text-gray-700 mb-2 pb-2 border-b border-gray-100">অর্থায়ন কার্যক্রম থেকে নগদ প্রবাহ (Financing Activities)</h3>
+            <h3 className="font-semibold text-gray-700 mb-2 pb-2 border-b border-gray-100">Cash Flow from Financing Activities</h3>
             {data.financing_items.length === 0 ? (
-              <p className="text-gray-400 text-sm py-2">কোনো এন্ট্রি নেই</p>
+              <p className="text-gray-400 text-sm py-2">No entries</p>
             ) : data.financing_items.map((i, idx) => (
               <div key={idx} className="flex justify-between py-1.5 text-sm">
                 <span className="text-gray-600">{i.label}</span>
-                <span className="font-medium text-red-500">৳{Number(i.amount).toLocaleString()}</span>
+                <span className="font-medium text-red-500">Tk {Number(i.amount).toLocaleString()}</span>
               </div>
             ))}
             <div className="flex justify-between py-2 mt-1 border-t border-gray-100 font-semibold">
-              <span>নেট ফাইন্যান্সিং নগদ প্রবাহ</span>
-              <span className={data.net_financing < 0 ? 'text-red-500' : 'text-green-600'}>৳{Number(data.net_financing).toLocaleString()}</span>
+              <span>Net Cash from Financing</span>
+              <span className={data.net_financing < 0 ? 'text-red-500' : 'text-green-600'}>Tk {Number(data.net_financing).toLocaleString()}</span>
             </div>
           </div>
 
           {/* Summary */}
           <div className="space-y-2 pt-2">
             <div className="flex justify-between text-sm">
-              <span>নেট বৃদ্ধি/হ্রাস (Net Change in Cash)</span>
-              <span className={`font-semibold ${data.net_change < 0 ? 'text-red-500' : 'text-green-600'}`}>৳{Number(data.net_change).toLocaleString()}</span>
+              <span>Net Increase/Decrease in Cash</span>
+              <span className={`font-semibold ${data.net_change < 0 ? 'text-red-500' : 'text-green-600'}`}>Tk {Number(data.net_change).toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span>শুরুর নগদ ব্যালেন্স</span>
-              <span className="font-semibold">৳{Number(data.beginning_cash).toLocaleString()}</span>
+              <span>Beginning Cash Balance</span>
+              <span className="font-semibold">Tk {Number(data.beginning_cash).toLocaleString()}</span>
             </div>
             <div className="flex justify-between items-center p-3 bg-primary-50 rounded-xl font-bold">
-              <span>শেষের নগদ ব্যালেন্স</span>
-              <span className="text-primary-600">৳{Number(data.ending_cash).toLocaleString()}</span>
+              <span>Ending Cash Balance</span>
+              <span className="text-primary-600">Tk {Number(data.ending_cash).toLocaleString()}</span>
             </div>
           </div>
         </div>
