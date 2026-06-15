@@ -137,6 +137,7 @@ getSettings: () => api.get('/api/accounting/settings'),
 updateSetting: (key, value) => api.patch('/api/accounting/settings', { key, value }),
 getSettings: () => api.get('/api/accounting/settings'),
 updateSetting: (key, value) => api.patch('/api/accounting/settings', { key, value }),
+getTrialBalance: (as_of_date) => api.get('/api/accounting/trial-balance', { params: as_of_date ? { as_of_date } : {} }),
 
   createTransaction: (formData) => api.post('/api/accounting/transactions', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }

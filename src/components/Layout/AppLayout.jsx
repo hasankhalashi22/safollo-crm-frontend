@@ -225,11 +225,12 @@ export function AccountingLayout({ children }) {
     toast.success('লগআউট হয়েছে');
   };
 
-  const navItems = [
+const navItems = [
     { to: '/accounting', icon: BarChart2, label: 'ড্যাশবোর্ড', end: true },
     { to: '/accounting/accounts', icon: Wallet, label: 'একাউন্ট ম্যানেজমেন্ট' },
     { to: '/accounting/transactions', icon: FileText, label: 'ট্রানজেকশন' },
     { to: '/accounting/ledger', icon: BookText, label: 'লেজার' },
+    { to: '/accounting/trial-balance', icon: Activity, label: 'ট্রায়াল ব্যালেন্স' },
   ];
 
   const SidebarContent = () => (
