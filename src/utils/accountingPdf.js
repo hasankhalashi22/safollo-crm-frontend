@@ -13,11 +13,11 @@ export function exportAccountingPdf({ title, period, tableHtml, mdName, ceoName 
         @page { margin: 25px 30px 60px 30px; }
         body { font-family: Arial, sans-serif; font-size: 12px; color: #222; margin: 0; }
         .content { padding: 20px 30px; }
-        .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1A7A6E; padding-bottom: 12px; margin-bottom: 4px; }
-        .header-left h1 { font-size: 18px; color: #1A7A6E; margin: 0 0 4px 0; }
-        .header-left h2 { font-size: 14px; margin: 0 0 2px 0; }
-        .header-left p { margin: 0; font-size: 11px; color: #666; }
-        .logo { height: 55px; }
+       .header { text-align: center; border-bottom: 2px solid #1A7A6E; padding-bottom: 12px; margin-bottom: 4px; }
+        .logo { height: 55px; margin-bottom: 8px; }
+        .header h1 { font-size: 18px; color: #1A7A6E; margin: 0 0 4px 0; }
+        .header h2 { font-size: 14px; margin: 0 0 2px 0; }
+        .header p { margin: 0; font-size: 11px; color: #666; }
         table { width: 100%; border-collapse: collapse; margin-top: 16px; }
         th { background: #1A7A6E; color: white; padding: 8px; text-align: left; font-size: 11px; }
         td { padding: 6px 8px; border-bottom: 1px solid #eee; font-size: 12px; }
@@ -44,13 +44,11 @@ export function exportAccountingPdf({ title, period, tableHtml, mdName, ceoName 
     </head>
     <body>
       <div class="content">
-        <div class="header">
-          <div class="header-left">
-            <h1>Safollo Academy</h1>
-            <h2>${title}</h2>
-            <p>Period: ${period}</p>
-          </div>
+       <div class="header">
           <img src="https://safollo-crm-frontend.vercel.app/logo.png" class="logo" alt="Safollo Academy" />
+          <h1>Safollo Academy</h1>
+          <h2>${title}</h2>
+          <p>Period: ${period}</p>
         </div>
 
         ${tableHtml}
