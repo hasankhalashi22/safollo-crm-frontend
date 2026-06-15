@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { accountingApi } from '../../api/client';
 import { format } from 'date-fns';
-import { TrendingUp, TrendingDown, Wallet, CreditCard } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, CreditCard, Smartphone, Landmark, Rocket } from 'lucide-react';
 
 export default function AccountingDashboard() {
   const [data, setData] = useState(null);
@@ -23,12 +23,12 @@ const highlightNames = ['BRAC Bank', 'Nagad Wallet', 'Dutch Bangla Bank', 'Petty
   const highlightAccounts = highlightNames.map(name => assets.find(a => a.name === name)).filter(Boolean);
 
   const BRAND_STYLES = {
-    'বিকাশ': { bg: 'bg-pink-50', border: 'border-pink-100', text: 'text-pink-600', badge: 'bg-pink-500', initial: 'বি' },
-    'রকেট': { bg: 'bg-purple-50', border: 'border-purple-100', text: 'text-purple-600', badge: 'bg-purple-600', initial: 'র' },
-    'BRAC Bank': { bg: 'bg-blue-50', border: 'border-blue-100', text: 'text-blue-600', badge: 'bg-blue-600', initial: 'B' },
-    'Nagad Wallet': { bg: 'bg-orange-50', border: 'border-orange-100', text: 'text-orange-600', badge: 'bg-orange-500', initial: 'N' },
-    'Dutch Bangla Bank': { bg: 'bg-green-50', border: 'border-green-100', text: 'text-green-600', badge: 'bg-green-600', initial: 'D' },
-    'Petty Cash': { bg: 'bg-primary-50', border: 'border-primary-100', text: 'text-primary-600', badge: 'bg-primary-500', initial: '৳' },
+    'বিকাশ': { bg: 'bg-pink-50', border: 'border-pink-100', text: 'text-pink-600', badge: 'bg-pink-500', icon: Smartphone },
+    'রকেট': { bg: 'bg-purple-50', border: 'border-purple-100', text: 'text-purple-600', badge: 'bg-purple-600', icon: Rocket },
+    'BRAC Bank': { bg: 'bg-blue-50', border: 'border-blue-100', text: 'text-blue-600', badge: 'bg-blue-600', icon: Landmark },
+    'Nagad Wallet': { bg: 'bg-orange-50', border: 'border-orange-100', text: 'text-orange-600', badge: 'bg-orange-500', icon: Smartphone },
+    'Dutch Bangla Bank': { bg: 'bg-green-50', border: 'border-green-100', text: 'text-green-600', badge: 'bg-green-600', icon: Landmark },
+    'Petty Cash': { bg: 'bg-primary-50', border: 'border-primary-100', text: 'text-primary-600', badge: 'bg-primary-500', icon: Wallet },
   };
 
   return (
@@ -38,29 +38,34 @@ const highlightNames = ['BRAC Bank', 'Nagad Wallet', 'Dutch Bangla Bank', 'Petty
       {/* Key balances row: bKash + Rocket + 4 highlight accounts */}
       <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
         {/* bKash collection */}
-        <div className={`card ${BRAND_STYLES['বিকাশ'].bg} border ${BRAND_STYLES['বিকাশ'].border}`}>
-          <div className={`w-8 h-8 rounded-full ${BRAND_STYLES['বিকাশ'].badge} text-white flex items-center justify-center font-bold text-sm mb-2`}>
-            {BRAND_STYLES['বিকাশ'].initial}
+        {(() => { const Icon = BRAND_STYLES['বিকাশ'].icon; return (
+          <div className={`card ${BRAND_STYLES['বিকাশ'].bg} border ${BRAND_STYLES['বিকাশ'].border}`}>
+            <div className={`w-8 h-8 rounded-full ${BRAND_STYLES['বিকাশ'].badge} text-white flex items-center justify-center mb-2`}>
+              <Icon size={16} />
+            </div>
+            <p className="text-sm text-gray-500 mb-1">আজকের বিকাশ</p>
+            <p className={`text-xl font-bold ${BRAND_STYLES['বিকাশ'].text}`}>৳{Number(data.today_bkash).toLocaleString()}</p>
           </div>
-          <p className="text-sm text-gray-500 mb-1">আজকের বিকাশ</p>
-          <p className={`text-xl font-bold ${BRAND_STYLES['বিকাশ'].text}`}>৳{Number(data.today_bkash).toLocaleString()}</p>
-        </div>
+        ); })()}
 
         {/* Rocket collection */}
-        <div className={`card ${BRAND_STYLES['রকেট'].bg} border ${BRAND_STYLES['রকেট'].border}`}>
-          <div className={`w-8 h-8 rounded-full ${BRAND_STYLES['রকেট'].badge} text-white flex items-center justify-center font-bold text-sm mb-2`}>
-            {BRAND_STYLES['রকেট'].initial}
+        {(() => { const Icon = BRAND_STYLES['রকেট'].icon; return (
+          <div className={`card ${BRAND_STYLES['রকেট'].bg} border ${BRAND_STYLES['রকেট'].border}`}>
+            <div className={`w-8 h-8 rounded-full ${BRAND_STYLES['রকেট'].badge} text-white flex items-center justify-center mb-2`}>
+              <Icon size={16} />
+            </div>
+            <p className="text-sm text-gray-500 mb-1">আজকের রকেট</p>
+            <p className={`text-xl font-bold ${BRAND_STYLES['রকেট'].text}`}>৳{Number(data.today_rocket).toLocaleString()}</p>
           </div>
-          <p className="text-sm text-gray-500 mb-1">আজকের রকেট</p>
-          <p className={`text-xl font-bold ${BRAND_STYLES['রকেট'].text}`}>৳{Number(data.today_rocket).toLocaleString()}</p>
-        </div>
+        ); })()}
 
         {highlightAccounts.map(a => {
-          const style = BRAND_STYLES[a.name] || { bg: 'bg-gray-50', border: 'border-gray-100', text: 'text-dark', badge: 'bg-gray-400', initial: a.name[0] };
+          const style = BRAND_STYLES[a.name] || { bg: 'bg-gray-50', border: 'border-gray-100', text: 'text-dark', badge: 'bg-gray-400', icon: Wallet };
+          const Icon = style.icon;
           return (
             <div key={a.id} className={`card ${style.bg} border ${style.border}`}>
-              <div className={`w-8 h-8 rounded-full ${style.badge} text-white flex items-center justify-center font-bold text-sm mb-2`}>
-                {style.initial}
+              <div className={`w-8 h-8 rounded-full ${style.badge} text-white flex items-center justify-center mb-2`}>
+                <Icon size={16} />
               </div>
               <p className="text-sm text-gray-500 mb-1">{a.name}</p>
               <p className={`text-xl font-bold ${a.balance < 0 ? 'text-red-500' : style.text}`}>৳{Number(a.balance).toLocaleString()}</p>
