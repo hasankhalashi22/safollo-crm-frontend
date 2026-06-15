@@ -212,7 +212,7 @@ function ReassignModal({ due, executives, onClose, onSuccess }) {
 export function CourseManagement() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [newCourse, setNewCourse] = useState({ name: '', short_name: '', default_price: '' });
+ const [newCourse, setNewCourse] = useState({ name: '', short_name: '', default_price: '', is_book: false });
   const [newBatch, setNewBatch] = useState({ course_id: '', name: '', price: '' });
   const [editCourse, setEditCourse] = useState(null);
   const [editBatch, setEditBatch] = useState(null);
@@ -245,14 +245,14 @@ export function CourseManagement() {
     } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
   };
 
-  const createCourse = async (e) => {
+const createCourse = async (e) => {
     e.preventDefault();
     if (!newCourse.name) return toast.error('কোর্সের নাম দিন');
     if (!newCourse.default_price) return toast.error('মূল্য দিন');
     try {
       await coursesApi.create({ ...newCourse, default_price: parseFloat(newCourse.default_price) });
       toast.success('কোর্স তৈরি হয়েছে ✅');
-      setNewCourse({ name: '', short_name: '', default_price: '' });
+      setNewCourse({ name: '', short_name: '', default_price: '', is_book: false });
       fetchCourses();
     } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
   };
@@ -310,7 +310,12 @@ export function CourseManagement() {
         <form onSubmit={createCourse} className="space-y-3">
           <input className="input-field" placeholder="কোর্সের নাম *" value={newCourse.name} onChange={e => setNewCourse(p => ({ ...p, name: e.target.value }))} />
           <input className="input-field" placeholder="Short Name (যেমন: BCS-52)" value={newCourse.short_name} onChange={e => setNewCourse(p => ({ ...p, short_name: e.target.value }))} />
-          <input type="number" className="input-field" placeholder="ডিফল্ট মূল্য (৳) *" value={newCourse.default_price} onChange={e => setNewCourse(p => ({ ...p, default_price: e.target.value }))} />
+         <input type="number" className="input-field" placeholder="ডিফল্ট মূল্য (৳) *" value={newCourse.default_price} onChange={e => setNewCourse(p => ({ ...p, default_price: e.target.value }))} />
+          <div className="flex items-center gap-2">
+            <input type="checkbox" checked={newCourse.is_book}
+              onChange={e => setNewCourse(p => ({ ...p, is_book: e.target.checked }))} />
+            <label className="text-sm">এটি একটি বই (Book)</label>
+          </div>
           <button type="submit" className="btn-primary py-2.5">কোর্স তৈরি করুন</button>
         </form>
       </div>
