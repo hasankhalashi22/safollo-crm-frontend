@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { salesApi, coursesApi, usersApi } from '../../api/client';
 import { format } from 'date-fns';
 import { Search, Filter, Download } from 'lucide-react';
@@ -6,6 +7,7 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../../hooks/useAuth';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+
 
 const STATUS_LABELS = {
   paid: { label: 'পেইড', cls: 'badge-paid' },
@@ -452,7 +454,7 @@ const fetchSales = (f = filters) => {
         </>
       )}
 
-      {selected && (
+    {selected && createPortal(
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto p-5">
             <div className="flex justify-between mb-4">
@@ -486,19 +488,20 @@ const fetchSales = (f = filters) => {
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
+              )}</div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {editModal && (
+    {editModal && createPortal(
         <EditSaleModal
           sale={editModal}
           executives={executives}
           onClose={() => setEditModal(null)}
           onSuccess={() => { setEditModal(null); fetchSales(); }}
-        />
+        />,
+        document.body
       )}
     </div>
   );
