@@ -3,7 +3,7 @@ import { accountingApi } from '../../api/client';
 import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
-import { Trash2, Camera, X, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Edit2 } from 'lucide-react';
+import { Trash2, Camera, X, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Edit2, CreditCard } from 'lucide-react';
 
 export default function Transactions() {
   const { user } = useAuth();
@@ -51,8 +51,10 @@ export default function Transactions() {
         </div>
       </div>
 
-      {/* Big action buttons */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
+
+
+     {/* Big action buttons */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <button onClick={() => setEntryMode('in')}
           className="flex flex-col items-center gap-2 p-4 bg-green-50 text-green-600 rounded-2xl border-2 border-green-100 active:scale-95 transition-all">
           <ArrowDownCircle size={28} />
@@ -68,7 +70,14 @@ export default function Transactions() {
           <ArrowLeftRight size={28} />
           <span className="font-semibold text-sm">Transfer</span>
         </button>
+        <button onClick={() => setEntryMode('card_charge')}
+          className="flex flex-col items-center gap-2 p-4 bg-purple-50 text-purple-600 rounded-2xl border-2 border-purple-100 active:scale-95 transition-all">
+          <CreditCard size={28} />
+          <span className="font-semibold text-sm">Card Charge</span>
+        </button>
       </div>
+
+
 
       {/* Filters */}
       <div className="card mb-4 space-y-3">
@@ -181,18 +190,20 @@ function EntryModal({ mode, onClose, onSuccess }) {
 
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
-  const assetAccounts = accounts.filter(a => a.is_active && (a.account_type === 'asset'));
+const assetAccounts = accounts.filter(a => a.is_active && (a.account_type === 'asset'));
   const revenueAccounts = accounts.filter(a => a.is_active && a.account_type === 'revenue');
   const expenseAccounts = accounts.filter(a => a.is_active && a.account_type === 'expense');
   const liabilityAccounts = accounts.filter(a => a.is_active && a.account_type === 'liability');
+  const creditCardAccounts = accounts.filter(a => a.is_active && a.account_subtype === 'credit_card');
 
   const inCategoryOptions = [...revenueAccounts, ...liabilityAccounts];
   const outCategoryOptions = [...expenseAccounts, ...liabilityAccounts];
 
-  const titles = {
+ const titles = {
     in: 'Cash In',
     out: 'Cash Out',
     transfer: 'Transfer',
+    card_charge: 'Credit Card Charge',
   };
 
   const handleSubmit = async (e) => {
@@ -212,12 +223,18 @@ function EntryModal({ mode, onClose, onSuccess }) {
       debit_account_id = form.category_id;
       credit_account_id = form.account_id;
       transaction_type = 'expense';
-    } else {
+    } else if (mode === 'transfer') {
       if (!form.category_id) return toast.error('Select destination account');
       if (form.account_id === form.category_id) return toast.error('From and To accounts cannot be the same');
       debit_account_id = form.category_id;
       credit_account_id = form.account_id;
       transaction_type = 'fund_transfer';
+    } else {
+      // card_charge: expense paid via credit card (no cash involved)
+      if (!form.category_id) return toast.error('Select expense category');
+      debit_account_id = form.category_id;   // expense
+      credit_account_id = form.account_id;   // credit card liability
+      transaction_type = 'credit_card_charge';
     }
 
     setLoading(true);
@@ -310,6 +327,27 @@ function EntryModal({ mode, onClose, onSuccess }) {
                   <label className="block text-sm font-medium mb-1.5">Paid to? (optional)</label>
                   <input type="text" className="input-field" value={form.party}
                     onChange={e => set('party', e.target.value)} placeholder="e.g. staff name, organization..." />
+                </div>
+              </>
+            )}
+
+{mode === 'card_charge' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">Which Card? *</label>
+                  <select className="input-field" value={form.account_id}
+                    onChange={e => set('account_id', e.target.value)}>
+                    <option value="">-- Select --</option>
+                    {creditCardAccounts.map(a => <option key={a.id} value={a.id}>{a.name}{a.bank_name ? ` (${a.bank_name})` : ''}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">Expense Category *</label>
+                  <select className="input-field" value={form.category_id}
+                    onChange={e => set('category_id', e.target.value)}>
+                    <option value="">-- Select --</option>
+                    {expenseAccounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                  </select>
                 </div>
               </>
             )}
