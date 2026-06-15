@@ -10,8 +10,7 @@ export default function IncomeStatement() {
   const [loading, setLoading] = useState(true);
   const [dateFrom, setDateFrom] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
   const [dateTo, setDateTo] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [showSignModal, setShowSignModal] = useState(false);
-  const [dateTo, setDateTo] = useState(format(new Date(), 'yyyy-MM-dd'));
+const [showSignModal, setShowSignModal] = useState(false);
 
   const fetchData = () => {
     setLoading(true);
