@@ -13,8 +13,8 @@ export function exportAccountingPdf({ title, period, tableHtml, mdName, ceoName 
         @page { margin: 25px 30px 60px 30px; }
         body { font-family: Arial, sans-serif; font-size: 12px; color: #222; margin: 0; }
         .content { padding: 20px 30px; }
-       .header { text-align: center; border-bottom: 2px solid #1A7A6E; padding-bottom: 12px; margin-bottom: 4px; }
-        .logo { height: 55px; margin-bottom: 8px; }
+      .header { position: relative; text-align: center; border-bottom: 2px solid #1A7A6E; padding-bottom: 12px; margin-bottom: 4px; padding-top: 60px; }
+        .logo { position: absolute; top: 0; right: 0; height: 55px; }
         .header h1 { font-size: 18px; color: #1A7A6E; margin: 0 0 4px 0; }
         .header h2 { font-size: 14px; margin: 0 0 2px 0; }
         .header p { margin: 0; font-size: 11px; color: #666; }
