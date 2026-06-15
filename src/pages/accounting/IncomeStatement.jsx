@@ -10,7 +10,7 @@ export default function IncomeStatement() {
   const [loading, setLoading] = useState(true);
   const [dateFrom, setDateFrom] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
   const [dateTo, setDateTo] = useState(format(new Date(), 'yyyy-MM-dd'));
-const [showSignModal, setShowSignModal] = useState(false);
+  const [showSignModal, setShowSignModal] = useState(false);
 
   const fetchData = () => {
     setLoading(true);
@@ -23,7 +23,9 @@ const [showSignModal, setShowSignModal] = useState(false);
     }).catch(() => setLoading(false));
   };
 
-const handleDownloadPdf = ({ mdName, ceoName }) => {
+  useEffect(() => { fetchData(); }, []);
+
+  const handleDownloadPdf = ({ mdName, ceoName }) => {
     if (!data) return;
     const period = `${format(new Date(dateFrom), 'dd/MM/yyyy')} to ${format(new Date(dateTo), 'dd/MM/yyyy')}`;
 
@@ -48,23 +50,21 @@ const handleDownloadPdf = ({ mdName, ceoName }) => {
     exportAccountingPdf({ title: 'Income Statement', period, tableHtml, mdName, ceoName });
   };
 
-  useEffect(() => { fetchData(); }, []);
-
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-display font-bold text-dark mb-6">আয়-ব্যয় বিবরণী (Income Statement)</h1>
+      <h1 className="text-2xl font-display font-bold text-dark mb-6">Income Statement</h1>
 
       <div className="card mb-4 flex flex-wrap items-end gap-3">
         <div>
-          <label className="block text-sm font-medium mb-1.5">শুরুর তারিখ</label>
+          <label className="block text-sm font-medium mb-1.5">Start Date</label>
           <input type="date" className="input-field" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1.5">শেষ তারিখ</label>
+          <label className="block text-sm font-medium mb-1.5">End Date</label>
           <input type="date" className="input-field" value={dateTo} onChange={e => setDateTo(e.target.value)} />
         </div>
-       <button onClick={fetchData} className="btn-primary py-2.5 px-6">দেখুন</button>
-       <button onClick={() => setShowSignModal(true)} className="flex items-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-xl text-sm font-medium ml-auto">
+        <button onClick={fetchData} className="btn-primary py-2.5 px-6">View</button>
+        <button onClick={() => setShowSignModal(true)} className="flex items-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-xl text-sm font-medium ml-auto">
           <Download size={16} /> PDF
         </button>
       </div>
@@ -75,47 +75,47 @@ const handleDownloadPdf = ({ mdName, ceoName }) => {
         <div className="card space-y-4">
           {/* Revenue */}
           <div>
-            <h3 className="font-semibold text-gray-700 mb-2 pb-2 border-b border-gray-100">আয় (Revenue)</h3>
+            <h3 className="font-semibold text-gray-700 mb-2 pb-2 border-b border-gray-100">Revenue</h3>
             {data.revenues.length === 0 ? (
-              <p className="text-gray-400 text-sm py-2">কোনো আয় নেই</p>
+              <p className="text-gray-400 text-sm py-2">No revenue</p>
             ) : data.revenues.map(r => (
               <div key={r.id} className="flex justify-between py-1.5 text-sm">
                 <span className="text-gray-600">{r.name}</span>
-                <span className="font-medium">৳{Number(r.amount).toLocaleString()}</span>
+                <span className="font-medium">Tk {Number(r.amount).toLocaleString()}</span>
               </div>
             ))}
             <div className="flex justify-between py-2 mt-1 border-t border-gray-100 font-semibold">
-              <span>মোট আয়</span>
-              <span className="text-green-600">৳{Number(data.total_revenue).toLocaleString()}</span>
+              <span>Total Revenue</span>
+              <span className="text-green-600">Tk {Number(data.total_revenue).toLocaleString()}</span>
             </div>
           </div>
 
           {/* Expenses */}
           <div>
-            <h3 className="font-semibold text-gray-700 mb-2 pb-2 border-b border-gray-100">খরচ (Expenses)</h3>
+            <h3 className="font-semibold text-gray-700 mb-2 pb-2 border-b border-gray-100">Expenses</h3>
             {data.expenses.length === 0 ? (
-              <p className="text-gray-400 text-sm py-2">কোনো খরচ নেই</p>
+              <p className="text-gray-400 text-sm py-2">No expenses</p>
             ) : data.expenses.map(e => (
               <div key={e.id} className="flex justify-between py-1.5 text-sm">
                 <span className="text-gray-600">{e.name}</span>
-                <span className="font-medium">৳{Number(e.amount).toLocaleString()}</span>
+                <span className="font-medium">Tk {Number(e.amount).toLocaleString()}</span>
               </div>
             ))}
             <div className="flex justify-between py-2 mt-1 border-t border-gray-100 font-semibold">
-              <span>মোট খরচ</span>
-              <span className="text-red-600">৳{Number(data.total_expense).toLocaleString()}</span>
+              <span>Total Expenses</span>
+              <span className="text-red-600">Tk {Number(data.total_expense).toLocaleString()}</span>
             </div>
           </div>
 
           {/* Net Income */}
           <div className={`flex justify-between items-center p-4 rounded-xl ${data.net_income >= 0 ? 'bg-green-50' : 'bg-red-50'}`}>
-            <span className="font-bold text-lg">নেট লাভ/ক্ষতি (Net Income)</span>
+            <span className="font-bold text-lg">Net Income</span>
             <span className={`font-bold text-2xl ${data.net_income >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              ৳{Number(data.net_income).toLocaleString()}
+              Tk {Number(data.net_income).toLocaleString()}
             </span>
           </div>
         </div>
-     ) : null}
+      ) : null}
 
       {showSignModal && (
         <SignatoryModal
