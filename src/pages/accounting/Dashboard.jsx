@@ -48,7 +48,9 @@ const highlightNames = ['BRAC Bank', 'Nagad Wallet', 'Dutch Bangla Bank', 'Petty
   {/* bKash collection */}
         {(() => { const Icon = BRAND_STYLES['বিকাশ'].icon; return (
           <div className={`card ${BRAND_STYLES['বিকাশ'].bg} border ${BRAND_STYLES['বিকাশ'].border} relative`}>
-            <button onClick={() => setRateModal('bkash')} className="absolute top-3 right-3 p-1 bg-white/60 rounded-full">
+      
+   <button type="button" onClick={() => setRateModal('bkash')} className="absolute top-3 right-3 p-1 bg-white/60 rounded-full z-10">
+
               <Pencil size={12} className="text-gray-400" />
             </button>
             <div className={`w-8 h-8 rounded-full ${BRAND_STYLES['বিকাশ'].badge} text-white flex items-center justify-center mb-2`}>
@@ -63,7 +65,7 @@ const highlightNames = ['BRAC Bank', 'Nagad Wallet', 'Dutch Bangla Bank', 'Petty
         {/* Rocket collection */}
         {(() => { const Icon = BRAND_STYLES['রকেট'].icon; return (
           <div className={`card ${BRAND_STYLES['রকেট'].bg} border ${BRAND_STYLES['রকেট'].border} relative`}>
-            <button onClick={() => setRateModal('rocket')} className="absolute top-3 right-3 p-1 bg-white/60 rounded-full">
+            <button type="button" onClick={() => setRateModal('rocket')} className="absolute top-3 right-3 p-1 bg-white/60 rounded-full z-10">
               <Pencil size={12} className="text-gray-400" />
             </button>
             <div className={`w-8 h-8 rounded-full ${BRAND_STYLES['রকেট'].badge} text-white flex items-center justify-center mb-2`}>
@@ -165,7 +167,16 @@ const highlightNames = ['BRAC Bank', 'Nagad Wallet', 'Dutch Bangla Bank', 'Petty
             ))}
           </div>
         )}
-      </div>
+    </div>
+
+      {rateModal && (
+        <RateModal
+          type={rateModal}
+          currentRate={rateModal === 'bkash' ? settings.bkash_charge_rate : settings.rocket_charge_rate}
+          onClose={() => setRateModal(null)}
+          onSuccess={() => { setRateModal(null); fetchData(); }}
+        />
+      )}
     </div>
   );
 }
