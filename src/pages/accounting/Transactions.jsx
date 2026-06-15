@@ -32,12 +32,12 @@ export default function Transactions() {
   const setFilter = (k, v) => setFilters(p => ({ ...p, [k]: v }));
 
   const handleDelete = async (txn) => {
-    if (!confirm('এই এন্ট্রি delete করবেন?')) return;
+    if (!confirm('Delete this entry?')) return;
     try {
       await accountingApi.deleteTransaction(txn.id);
-      toast.success('এন্ট্রি delete হয়েছে ✅');
+      toast.success('Entry deleted ✅');
       fetchTransactions();
-    } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
+    } catch (err) { toast.error(err.message || 'Something went wrong'); }
   };
 
   const isSuperAdmin = user?.role === 'super_admin';
@@ -46,8 +46,8 @@ export default function Transactions() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-display font-bold text-dark">ট্রানজেকশন</h1>
-          <p className="text-gray-500 text-sm">মোট {total}টি এন্ট্রি</p>
+          <h1 className="text-2xl font-display font-bold text-dark">Transactions</h1>
+          <p className="text-gray-500 text-sm">Total {total} entries</p>
         </div>
       </div>
 
@@ -66,7 +66,7 @@ export default function Transactions() {
         <button onClick={() => setEntryMode('transfer')}
           className="flex flex-col items-center gap-2 p-4 bg-blue-50 text-blue-600 rounded-2xl border-2 border-blue-100 active:scale-95 transition-all">
           <ArrowLeftRight size={28} />
-          <span className="font-semibold text-sm">ট্রান্সফার</span>
+          <span className="font-semibold text-sm">Transfer</span>
         </button>
       </div>
 
@@ -77,9 +77,9 @@ export default function Transactions() {
           <input type="date" className="input-field" value={filters.date_to} onChange={e => setFilter('date_to', e.target.value)} />
         </div>
         <div className="flex gap-2">
-          <button onClick={() => fetchTransactions()} className="btn-primary py-2 px-6">খুঁজুন</button>
+          <button onClick={() => fetchTransactions()} className="btn-primary py-2 px-6">Search</button>
           <button onClick={() => { setFilters({ date_from: '', date_to: '', transaction_type: '' }); fetchTransactions({ date_from: '', date_to: '', transaction_type: '' }); }}
-            className="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl text-sm font-medium">রিসেট</button>
+            className="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl text-sm font-medium">Reset</button>
         </div>
       </div>
 
@@ -89,16 +89,16 @@ export default function Transactions() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                {['তারিখ', 'বিবরণ', 'একাউন্ট', 'Cash In', 'Cash Out', 'তৈরি করেছেন', 'অ্যাকশন'].map(h => (
+                {['Date', 'Description', 'Account', 'Cash In', 'Cash Out', 'Created By', 'Action'].map(h => (
                   <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {loading ? (
-                <tr><td colSpan={7} className="text-center py-12 text-gray-400">লোড হচ্ছে...</td></tr>
+                <tr><td colSpan={7} className="text-center py-12 text-gray-400">Loading...</td></tr>
               ) : transactions.length === 0 ? (
-                <tr><td colSpan={7} className="text-center py-12 text-gray-400">কোনো রেকর্ড নেই</td></tr>
+                <tr><td colSpan={7} className="text-center py-12 text-gray-400">No records</td></tr>
               ) : transactions.map(t => {
                 const isCashIn = t.transaction_type === 'revenue';
                 const isCashOut = t.transaction_type === 'expense';
@@ -110,13 +110,13 @@ export default function Transactions() {
                     <td className="px-4 py-3 text-gray-500">
                       <p className="text-xs">{t.debit_account_name}</p>
                       <p className="text-xs text-gray-400">← {t.credit_account_name}</p>
-                      {isTransfer && <span className="text-xs bg-blue-50 text-blue-500 px-1.5 py-0.5 rounded">ট্রান্সফার</span>}
+                      {isTransfer && <span className="text-xs bg-blue-50 text-blue-500 px-1.5 py-0.5 rounded">Transfer</span>}
                     </td>
                     <td className="px-4 py-3 font-medium whitespace-nowrap text-green-600">
-                      {isCashIn ? `৳${Number(t.amount).toLocaleString()}` : '—'}
+                      {isCashIn ? `Tk ${Number(t.amount).toLocaleString()}` : '—'}
                     </td>
                     <td className="px-4 py-3 font-medium whitespace-nowrap text-red-600">
-                      {isCashOut ? `৳${Number(t.amount).toLocaleString()}` : '—'}
+                      {isCashOut ? `Tk ${Number(t.amount).toLocaleString()}` : '—'}
                     </td>
                     <td className="px-4 py-3 text-gray-500">{t.created_by_name || t.created_by_phone || '—'}</td>
                     <td className="px-4 py-3">
@@ -192,29 +192,29 @@ function EntryModal({ mode, onClose, onSuccess }) {
   const titles = {
     in: 'Cash In',
     out: 'Cash Out',
-    transfer: 'ট্রান্সফার',
+    transfer: 'Transfer',
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.amount || Number(form.amount) <= 0) return toast.error('সঠিক পরিমাণ দিন');
-    if (!form.account_id) return toast.error('একাউন্ট বেছে নিন');
+    if (!form.amount || Number(form.amount) <= 0) return toast.error('Enter a valid amount');
+    if (!form.account_id) return toast.error('Select an account');
 
     let debit_account_id, credit_account_id, transaction_type;
 
     if (mode === 'in') {
-      if (!form.category_id) return toast.error('কী বাবদ এসেছে বেছে নিন');
+      if (!form.category_id) return toast.error('Select what this is for');
       debit_account_id = form.account_id;
       credit_account_id = form.category_id;
       transaction_type = 'revenue';
     } else if (mode === 'out') {
-      if (!form.category_id) return toast.error('কী বাবদ খরচ বেছে নিন');
+      if (!form.category_id) return toast.error('Select expense category');
       debit_account_id = form.category_id;
       credit_account_id = form.account_id;
       transaction_type = 'expense';
     } else {
-      if (!form.category_id) return toast.error('কোথায় যাচ্ছে বেছে নিন');
-      if (form.account_id === form.category_id) return toast.error('From ও To একাউন্ট একই হতে পারবে না');
+      if (!form.category_id) return toast.error('Select destination account');
+      if (form.account_id === form.category_id) return toast.error('From and To accounts cannot be the same');
       debit_account_id = form.category_id;
       credit_account_id = form.account_id;
       transaction_type = 'fund_transfer';
@@ -233,10 +233,10 @@ function EntryModal({ mode, onClose, onSuccess }) {
       if (form.proof) formData.append('proof', form.proof);
 
       await accountingApi.createTransaction(formData);
-      toast.success('এন্ট্রি সেভ হয়েছে ✅');
+      toast.success('Entry saved ✅');
       onSuccess();
     } catch (err) {
-      toast.error(err.message || 'সমস্যা হয়েছে');
+      toast.error(err.message || 'Something went wrong');
     } finally { setLoading(false); }
   };
 
@@ -251,13 +251,13 @@ function EntryModal({ mode, onClose, onSuccess }) {
 
           <form onSubmit={handleSubmit} className="p-5 space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1.5">তারিখ *</label>
+              <label className="block text-sm font-medium mb-1.5">Date *</label>
               <input type="date" className="input-field" value={form.transaction_date}
                 onChange={e => set('transaction_date', e.target.value)} />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1.5">পরিমাণ (৳) *</label>
+              <label className="block text-sm font-medium mb-1.5">Amount (Tk) *</label>
               <input type="number" className="input-field" value={form.amount}
                 onChange={e => set('amount', e.target.value)} />
             </div>
@@ -265,25 +265,25 @@ function EntryModal({ mode, onClose, onSuccess }) {
             {mode === 'in' && (
               <>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">কোথায় জমা হয়েছে? *</label>
+                  <label className="block text-sm font-medium mb-1.5">Deposited to? *</label>
                   <select className="input-field" value={form.account_id}
                     onChange={e => set('account_id', e.target.value)}>
-                    <option value="">-- বেছে নিন --</option>
+                    <option value="">-- Select --</option>
                     {assetAccounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">কী বাবদ? *</label>
+                  <label className="block text-sm font-medium mb-1.5">For what? *</label>
                   <select className="input-field" value={form.category_id}
                     onChange={e => set('category_id', e.target.value)}>
-                    <option value="">-- বেছে নিন --</option>
+                    <option value="">-- Select --</option>
                     {inCategoryOptions.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">কার কাছ থেকে? (ঐচ্ছিক)</label>
+                  <label className="block text-sm font-medium mb-1.5">From whom? (optional)</label>
                   <input type="text" className="input-field" value={form.party}
-                    onChange={e => set('party', e.target.value)} placeholder="যেমন: স্টুডেন্টের নাম, ইনভেস্টর..." />
+                    onChange={e => set('party', e.target.value)} placeholder="e.g. student name, investor..." />
                 </div>
               </>
             )}
@@ -291,25 +291,25 @@ function EntryModal({ mode, onClose, onSuccess }) {
             {mode === 'out' && (
               <>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">কোথা থেকে দেওয়া হয়েছে? *</label>
+                  <label className="block text-sm font-medium mb-1.5">Paid from? *</label>
                   <select className="input-field" value={form.account_id}
                     onChange={e => set('account_id', e.target.value)}>
-                    <option value="">-- বেছে নিন --</option>
+                    <option value="">-- Select --</option>
                     {assetAccounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">কী বাবদ খরচ? *</label>
+                  <label className="block text-sm font-medium mb-1.5">Expense category? *</label>
                   <select className="input-field" value={form.category_id}
                     onChange={e => set('category_id', e.target.value)}>
-                    <option value="">-- বেছে নিন --</option>
-                    {outCategoryOptions.map(a => <option key={a.id} value={a.id}>{a.name}{a.account_type === 'liability' ? ' (পরিশোধ)' : ''}</option>)}
+                    <option value="">-- Select --</option>
+                    {outCategoryOptions.map(a => <option key={a.id} value={a.id}>{a.name}{a.account_type === 'liability' ? ' (Payment)' : ''}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">কাকে দেওয়া হয়েছে? (ঐচ্ছিক)</label>
+                  <label className="block text-sm font-medium mb-1.5">Paid to? (optional)</label>
                   <input type="text" className="input-field" value={form.party}
-                    onChange={e => set('party', e.target.value)} placeholder="যেমন: স্টাফের নাম, প্রতিষ্ঠানের নাম..." />
+                    onChange={e => set('party', e.target.value)} placeholder="e.g. staff name, organization..." />
                 </div>
               </>
             )}
@@ -317,18 +317,18 @@ function EntryModal({ mode, onClose, onSuccess }) {
             {mode === 'transfer' && (
               <>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">কোথা থেকে (From) *</label>
+                  <label className="block text-sm font-medium mb-1.5">From *</label>
                   <select className="input-field" value={form.account_id}
                     onChange={e => set('account_id', e.target.value)}>
-                    <option value="">-- বেছে নিন --</option>
+                    <option value="">-- Select --</option>
                     {assetAccounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1.5">কোথায় (To) *</label>
+                  <label className="block text-sm font-medium mb-1.5">To *</label>
                   <select className="input-field" value={form.category_id}
                     onChange={e => set('category_id', e.target.value)}>
-                    <option value="">-- বেছে নিন --</option>
+                    <option value="">-- Select --</option>
                     {assetAccounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                   </select>
                 </div>
@@ -336,13 +336,13 @@ function EntryModal({ mode, onClose, onSuccess }) {
             )}
 
             <div>
-              <label className="block text-sm font-medium mb-1.5">বিবরণ</label>
+              <label className="block text-sm font-medium mb-1.5">Description</label>
               <textarea className="input-field resize-none" rows={2} value={form.description}
-                onChange={e => set('description', e.target.value)} placeholder="অতিরিক্ত তথ্য (ঐচ্ছিক)" />
+                onChange={e => set('description', e.target.value)} placeholder="Additional info (optional)" />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1.5">প্রুফ / ভাউচার / চেক ছবি</label>
+              <label className="block text-sm font-medium mb-1.5">Proof / Voucher / Cheque image</label>
               {proofPreview ? (
                 <div className="relative">
                   <img src={proofPreview} className="w-full h-32 object-cover rounded-xl" alt="proof" />
@@ -354,7 +354,7 @@ function EntryModal({ mode, onClose, onSuccess }) {
               ) : (
                 <label className="flex items-center gap-3 p-3 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer">
                   <Camera size={20} className="text-gray-400" />
-                  <span className="text-sm text-gray-400">ছবি আপলোড করুন (ঐচ্ছিক)</span>
+                  <span className="text-sm text-gray-400">Upload image (optional)</span>
                   <input type="file" accept="image/*" className="hidden" onChange={e => {
                     const file = e.target.files[0];
                     if (file) { set('proof', file); setProofPreview(URL.createObjectURL(file)); }
@@ -364,7 +364,7 @@ function EntryModal({ mode, onClose, onSuccess }) {
             </div>
 
             <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? 'সেভ হচ্ছে...' : '✅ এন্ট্রি সেভ করুন'}
+              {loading ? 'Saving...' : '✅ Save Entry'}
             </button>
           </form>
         </div>
@@ -396,9 +396,9 @@ function EditModal({ txn, onClose, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.amount || Number(form.amount) <= 0) return toast.error('সঠিক পরিমাণ দিন');
-    if (!form.debit_account_id || !form.credit_account_id) return toast.error('একাউন্ট বেছে নিন');
-    if (form.debit_account_id === form.credit_account_id) return toast.error('Debit ও Credit একাউন্ট একই হতে পারবে না');
+    if (!form.amount || Number(form.amount) <= 0) return toast.error('Enter a valid amount');
+    if (!form.debit_account_id || !form.credit_account_id) return toast.error('Select accounts');
+    if (form.debit_account_id === form.credit_account_id) return toast.error('Debit and Credit accounts cannot be the same');
 
     setLoading(true);
     try {
@@ -413,10 +413,10 @@ function EditModal({ txn, onClose, onSuccess }) {
       if (form.proof) formData.append('proof', form.proof);
 
       await accountingApi.updateTransaction(txn.id, formData);
-      toast.success('এন্ট্রি আপডেট হয়েছে ✅');
+      toast.success('Entry updated ✅');
       onSuccess();
     } catch (err) {
-      toast.error(err.message || 'সমস্যা হয়েছে');
+      toast.error(err.message || 'Something went wrong');
     } finally { setLoading(false); }
   };
 
@@ -425,42 +425,42 @@ function EditModal({ txn, onClose, onSuccess }) {
       <div className="min-h-screen flex items-end lg:items-center justify-center p-4">
         <div className="bg-white w-full lg:max-w-lg rounded-t-3xl lg:rounded-2xl">
           <div className="p-5 border-b border-gray-100 flex justify-between items-center">
-            <h3 className="font-bold text-lg">এন্ট্রি এডিট করুন</h3>
+            <h3 className="font-bold text-lg">Edit Entry</h3>
             <button onClick={onClose} className="p-1.5 bg-gray-100 rounded-full">✕</button>
           </div>
 
           <form onSubmit={handleSubmit} className="p-5 space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1.5">তারিখ *</label>
+              <label className="block text-sm font-medium mb-1.5">Date *</label>
               <input type="date" className="input-field" value={form.transaction_date}
                 onChange={e => set('transaction_date', e.target.value)} />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1.5">টাইপ *</label>
+              <label className="block text-sm font-medium mb-1.5">Type *</label>
               <select className="input-field" value={form.transaction_type}
                 onChange={e => set('transaction_type', e.target.value)}>
-                <option value="revenue">আয় (Revenue)</option>
-                <option value="expense">খরচ (Expense)</option>
-                <option value="fund_transfer">ট্রান্সফার</option>
-                <option value="bank_withdrawal">ব্যাংক উইথড্রয়াল</option>
-                <option value="credit_card_payment">ক্রেডিট কার্ড পেমেন্ট</option>
-                <option value="investor_payment">ইনভেস্টর পেমেন্ট</option>
-                <option value="salary_payment">বেতন পেমেন্ট</option>
-                <option value="teacher_payment">টিচার পেমেন্ট</option>
-                <option value="steadfast_withdrawal">Steadfast উইথড্রয়াল</option>
-                <option value="adjusting_entry">এডজাস্টিং এন্ট্রি</option>
+                <option value="revenue">Revenue</option>
+                <option value="expense">Expense</option>
+                <option value="fund_transfer">Transfer</option>
+                <option value="bank_withdrawal">Bank Withdrawal</option>
+                <option value="credit_card_payment">Credit Card Payment</option>
+                <option value="investor_payment">Investor Payment</option>
+                <option value="salary_payment">Salary Payment</option>
+                <option value="teacher_payment">Teacher Payment</option>
+                <option value="steadfast_withdrawal">Steadfast Withdrawal</option>
+                <option value="adjusting_entry">Adjusting Entry</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1.5">পরিমাণ (৳) *</label>
+              <label className="block text-sm font-medium mb-1.5">Amount (Tk) *</label>
               <input type="number" className="input-field" value={form.amount}
                 onChange={e => set('amount', e.target.value)} />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1.5">Debit একাউন্ট *</label>
+              <label className="block text-sm font-medium mb-1.5">Debit Account *</label>
               <select className="input-field" value={form.debit_account_id}
                 onChange={e => set('debit_account_id', e.target.value)}>
                 {accounts.filter(a => a.is_active).map(a => (
@@ -470,7 +470,7 @@ function EditModal({ txn, onClose, onSuccess }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1.5">Credit একাউন্ট *</label>
+              <label className="block text-sm font-medium mb-1.5">Credit Account *</label>
               <select className="input-field" value={form.credit_account_id}
                 onChange={e => set('credit_account_id', e.target.value)}>
                 {accounts.filter(a => a.is_active).map(a => (
@@ -480,26 +480,26 @@ function EditModal({ txn, onClose, onSuccess }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1.5">বিবরণ</label>
+              <label className="block text-sm font-medium mb-1.5">Description</label>
               <textarea className="input-field resize-none" rows={2} value={form.description}
                 onChange={e => set('description', e.target.value)} />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1.5">রেফারেন্স নম্বর</label>
+              <label className="block text-sm font-medium mb-1.5">Reference Number</label>
               <input type="text" className="input-field" value={form.reference_no}
                 onChange={e => set('reference_no', e.target.value)} />
             </div>
 
             {txn.proof_url && (
               <div>
-                <label className="block text-sm font-medium mb-1.5">বর্তমান প্রুফ</label>
-                <a href={txn.proof_url} target="_blank" rel="noreferrer" className="text-primary-500 underline text-sm">প্রুফ দেখুন</a>
+                <label className="block text-sm font-medium mb-1.5">Current Proof</label>
+                <a href={txn.proof_url} target="_blank" rel="noreferrer" className="text-primary-500 underline text-sm">View Proof</a>
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-medium mb-1.5">নতুন প্রুফ আপলোড (ঐচ্ছিক)</label>
+              <label className="block text-sm font-medium mb-1.5">Upload New Proof (optional)</label>
               {proofPreview ? (
                 <div className="relative">
                   <img src={proofPreview} className="w-full h-32 object-cover rounded-xl" alt="proof" />
@@ -511,7 +511,7 @@ function EditModal({ txn, onClose, onSuccess }) {
               ) : (
                 <label className="flex items-center gap-3 p-3 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer">
                   <Camera size={20} className="text-gray-400" />
-                  <span className="text-sm text-gray-400">নতুন ছবি আপলোড করুন</span>
+                  <span className="text-sm text-gray-400">Upload new image</span>
                   <input type="file" accept="image/*" className="hidden" onChange={e => {
                     const file = e.target.files[0];
                     if (file) { set('proof', file); setProofPreview(URL.createObjectURL(file)); }
@@ -521,7 +521,7 @@ function EditModal({ txn, onClose, onSuccess }) {
             </div>
 
             <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? 'আপডেট হচ্ছে...' : '✅ আপডেট করুন'}
+              {loading ? 'Updating...' : '✅ Update'}
             </button>
           </form>
         </div>
