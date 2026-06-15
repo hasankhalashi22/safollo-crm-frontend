@@ -133,6 +133,10 @@ export const accountingApi = {
   getAccountBalance: (id) => api.get(`/api/accounting/accounts/${id}/balance`),
 getDashboard: () => api.get('/api/accounting/dashboard'),
 getLedger: (id, params) => api.get(`/api/accounting/accounts/${id}/ledger`, { params }),
+getSettings: () => api.get('/api/accounting/settings'),
+updateSetting: (key, value) => api.patch('/api/accounting/settings', { key, value }),
+getSettings: () => api.get('/api/accounting/settings'),
+updateSetting: (key, value) => api.patch('/api/accounting/settings', { key, value }),
 
   createTransaction: (formData) => api.post('/api/accounting/transactions', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
