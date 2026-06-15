@@ -3,11 +3,14 @@ import { accountingApi } from '../../api/client';
 import { format, startOfMonth } from 'date-fns';
 import { exportAccountingPdf } from '../../utils/accountingPdf';
 import { Download } from 'lucide-react';
+import SignatoryModal from '../../components/SignatoryModal';
 
 export default function IncomeStatement() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [dateFrom, setDateFrom] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
+  const [dateTo, setDateTo] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [showSignModal, setShowSignModal] = useState(false);
   const [dateTo, setDateTo] = useState(format(new Date(), 'yyyy-MM-dd'));
 
   const fetchData = () => {
@@ -21,29 +24,29 @@ export default function IncomeStatement() {
     }).catch(() => setLoading(false));
   };
 
-const handleDownloadPdf = () => {
+const handleDownloadPdf = ({ mdName, ceoName }) => {
     if (!data) return;
-    const period = `${format(new Date(dateFrom), 'dd/MM/yyyy')} থেকে ${format(new Date(dateTo), 'dd/MM/yyyy')}`;
+    const period = `${format(new Date(dateFrom), 'dd/MM/yyyy')} to ${format(new Date(dateTo), 'dd/MM/yyyy')}`;
 
-    const revenueRows = data.revenues.map(r => `<tr><td>${r.name}</td><td>৳${Number(r.amount).toLocaleString()}</td></tr>`).join('');
-    const expenseRows = data.expenses.map(e => `<tr><td>${e.name}</td><td>৳${Number(e.amount).toLocaleString()}</td></tr>`).join('');
+    const revenueRows = data.revenues.map(r => `<tr><td>${r.name}</td><td>Tk ${Number(r.amount).toLocaleString()}</td></tr>`).join('');
+    const expenseRows = data.expenses.map(e => `<tr><td>${e.name}</td><td>Tk ${Number(e.amount).toLocaleString()}</td></tr>`).join('');
 
     const tableHtml = `
       <table>
-        <thead><tr><th colspan="2">আয় (Revenue)</th></tr></thead>
-        <tbody>${revenueRows || '<tr><td colspan="2">কোনো আয় নেই</td></tr>'}</tbody>
-        <tfoot><tr><td>মোট আয়</td><td>৳${Number(data.total_revenue).toLocaleString()}</td></tr></tfoot>
+        <thead><tr><th colspan="2">Revenue</th></tr></thead>
+        <tbody>${revenueRows || '<tr><td colspan="2">No revenue</td></tr>'}</tbody>
+        <tfoot><tr><td>Total Revenue</td><td>Tk ${Number(data.total_revenue).toLocaleString()}</td></tr></tfoot>
       </table>
       <table>
-        <thead><tr><th colspan="2">খরচ (Expenses)</th></tr></thead>
-        <tbody>${expenseRows || '<tr><td colspan="2">কোনো খরচ নেই</td></tr>'}</tbody>
-        <tfoot><tr><td>মোট খরচ</td><td>৳${Number(data.total_expense).toLocaleString()}</td></tr></tfoot>
+        <thead><tr><th colspan="2">Expenses</th></tr></thead>
+        <tbody>${expenseRows || '<tr><td colspan="2">No expenses</td></tr>'}</tbody>
+        <tfoot><tr><td>Total Expenses</td><td>Tk ${Number(data.total_expense).toLocaleString()}</td></tr></tfoot>
       </table>
       <table>
-        <tfoot><tr><td style="font-size:14px">নেট লাভ/ক্ষতি (Net Income)</td><td style="font-size:14px">৳${Number(data.net_income).toLocaleString()}</td></tr></tfoot>
+        <tfoot><tr><td style="font-size:14px">Net Income</td><td style="font-size:14px">Tk ${Number(data.net_income).toLocaleString()}</td></tr></tfoot>
       </table>`;
 
-    exportAccountingPdf({ title: 'আয়-ব্যয় বিবরণী (Income Statement)', period, tableHtml });
+    exportAccountingPdf({ title: 'Income Statement', period, tableHtml, mdName, ceoName });
   };
 
   useEffect(() => { fetchData(); }, []);
@@ -62,7 +65,7 @@ const handleDownloadPdf = () => {
           <input type="date" className="input-field" value={dateTo} onChange={e => setDateTo(e.target.value)} />
         </div>
        <button onClick={fetchData} className="btn-primary py-2.5 px-6">দেখুন</button>
-        <button onClick={handleDownloadPdf} className="flex items-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-xl text-sm font-medium ml-auto">
+       <button onClick={() => setShowSignModal(true)} className="flex items-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-xl text-sm font-medium ml-auto">
           <Download size={16} /> PDF
         </button>
       </div>
@@ -113,7 +116,14 @@ const handleDownloadPdf = () => {
             </span>
           </div>
         </div>
-      ) : null}
+     ) : null}
+
+      {showSignModal && (
+        <SignatoryModal
+          onClose={() => setShowSignModal(false)}
+          onConfirm={(names) => { setShowSignModal(false); handleDownloadPdf(names); }}
+        />
+      )}
     </div>
   );
 }

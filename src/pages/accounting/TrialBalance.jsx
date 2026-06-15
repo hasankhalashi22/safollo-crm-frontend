@@ -3,6 +3,7 @@ import { accountingApi } from '../../api/client';
 import { format } from 'date-fns';
 import { exportAccountingPdf } from '../../utils/accountingPdf';
 import { Download } from 'lucide-react';
+import SignatoryModal from '../../components/SignatoryModal';
 
 const TYPE_LABELS = {
   asset: 'সম্পদ', liability: 'দায়', equity: 'মালিকানা', revenue: 'আয়', expense: 'খরচ',
@@ -12,6 +13,7 @@ export default function TrialBalance() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [asOfDate, setAsOfDate] = useState('');
+  const [showSignModal, setShowSignModal] = useState(false);
 
   const fetchData = (date = asOfDate) => {
     setLoading(true);
@@ -21,28 +23,30 @@ export default function TrialBalance() {
     }).catch(() => setLoading(false));
   };
 
-const handleDownloadPdf = () => {
+const TYPE_LABELS_EN = { asset: 'Asset', liability: 'Liability', equity: 'Equity', revenue: 'Revenue', expense: 'Expense' };
+
+  const handleDownloadPdf = ({ mdName, ceoName }) => {
     if (!data) return;
-    const period = asOfDate ? `শুরু থেকে ${format(new Date(asOfDate), 'dd/MM/yyyy')} পর্যন্ত` : `শুরু থেকে ${format(new Date(), 'dd/MM/yyyy')} পর্যন্ত (আজ)`;
+    const period = asOfDate ? `Inception to ${format(new Date(asOfDate), 'dd/MM/yyyy')}` : `Inception to ${format(new Date(), 'dd/MM/yyyy')} (Today)`;
     const rows = data.accounts.map(a => `
       <tr>
         <td>${a.code || '—'}</td>
         <td>${a.name}</td>
-        <td>${TYPE_LABELS[a.account_type]}</td>
-        <td>${a.debit_balance > 0 ? '৳' + Number(a.debit_balance).toLocaleString() : '—'}</td>
-        <td>${a.credit_balance > 0 ? '৳' + Number(a.credit_balance).toLocaleString() : '—'}</td>
+        <td>${TYPE_LABELS_EN[a.account_type]}</td>
+        <td>${a.debit_balance > 0 ? 'Tk ' + Number(a.debit_balance).toLocaleString() : '—'}</td>
+        <td>${a.credit_balance > 0 ? 'Tk ' + Number(a.credit_balance).toLocaleString() : '—'}</td>
       </tr>`).join('');
 
     const tableHtml = `
       <table>
-        <thead><tr><th>কোড</th><th>একাউন্টের নাম</th><th>টাইপ</th><th>Debit</th><th>Credit</th></tr></thead>
+        <thead><tr><th>Code</th><th>Account Name</th><th>Type</th><th>Debit</th><th>Credit</th></tr></thead>
         <tbody>${rows}</tbody>
         <tfoot>
-          <tr><td colspan="3" style="text-align:right">সর্বমোট</td><td>৳${Number(data.total_debit).toLocaleString()}</td><td>৳${Number(data.total_credit).toLocaleString()}</td></tr>
+          <tr><td colspan="3" style="text-align:right">Total</td><td>Tk ${Number(data.total_debit).toLocaleString()}</td><td>Tk ${Number(data.total_credit).toLocaleString()}</td></tr>
         </tfoot>
       </table>`;
 
-    exportAccountingPdf({ title: 'ট্রায়াল ব্যালেন্স (Trial Balance)', period, tableHtml });
+    exportAccountingPdf({ title: 'Trial Balance', period, tableHtml, mdName, ceoName });
   };
 
   useEffect(() => { fetchData(); }, []);
@@ -58,7 +62,7 @@ const handleDownloadPdf = () => {
         </div>
        <button onClick={() => fetchData()} className="btn-primary py-2.5 px-6">দেখুন</button>
         <button onClick={() => { setAsOfDate(''); fetchData(''); }} className="px-4 py-2.5 bg-gray-100 text-gray-600 rounded-xl text-sm font-medium">রিসেট (আজ পর্যন্ত)</button>
-        <button onClick={handleDownloadPdf} className="flex items-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-xl text-sm font-medium ml-auto">
+        <button onClick={() => setShowSignModal(true)} className="flex items-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-xl text-sm font-medium ml-auto">
           <Download size={16} /> PDF
         </button>
       </div>
@@ -107,7 +111,14 @@ const handleDownloadPdf = () => {
             </div>
           </div>
         </>
-      ) : null}
+   ) : null}
+
+      {showSignModal && (
+        <SignatoryModal
+          onClose={() => setShowSignModal(false)}
+          onConfirm={(names) => { setShowSignModal(false); handleDownloadPdf(names); }}
+        />
+      )}
     </div>
   );
 }
