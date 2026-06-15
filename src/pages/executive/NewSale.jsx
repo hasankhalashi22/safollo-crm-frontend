@@ -98,7 +98,7 @@ export default function NewSale() {
     if (!form.payment_method) return toast.error('পেমেন্ট পদ্ধতি বেছে নিন');
     if (!form.sender_number || form.sender_number.length !== 11) return toast.error('যে নম্বর হতে পেমেন্ট এসেছে দিন');
     if (!form.payment_proof) return toast.error('পেমেন্ট প্রুফ আপলোড করুন');
-    if (dueAmount > 0 && !form.due_date) return toast.error('বাকি দেওয়ার তারিখ দিন');
+    if (dueAmount > 0 && !isCOD && !form.due_date) return toast.error('বাকি দেওয়ার তারিখ দিন');
 
     setLoading(true);
     try {
@@ -267,7 +267,7 @@ export default function NewSale() {
               <input type="text" className="input-field" placeholder="TXN ID"
                 value={form.transaction_id} onChange={e => set('transaction_id', e.target.value)} />
             </div>
-            {dueAmount > 0 && (
+            {dueAmount > 0 && !isCOD && (
               <div>
                 <label className="block text-sm font-medium text-dark mb-1">বাকি দেওয়ার তারিখ *</label>
                 <input type="date" className="input-field" value={form.due_date}
