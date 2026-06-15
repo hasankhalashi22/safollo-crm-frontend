@@ -233,6 +233,7 @@ const navItems = [
     { to: '/accounting/trial-balance', icon: Activity, label: 'ট্রায়াল ব্যালেন্স' },
    { to: '/accounting/income-statement', icon: TrendingUp, label: 'আয়-ব্যয় বিবরণী' },
 { to: '/accounting/balance-sheet', icon: Landmark, label: 'ব্যালেন্স শীট' },
+{ to: '/accounting/cash-flow', icon: TrendingUp, label: 'নগদ প্রবাহ বিবরণী' },
   ];
 
   const SidebarContent = () => (

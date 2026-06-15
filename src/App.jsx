@@ -8,6 +8,7 @@ import Ledger from './pages/accounting/Ledger';
 import TrialBalance from './pages/accounting/TrialBalance';
 import IncomeStatement from './pages/accounting/IncomeStatement';
 import BalanceSheet from './pages/accounting/BalanceSheet';
+import CashFlow from './pages/accounting/CashFlow';
 
 import Login from './pages/Login';
 import CompleteProfile from './pages/CompleteProfile';
@@ -102,6 +103,8 @@ useNotifications();
 <Route path="/accounting/income-statement" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><IncomeStatement /></AccountingLayout></ProtectedRoute>} />
 
 <Route path="/accounting/balance-sheet" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><BalanceSheet /></AccountingLayout></ProtectedRoute>} />
+
+<Route path="/accounting/cash-flow" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><CashFlow /></AccountingLayout></ProtectedRoute>} />
 
 
 

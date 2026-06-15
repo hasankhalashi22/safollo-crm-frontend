@@ -140,6 +140,7 @@ updateSetting: (key, value) => api.patch('/api/accounting/settings', { key, valu
 getTrialBalance: (as_of_date) => api.get('/api/accounting/trial-balance', { params: as_of_date ? { as_of_date } : {} }),
 getIncomeStatement: (params) => api.get('/api/accounting/income-statement', { params }),
 getBalanceSheet: (as_of_date) => api.get('/api/accounting/balance-sheet', { params: as_of_date ? { as_of_date } : {} }),
+getCashFlow: (params) => api.get('/api/accounting/cash-flow', { params }),
 
   createTransaction: (formData) => api.post('/api/accounting/transactions', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
