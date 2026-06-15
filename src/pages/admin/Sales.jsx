@@ -32,9 +32,9 @@ export default function AdminSales() {
   const [filters, setFilters] = useState(EMPTY_ENROLLMENT_FILTERS);
   const [revenueFilters, setRevenueFilters] = useState(EMPTY_REVENUE_FILTERS);
 
-  const fetchSales = (f = filters) => {
+const fetchSales = (f = filters) => {
     setLoading(true);
-    const params = {};
+    const params = { limit: 5000 };
     if (f.search) params.search = f.search;
     if (f.course_id) params.course_id = f.course_id;
     if (f.payment_status) params.payment_status = f.payment_status;
