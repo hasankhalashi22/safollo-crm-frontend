@@ -1,18 +1,24 @@
+
 import { useState, useEffect } from 'react';
 import { accountingApi } from '../../api/client';
 import { format } from 'date-fns';
-import { TrendingUp, TrendingDown, Wallet, CreditCard, Smartphone, Landmark, Rocket } from 'lucide-react';
+import { TrendingUp, TrendingDown, Wallet, CreditCard, Smartphone, Landmark, Rocket, Pencil, X } from 'lucide-react';
 
 export default function AccountingDashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState({});
+  const [rateModal, setRateModal] = useState(null); // 'bkash' or 'rocket'
 
-  useEffect(() => {
+  const fetchData = () => {
     accountingApi.getDashboard().then(r => {
       setData(r.data);
       setLoading(false);
     }).catch(() => setLoading(false));
-  }, []);
+    accountingApi.getSettings().then(r => setSettings(r.data || {}));
+  };
+
+  useEffect(() => { fetchData(); }, []);
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="spinner w-8 h-8" /></div>;
   if (!data) return null;
@@ -37,25 +43,35 @@ const highlightNames = ['BRAC Bank', 'Nagad Wallet', 'Dutch Bangla Bank', 'Petty
 
       {/* Key balances row: bKash + Rocket + 4 highlight accounts */}
       <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
-        {/* bKash collection */}
+
+
+  {/* bKash collection */}
         {(() => { const Icon = BRAND_STYLES['বিকাশ'].icon; return (
-          <div className={`card ${BRAND_STYLES['বিকাশ'].bg} border ${BRAND_STYLES['বিকাশ'].border}`}>
+          <div className={`card ${BRAND_STYLES['বিকাশ'].bg} border ${BRAND_STYLES['বিকাশ'].border} relative`}>
+            <button onClick={() => setRateModal('bkash')} className="absolute top-3 right-3 p-1 bg-white/60 rounded-full">
+              <Pencil size={12} className="text-gray-400" />
+            </button>
             <div className={`w-8 h-8 rounded-full ${BRAND_STYLES['বিকাশ'].badge} text-white flex items-center justify-center mb-2`}>
               <Icon size={16} />
             </div>
             <p className="text-sm text-gray-500 mb-1">আজকের বিকাশ</p>
             <p className={`text-xl font-bold ${BRAND_STYLES['বিকাশ'].text}`}>৳{Number(data.today_bkash).toLocaleString()}</p>
+            <p className="text-xs text-gray-400 mt-1">চার্জ: {settings.bkash_charge_rate ?? '—'}%</p>
           </div>
         ); })()}
 
         {/* Rocket collection */}
         {(() => { const Icon = BRAND_STYLES['রকেট'].icon; return (
-          <div className={`card ${BRAND_STYLES['রকেট'].bg} border ${BRAND_STYLES['রকেট'].border}`}>
+          <div className={`card ${BRAND_STYLES['রকেট'].bg} border ${BRAND_STYLES['রকেট'].border} relative`}>
+            <button onClick={() => setRateModal('rocket')} className="absolute top-3 right-3 p-1 bg-white/60 rounded-full">
+              <Pencil size={12} className="text-gray-400" />
+            </button>
             <div className={`w-8 h-8 rounded-full ${BRAND_STYLES['রকেট'].badge} text-white flex items-center justify-center mb-2`}>
               <Icon size={16} />
             </div>
             <p className="text-sm text-gray-500 mb-1">আজকের রকেট</p>
             <p className={`text-xl font-bold ${BRAND_STYLES['রকেট'].text}`}>৳{Number(data.today_rocket).toLocaleString()}</p>
+            <p className="text-xs text-gray-400 mt-1">চার্জ: {settings.rocket_charge_rate ?? '—'}%</p>
           </div>
         ); })()}
 
@@ -160,6 +176,45 @@ function StatCard({ icon, label, value, bg }) {
       <div className="flex items-center gap-2 mb-2">{icon}</div>
       <p className="text-xl font-bold text-dark">৳{Number(value).toLocaleString()}</p>
       <p className="text-xs text-gray-500 mt-0.5">{label}</p>
+    </div>
+  );
+}
+
+function RateModal({ type, currentRate, onClose, onSuccess }) {
+  const [rate, setRate] = useState(currentRate ?? '');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (rate === '' || Number(rate) < 0) return;
+    setLoading(true);
+    try {
+      const key = type === 'bkash' ? 'bkash_charge_rate' : 'rocket_charge_rate';
+      await accountingApi.updateSetting(key, rate);
+      onSuccess();
+    } catch (err) {
+      console.error(err);
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl w-full max-w-sm p-5">
+        <div className="flex justify-between mb-4">
+          <h3 className="font-bold text-lg">{type === 'bkash' ? 'বিকাশ' : 'রকেট'} চার্জ রেট</h3>
+          <button onClick={onClose} className="p-1.5 bg-gray-100 rounded-full"><X size={16} /></button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div>
+            <label className="block text-sm font-medium mb-1.5">চার্জ রেট (%)</label>
+            <input type="number" step="0.01" className="input-field" value={rate}
+              onChange={e => setRate(e.target.value)} placeholder="যেমন: 1.15" />
+          </div>
+          <button type="submit" className="btn-primary" disabled={loading}>
+            {loading ? 'সেভ হচ্ছে...' : '✅ সেভ করুন'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
