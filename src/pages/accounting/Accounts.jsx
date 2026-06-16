@@ -167,10 +167,17 @@ function AccountModal({ account, onClose, onSuccess }) {
                 onChange={e => set('code', e.target.value)} />
             </div>
           )}
-          <div>
+         <div>
             <label className="block text-sm font-medium mb-1.5">Subtype</label>
-            <input type="text" className="input-field" placeholder="e.g. credit_card, investor_loan"
-              value={form.account_subtype} onChange={e => set('account_subtype', e.target.value)} />
+            <select className="input-field" value={form.account_subtype}
+              onChange={e => set('account_subtype', e.target.value)}>
+              <option value="">-- None --</option>
+              <option value="cash">Cash</option>
+              <option value="mobile_wallet">Mobile Wallet</option>
+              <option value="bank">Bank</option>
+              <option value="credit_card">Credit Card</option>
+              <option value="investor_loan">Investor Loan</option>
+            </select>
           </div>
 
           {(form.account_type === 'liability' && form.account_subtype === 'credit_card') && (
