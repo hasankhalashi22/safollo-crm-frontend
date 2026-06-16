@@ -14,21 +14,26 @@ function TopModuleBar() {
   if (user?.role !== 'super_admin') return null;
 
   const isAccounting = location.pathname.startsWith('/accounting');
+  const isHr = location.pathname.startsWith('/hr');
+  const isCrm = !isAccounting && !isHr;
 
   return (
     <div className="bg-gray-900 px-4 flex items-center gap-1">
       <button onClick={() => navigate('/admin')}
-        className={`px-4 py-2.5 text-sm font-medium transition-all border-b-2 ${!isAccounting ? 'text-white border-primary-400' : 'text-gray-400 border-transparent hover:text-gray-200'}`}>
+        className={`px-4 py-2.5 text-sm font-medium transition-all border-b-2 ${isCrm ? 'text-white border-primary-400' : 'text-gray-400 border-transparent hover:text-gray-200'}`}>
         CRM
       </button>
       <button onClick={() => navigate('/accounting')}
         className={`px-4 py-2.5 text-sm font-medium transition-all border-b-2 ${isAccounting ? 'text-white border-primary-400' : 'text-gray-400 border-transparent hover:text-gray-200'}`}>
         Accounting
       </button>
+      <button onClick={() => navigate('/hr')}
+        className={`px-4 py-2.5 text-sm font-medium transition-all border-b-2 ${isHr ? 'text-white border-primary-400' : 'text-gray-400 border-transparent hover:text-gray-200'}`}>
+        HR
+      </button>
     </div>
   );
 }
-
 export function ExecutiveLayout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -224,6 +229,103 @@ export function AccountingLayout({ children }) {
     navigate('/login');
     toast.success('লগআউট হয়েছে');
   };
+
+export function HrLayout({ children }) {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+    toast.success('লগআউট হয়েছে');
+  };
+
+  const navItems = [
+    { to: '/hr', icon: BarChart2, label: 'Dashboard', end: true },
+    { to: '/hr/employees', icon: Users, label: 'Employee Directory' },
+    { to: '/hr/organogram', icon: Activity, label: 'Organogram' },
+    { to: '/hr/notices', icon: BookText, label: 'Notice Board' },
+  ];
+
+  const SidebarContent = () => (
+    <>
+      <div className="p-4 border-b border-gray-100">
+        <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-10 mb-1" />
+        <p className="text-xs text-gray-400">HR Module</p>
+      </div>
+
+      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+        {navItems.map(({ to, icon: Icon, label, end }) => (
+          <NavLink key={to} to={to} end={end}
+            onClick={() => setSidebarOpen(false)}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
+               ${isActive ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'}`
+            }>
+            <Icon size={18} />
+            {label}
+          </NavLink>
+        ))}
+      </nav>
+
+      <div className="p-3 border-t border-gray-100">
+        <div className="flex items-center gap-3 px-3 py-2.5 mb-2">
+          <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+            <span className="text-primary-600 font-bold text-sm">
+              {(user?.full_name || user?.phone)?.[0]}
+            </span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium truncate">{user?.full_name || user?.phone}</p>
+            <p className="text-xs text-gray-400">{user?.role_label}</p>
+          </div>
+        </div>
+        <button onClick={handleLogout} className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl transition-all">
+          <LogOut size={16} />
+          লগআউট
+        </button>
+      </div>
+    </>
+  );
+
+  return (
+    <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
+      <TopModuleBar />
+      <div className="flex flex-1 overflow-hidden">
+        <aside className="hidden lg:flex w-64 bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0">
+          <SidebarContent />
+        </aside>
+
+        {sidebarOpen && (
+          <div className="lg:hidden fixed inset-0 z-50 flex">
+            <div className="fixed inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
+            <aside className="relative w-72 bg-white flex flex-col shadow-xl">
+              <button onClick={() => setSidebarOpen(false)}
+                className="absolute top-3 right-3 p-1.5 bg-gray-100 rounded-full z-10">
+                <X size={18} />
+              </button>
+              <SidebarContent />
+            </aside>
+          </div>
+        )}
+
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="lg:hidden bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3 shadow-sm">
+            <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl bg-gray-100">
+              <Menu size={20} className="text-gray-600" />
+            </button>
+            <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-8" />
+          </div>
+
+          <main className="flex-1 overflow-y-auto page-enter">
+            {children}
+          </main>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const navItems = [
     { to: '/accounting', icon: BarChart2, label: 'Dashboard', end: true },

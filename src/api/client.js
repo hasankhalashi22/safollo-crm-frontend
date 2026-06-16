@@ -170,4 +170,13 @@ export const bookApi = {
   markReturned: (enrollment_id, reference_number) => api.post('/api/book/returned', { enrollment_id, reference_number }),
 };
 
+export const hrApi = {
+  getEmployees: () => api.get('/api/hr/employees'),
+  updateEmployeeDetails: (userId, data) => api.patch(`/api/hr/employees/${userId}`, data),
+  getOrganogram: () => api.get('/api/hr/organogram'),
+  getNotices: () => api.get('/api/hr/notices'),
+  createNotice: (data) => api.post('/api/hr/notices', data),
+  deleteNotice: (id) => api.delete(`/api/hr/notices/${id}`),
+};
+
 export default api;

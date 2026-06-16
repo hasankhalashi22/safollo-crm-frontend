@@ -14,6 +14,9 @@ import CreditCards from './pages/accounting/CreditCards';
 import Investors from './pages/accounting/Investors';
 import Shareholders from './pages/accounting/Shareholders';
 import Journal from './pages/accounting/Journal';
+import { HrLayout } from './components/Layout/AppLayout';
+import HrDashboard from './pages/hr/Dashboard';
+import Employees from './pages/hr/Employees';
 
 
 
@@ -122,6 +125,11 @@ useNotifications();
 <Route path="/accounting/shareholders" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><Shareholders /></AccountingLayout></ProtectedRoute>} />
 
 <Route path="/accounting/journal" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><Journal /></AccountingLayout></ProtectedRoute>} />
+
+<Route path="/hr" element={<ProtectedRoute allowedLevels={[1]}><HrLayout><HrDashboard /></HrLayout></ProtectedRoute>} />
+
+<Route path="/hr/employees" element={<ProtectedRoute allowedLevels={[1]}><HrLayout><Employees /></HrLayout></ProtectedRoute>} />
+
 
 
 
