@@ -144,6 +144,7 @@ getCashFlow: (params) => api.get('/api/accounting/cash-flow', { params }),
 getEquityStatement: (params) => api.get('/api/accounting/equity-statement', { params }),
 getCreditCards: (params) => api.get('/api/accounting/credit-cards', { params }),
 getInvestors: () => api.get('/api/accounting/investors'),
+toggleInvestorAccrual: (id, is_accruing) => api.patch(`/api/accounting/investors/${id}/accrual`, { is_accruing }),
 
 
 
