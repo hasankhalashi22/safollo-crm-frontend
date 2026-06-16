@@ -111,12 +111,20 @@ export default function Investors() {
             ))}
           </div>
 
-          {/* Totals */}
+         {/* Totals */}
           <div className="card bg-primary-50">
             <h3 className="font-semibold text-gray-700 mb-3">All Investors Total</h3>
-            <div className="grid grid-cols-3 gap-3 text-sm">
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 text-sm">
               <div>
-                <p className="text-gray-500 mb-1">Total Investment (Outstanding)</p>
+                <p className="text-gray-500 mb-1">Total Invested (All Time)</p>
+                <p className="font-bold">Tk {Number(data.totals.total_invested).toLocaleString()}</p>
+              </div>
+              <div>
+                <p className="text-gray-500 mb-1">Total Principal Repaid</p>
+                <p className="font-bold text-orange-600">Tk {Number(data.totals.total_repaid).toLocaleString()}</p>
+              </div>
+              <div>
+                <p className="text-gray-500 mb-1">Outstanding Principal</p>
                 <p className="font-bold">Tk {Number(data.totals.total_principal).toLocaleString()}</p>
               </div>
               <div>
@@ -141,12 +149,12 @@ export default function Investors() {
 }
 
 function HistoryModal({ investor, onClose }) {
-  const [ledger, setLedger] = useState(null);
+  const [history, setHistory] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    accountingApi.getLedger(investor.id, {}).then(r => {
-      setLedger(r.data);
+    accountingApi.getInvestorHistory(investor.id).then(r => {
+      setHistory(r.data);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [investor.id]);
@@ -161,36 +169,49 @@ function HistoryModal({ investor, onClose }) {
 
         {loading ? (
           <div className="flex justify-center py-12"><div className="spinner w-8 h-8" /></div>
-        ) : !ledger || ledger.entries.length === 0 ? (
+        ) : !history || history.entries.length === 0 ? (
           <p className="text-center py-12 text-gray-400">No transactions yet</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
-                  {['Date', 'Description', 'Deposit (Credit)', 'Withdrawal (Debit)', 'Proof'].map(h => (
+                  {['Date', 'Type', 'Description', 'Deposit', 'Repayment', 'Profit Paid', 'Proof'].map(h => (
                     <th key={h} className="text-left px-3 py-2 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {ledger.entries.map(e => (
-                  <tr key={e.id} className="hover:bg-gray-50">
-                    <td className="px-3 py-2 text-gray-500 whitespace-nowrap">{format(new Date(e.entry_date), 'dd/MM/yyyy')}</td>
-                    <td className="px-3 py-2 text-gray-600">{e.description || '—'}</td>
-                    <td className="px-3 py-2 text-green-600 font-medium whitespace-nowrap">
-                      {e.entry_type === 'credit' ? `Tk ${Number(e.amount).toLocaleString()}` : '—'}
-                    </td>
-                    <td className="px-3 py-2 text-red-600 font-medium whitespace-nowrap">
-                      {e.entry_type === 'debit' ? `Tk ${Number(e.amount).toLocaleString()}` : '—'}
-                    </td>
-                    <td className="px-3 py-2">
-                      {e.proof_url ? (
-                        <a href={e.proof_url} target="_blank" rel="noreferrer" className="text-primary-500 underline text-xs">View</a>
-                      ) : '—'}
-                    </td>
-                  </tr>
-                ))}
+                {history.entries.map(e => {
+                  const isProfit = e.kind === 'profit';
+                  const isDeposit = !isProfit && e.entry_type === 'credit';
+                  const isRepayment = !isProfit && e.entry_type === 'debit';
+                  return (
+                    <tr key={`${e.kind}-${e.id}`} className="hover:bg-gray-50">
+                      <td className="px-3 py-2 text-gray-500 whitespace-nowrap">{format(new Date(e.entry_date), 'dd/MM/yyyy')}</td>
+                      <td className="px-3 py-2">
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${isProfit ? 'bg-amber-50 text-amber-600' : isDeposit ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-600'}`}>
+                          {isProfit ? 'Profit Payment' : isDeposit ? 'Deposit' : 'Principal Repayment'}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2 text-gray-600">{e.description || '—'}</td>
+                      <td className="px-3 py-2 text-green-600 font-medium whitespace-nowrap">
+                        {isDeposit ? `Tk ${Number(e.amount).toLocaleString()}` : '—'}
+                      </td>
+                      <td className="px-3 py-2 text-orange-600 font-medium whitespace-nowrap">
+                        {isRepayment ? `Tk ${Number(e.amount).toLocaleString()}` : '—'}
+                      </td>
+                      <td className="px-3 py-2 text-amber-600 font-medium whitespace-nowrap">
+                        {isProfit ? `Tk ${Number(e.amount).toLocaleString()}` : '—'}
+                      </td>
+                      <td className="px-3 py-2">
+                        {e.proof_url ? (
+                          <a href={e.proof_url} target="_blank" rel="noreferrer" className="text-primary-500 underline text-xs">View</a>
+                        ) : '—'}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
