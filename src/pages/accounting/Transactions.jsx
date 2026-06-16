@@ -3,7 +3,7 @@ import { accountingApi } from '../../api/client';
 import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
-import { Trash2, Camera, X, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Edit2, CreditCard, TrendingUp } from 'lucide-react';
+import { Trash2, Camera, X, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Edit2, CreditCard, TrendingUp, Users } from 'lucide-react';
 
 export default function Transactions() {
   const { user } = useAuth();
@@ -54,7 +54,7 @@ export default function Transactions() {
 
 
      {/* Big action buttons */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 mb-6">
         <button onClick={() => setEntryMode('in')}
           className="flex flex-col items-center gap-2 p-4 bg-green-50 text-green-600 rounded-2xl border-2 border-green-100 active:scale-95 transition-all">
           <ArrowDownCircle size={28} />
@@ -157,9 +157,16 @@ export default function Transactions() {
         </div>
       </div>
 
-      {entryMode && (
+     {entryMode && entryMode !== 'distribute_profit' && (
         <EntryModal
           mode={entryMode}
+          onClose={() => setEntryMode(null)}
+          onSuccess={() => { setEntryMode(null); fetchTransactions(); }}
+        />
+      )}
+
+      {entryMode === 'distribute_profit' && (
+        <DistributeProfitModal
           onClose={() => setEntryMode(null)}
           onSuccess={() => { setEntryMode(null); fetchTransactions(); }}
         />
@@ -191,6 +198,115 @@ const [form, setForm] = useState({
     proof_type: 'voucher',
     investor_id: '',
   });
+
+function DistributeProfitModal({ onClose, onSuccess }) {
+  const [accounts, setAccounts] = useState([]);
+  const [shareholders, setShareholders] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({
+    transaction_date: format(new Date(), 'yyyy-MM-dd'),
+    total_amount: '',
+    paid_from_account_id: '',
+    description: '',
+  });
+
+  useEffect(() => {
+    accountingApi.getAllAccounts().then(r => {
+      const all = r.data || [];
+      setAccounts(all.filter(a => a.is_active && a.account_type === 'asset'));
+      setShareholders(all.filter(a => a.is_active && a.account_subtype === 'shareholder'));
+    });
+  }, []);
+
+  const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  const totalPercentage = shareholders.reduce((sum, s) => sum + parseFloat(s.share_percentage || 0), 0);
+
+  const breakdown = shareholders.map(s => ({
+    name: s.shareholder_name || s.name,
+    percentage: s.share_percentage,
+    amount: form.total_amount ? Math.round((parseFloat(form.total_amount) * parseFloat(s.share_percentage) / 100) * 100) / 100 : 0,
+  }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.total_amount || Number(form.total_amount) <= 0) return toast.error('সঠিক পরিমাণ দিন');
+    if (!form.paid_from_account_id) return toast.error('কোথা থেকে দিচ্ছেন বেছে নিন');
+    if (Math.abs(totalPercentage - 100) > 0.01) return toast.error(`শেয়ারহোল্ডারদের মোট শেয়ার ১০০% নয় (বর্তমানে ${totalPercentage}%)`);
+
+    setLoading(true);
+    try {
+      await accountingApi.distributeProfit(form);
+      toast.success('Profit distributed ✅');
+      onSuccess();
+    } catch (err) {
+      toast.error(err.message || 'সমস্যা হয়েছে');
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 overflow-y-auto">
+      <div className="min-h-screen flex items-end lg:items-center justify-center p-4">
+        <div className="bg-white w-full lg:max-w-lg rounded-t-3xl lg:rounded-2xl">
+          <div className="p-5 border-b border-gray-100 flex justify-between items-center">
+            <h3 className="font-bold text-lg">Distribute Profit to Shareholders</h3>
+            <button onClick={onClose} className="p-1.5 bg-gray-100 rounded-full">✕</button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="p-5 space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Date *</label>
+              <input type="date" className="input-field" value={form.transaction_date}
+                onChange={e => set('transaction_date', e.target.value)} />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Total Amount (Tk) *</label>
+              <input type="number" className="input-field" value={form.total_amount}
+                onChange={e => set('total_amount', e.target.value)} />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Paid From *</label>
+              <select className="input-field" value={form.paid_from_account_id}
+                onChange={e => set('paid_from_account_id', e.target.value)}>
+                <option value="">-- Select --</option>
+                {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Description</label>
+              <textarea className="input-field resize-none" rows={2} value={form.description}
+                onChange={e => set('description', e.target.value)} placeholder="Optional" />
+            </div>
+
+            {shareholders.length === 0 ? (
+              <p className="text-sm text-red-500 bg-red-50 p-3 rounded-xl">No shareholder accounts found. Create them in Chart of Accounts first.</p>
+            ) : (
+              <div className="bg-gray-50 rounded-xl p-3">
+                <p className="text-sm font-medium mb-2">Breakdown (Total Share: {totalPercentage}%)</p>
+                {breakdown.map((b, idx) => (
+                  <div key={idx} className="flex justify-between text-sm py-1">
+                    <span className="text-gray-600">{b.name} ({b.percentage}%)</span>
+                    <span className="font-medium">Tk {Number(b.amount).toLocaleString()}</span>
+                  </div>
+                ))}
+                {Math.abs(totalPercentage - 100) > 0.01 && (
+                  <p className="text-xs text-red-500 mt-2">⚠️ Total percentage is not 100%</p>
+                )}
+              </div>
+            )}
+
+            <button type="submit" className="btn-primary" disabled={loading || shareholders.length === 0}>
+              {loading ? 'Saving...' : '✅ Distribute Profit'}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
 
   useEffect(() => {
     accountingApi.getAllAccounts().then(r => setAccounts(r.data || []));
