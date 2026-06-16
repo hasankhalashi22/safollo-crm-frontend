@@ -146,6 +146,8 @@ getCreditCards: (params) => api.get('/api/accounting/credit-cards', { params }),
 getInvestors: () => api.get('/api/accounting/investors'),
 toggleInvestorAccrual: (id, is_accruing) => api.patch(`/api/accounting/investors/${id}/accrual`, { is_accruing }),
 getInvestorHistory: (id) => api.get(`/api/accounting/investors/${id}/history`),
+analyzeStatement: (formData) => api.post('/api/accounting/card-statements/analyze', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+confirmStatement: (formData) => api.post('/api/accounting/card-statements/confirm', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
 
 
 
