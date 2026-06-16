@@ -150,6 +150,7 @@ analyzeStatement: (formData) => api.post('/api/accounting/card-statements/analyz
 confirmStatement: (formData) => api.post('/api/accounting/card-statements/confirm', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
 distributeProfit: (data) => api.post('/api/accounting/transactions/distribute-profit', data),
 getShareholders: () => api.get('/api/accounting/shareholders'),
+getJournal: (params) => api.get('/api/accounting/journal', { params }),
 
 
 

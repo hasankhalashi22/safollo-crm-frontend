@@ -227,8 +227,9 @@ export function AccountingLayout({ children }) {
 
 const navItems = [
     { to: '/accounting', icon: BarChart2, label: 'Dashboard', end: true },
+{ to: '/accounting/transactions', icon: FileText, label: 'Transactions' },
     { to: '/accounting/accounts', icon: Wallet, label: 'Chart of Accounts' },
-    { to: '/accounting/transactions', icon: FileText, label: 'Transactions' },
+    { to: '/accounting/journal', icon: BookText, label: 'Journal' },
     { to: '/accounting/ledger', icon: BookText, label: 'Ledger' },
     { to: '/accounting/trial-balance', icon: Activity, label: 'Trial Balance' },
     { to: '/accounting/income-statement', icon: TrendingUp, label: 'Income Statement' },

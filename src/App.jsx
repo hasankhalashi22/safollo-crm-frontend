@@ -13,6 +13,7 @@ import EquityStatement from './pages/accounting/EquityStatement';
 import CreditCards from './pages/accounting/CreditCards';
 import Investors from './pages/accounting/Investors';
 import Shareholders from './pages/accounting/Shareholders';
+import Journal from './pages/accounting/Journal';
 
 
 
@@ -119,6 +120,10 @@ useNotifications();
 <Route path="/accounting/investors" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><Investors /></AccountingLayout></ProtectedRoute>} />
 
 <Route path="/accounting/shareholders" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><Shareholders /></AccountingLayout></ProtectedRoute>} />
+
+<Route path="/accounting/journal" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><Journal /></AccountingLayout></ProtectedRoute>} />
+
+
 
 
 
