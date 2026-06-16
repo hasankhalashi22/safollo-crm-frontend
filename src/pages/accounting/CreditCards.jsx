@@ -28,23 +28,23 @@ const handleDownloadPdf = ({ mdName, ceoName }) => {
     const cardRows = data.cards.map(c => `
       <tr>
         <td>${c.name}${c.bank_name ? ' (' + c.bank_name + ')' : ''}</td>
-        <td>Tk ${Number(c.credit_limit).toLocaleString()}</td>
-        <td>Tk ${Number(c.current_balance).toLocaleString()}</td>
-        <td>Tk ${Number(c.available_limit).toLocaleString()}</td>
+        <td>Tk ${Number(c.total_credit_used).toLocaleString()}</td>
+        <td>Tk ${Number(c.total_paid).toLocaleString()}</td>
+        <td>Tk ${Number(c.outstanding_balance).toLocaleString()}</td>
         <td>Tk ${Number(c.period_charge).toLocaleString()}</td>
         <td>Tk ${Number(c.period_payment).toLocaleString()}</td>
       </tr>`).join('');
 
     const tableHtml = `
       <table>
-        <thead><tr><th>Card</th><th>Limit</th><th>Used</th><th>Available</th><th>Period Charges</th><th>Period Payments</th></tr></thead>
+        <thead><tr><th>Card</th><th>Total Credit Used</th><th>Total Paid</th><th>Outstanding</th><th>Credit Used (Period)</th><th>Paid (Period)</th></tr></thead>
         <tbody>${cardRows}</tbody>
         <tfoot>
           <tr>
             <td>Total</td>
-            <td>Tk ${Number(data.totals.credit_limit).toLocaleString()}</td>
-            <td>Tk ${Number(data.totals.current_balance).toLocaleString()}</td>
-            <td>Tk ${Number(data.totals.available_limit).toLocaleString()}</td>
+            <td>Tk ${Number(data.totals.total_credit_used).toLocaleString()}</td>
+            <td>Tk ${Number(data.totals.total_paid).toLocaleString()}</td>
+            <td>Tk ${Number(data.totals.outstanding_balance).toLocaleString()}</td>
             <td>Tk ${Number(data.totals.period_charge).toLocaleString()}</td>
             <td>Tk ${Number(data.totals.period_payment).toLocaleString()}</td>
           </tr>
@@ -94,31 +94,30 @@ const handleDownloadPdf = ({ mdName, ceoName }) => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 mb-3">
-                  <div className="bg-gray-50 rounded-xl p-3">
-                    <p className="text-xs text-gray-500 mb-1">Credit Limit</p>
-                    <p className="font-bold">Tk {Number(card.credit_limit).toLocaleString()}</p>
+<div className="grid grid-cols-2 gap-3 mb-3">
+                  <div className="bg-purple-50 rounded-xl p-3">
+                    <p className="text-xs text-gray-500 mb-1">Total Credit Used</p>
+                    <p className="font-bold text-purple-600">Tk {Number(card.total_credit_used).toLocaleString()}</p>
+                  </div>
+                  <div className="bg-blue-50 rounded-xl p-3">
+                    <p className="text-xs text-gray-500 mb-1">Total Paid</p>
+                    <p className="font-bold text-blue-600">Tk {Number(card.total_paid).toLocaleString()}</p>
                   </div>
                   <div className="bg-orange-50 rounded-xl p-3">
-                    <p className="text-xs text-gray-500 mb-1">Current Balance (Used)</p>
-                    <p className="font-bold text-orange-600">Tk {Number(card.current_balance).toLocaleString()}</p>
-                  </div>
-                  <div className="bg-green-50 rounded-xl p-3">
-                    <p className="text-xs text-gray-500 mb-1">Available Limit</p>
-                    <p className="font-bold text-green-600">Tk {Number(card.available_limit).toLocaleString()}</p>
+                    <p className="text-xs text-gray-500 mb-1">Outstanding Balance</p>
+                    <p className="font-bold text-orange-600">Tk {Number(card.outstanding_balance).toLocaleString()}</p>
                   </div>
                   <div className="bg-gray-50 rounded-xl p-3">
                     <p className="text-xs text-gray-500 mb-1">Interest Rate</p>
                     <p className="font-bold">{card.interest_rate ? `${card.interest_rate}%` : '—'}</p>
                   </div>
                 </div>
-
                 <div className="flex justify-between text-sm py-2 border-t border-gray-100">
-                  <span className="text-gray-500">Period Charges</span>
+                  <span className="text-gray-500">Credit Used (Period)</span>
                   <span className="font-medium text-purple-600">Tk {Number(card.period_charge).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-sm py-2 border-t border-gray-100">
-                  <span className="text-gray-500">Period Payments</span>
+                  <span className="text-gray-500">Paid (Period)</span>
                   <span className="font-medium text-blue-600">Tk {Number(card.period_payment).toLocaleString()}</span>
                 </div>
 
@@ -129,29 +128,21 @@ const handleDownloadPdf = ({ mdName, ceoName }) => {
             ))}
           </div>
 
-          {/* Totals */}
+         {/* Totals */}
           <div className="card bg-primary-50">
             <h3 className="font-semibold text-gray-700 mb-3">All Cards Total</h3>
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 text-sm">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
               <div>
-                <p className="text-gray-500 mb-1">Total Limit</p>
-                <p className="font-bold">Tk {Number(data.totals.credit_limit).toLocaleString()}</p>
+                <p className="text-gray-500 mb-1">Total Credit Used (All Time)</p>
+                <p className="font-bold text-purple-600">Tk {Number(data.totals.total_credit_used).toLocaleString()}</p>
               </div>
               <div>
-                <p className="text-gray-500 mb-1">Total Used</p>
-                <p className="font-bold text-orange-600">Tk {Number(data.totals.current_balance).toLocaleString()}</p>
+                <p className="text-gray-500 mb-1">Total Paid (All Time)</p>
+                <p className="font-bold text-blue-600">Tk {Number(data.totals.total_paid).toLocaleString()}</p>
               </div>
               <div>
-                <p className="text-gray-500 mb-1">Total Available</p>
-                <p className="font-bold text-green-600">Tk {Number(data.totals.available_limit).toLocaleString()}</p>
-              </div>
-              <div>
-                <p className="text-gray-500 mb-1">Period Charges</p>
-                <p className="font-bold text-purple-600">Tk {Number(data.totals.period_charge).toLocaleString()}</p>
-              </div>
-              <div>
-                <p className="text-gray-500 mb-1">Period Payments</p>
-                <p className="font-bold text-blue-600">Tk {Number(data.totals.period_payment).toLocaleString()}</p>
+                <p className="text-gray-500 mb-1">Outstanding Balance</p>
+                <p className="font-bold text-orange-600">Tk {Number(data.totals.outstanding_balance).toLocaleString()}</p>
               </div>
             </div>
           </div>
