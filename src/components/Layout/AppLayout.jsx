@@ -34,6 +34,7 @@ function TopModuleBar() {
     </div>
   );
 }
+
 export function ExecutiveLayout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -230,29 +231,27 @@ export function AccountingLayout({ children }) {
     toast.success('লগআউট হয়েছে');
   };
 
-export function HrLayout({ children }) {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
-    toast.success('লগআউট হয়েছে');
-  };
-
   const navItems = [
-    { to: '/hr', icon: BarChart2, label: 'Dashboard', end: true },
-    { to: '/hr/employees', icon: Users, label: 'Employee Directory' },
-    { to: '/hr/organogram', icon: Activity, label: 'Organogram' },
-    { to: '/hr/notices', icon: BookText, label: 'Notice Board' },
+    { to: '/accounting', icon: BarChart2, label: 'Dashboard', end: true },
+    { to: '/accounting/transactions', icon: FileText, label: 'Transactions' },
+    { to: '/accounting/accounts', icon: Wallet, label: 'Chart of Accounts' },
+    { to: '/accounting/journal', icon: BookText, label: 'Journal' },
+    { to: '/accounting/ledger', icon: BookText, label: 'Ledger' },
+    { to: '/accounting/trial-balance', icon: Activity, label: 'Trial Balance' },
+    { to: '/accounting/income-statement', icon: TrendingUp, label: 'Income Statement' },
+    { to: '/accounting/balance-sheet', icon: Landmark, label: 'Balance Sheet' },
+    { to: '/accounting/cash-flow', icon: TrendingUp, label: 'Cash Flow' },
+    { to: '/accounting/equity-statement', icon: TrendingUp, label: 'Equity Statement' },
+    { to: '/accounting/credit-cards', icon: CreditCard, label: 'Credit Cards' },
+    { to: '/accounting/investors', icon: TrendingUp, label: 'Investors' },
+    { to: '/accounting/shareholders', icon: Users, label: 'Shareholders' },
   ];
 
   const SidebarContent = () => (
     <>
       <div className="p-4 border-b border-gray-100">
         <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-10 mb-1" />
-        <p className="text-xs text-gray-400">HR Module</p>
+      <p className="text-xs text-gray-400">Accounting Module</p>
       </div>
 
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
@@ -327,27 +326,29 @@ export function HrLayout({ children }) {
   );
 }
 
-const navItems = [
-    { to: '/accounting', icon: BarChart2, label: 'Dashboard', end: true },
-{ to: '/accounting/transactions', icon: FileText, label: 'Transactions' },
-    { to: '/accounting/accounts', icon: Wallet, label: 'Chart of Accounts' },
-    { to: '/accounting/journal', icon: BookText, label: 'Journal' },
-    { to: '/accounting/ledger', icon: BookText, label: 'Ledger' },
-    { to: '/accounting/trial-balance', icon: Activity, label: 'Trial Balance' },
-    { to: '/accounting/income-statement', icon: TrendingUp, label: 'Income Statement' },
-    { to: '/accounting/balance-sheet', icon: Landmark, label: 'Balance Sheet' },
-    { to: '/accounting/cash-flow', icon: TrendingUp, label: 'Cash Flow' },
-{ to: '/accounting/equity-statement', icon: TrendingUp, label: 'Equity Statement' },
-{ to: '/accounting/credit-cards', icon: CreditCard, label: 'Credit Cards' },
-{ to: '/accounting/investors', icon: TrendingUp, label: 'Investors' },
-{ to: '/accounting/shareholders', icon: Users, label: 'Shareholders' },
+export function HrLayout({ children }) {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+    toast.success('লগআউট হয়েছে');
+  };
+
+  const navItems = [
+    { to: '/hr', icon: BarChart2, label: 'Dashboard', end: true },
+    { to: '/hr/employees', icon: Users, label: 'Employee Directory' },
+    { to: '/hr/organogram', icon: Activity, label: 'Organogram' },
+    { to: '/hr/notices', icon: BookText, label: 'Notice Board' },
   ];
 
   const SidebarContent = () => (
     <>
       <div className="p-4 border-b border-gray-100">
         <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-10 mb-1" />
-      <p className="text-xs text-gray-400">Accounting Module</p>
+        <p className="text-xs text-gray-400">HR Module</p>
       </div>
 
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
