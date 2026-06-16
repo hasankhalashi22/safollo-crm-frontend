@@ -17,7 +17,7 @@ import Journal from './pages/accounting/Journal';
 
 import HrDashboard from './pages/hr/Dashboard';
 import Employees from './pages/hr/Employees';
-
+import Organogram from './pages/hr/Organogram';
 
 
 
@@ -131,6 +131,7 @@ useNotifications();
 
 <Route path="/hr/employees" element={<ProtectedRoute allowedLevels={[1]}><HrLayout><Employees /></HrLayout></ProtectedRoute>} />
 
+<Route path="/hr/organogram" element={<ProtectedRoute allowedLevels={[1]}><HrLayout><Organogram /></HrLayout></ProtectedRoute>} />
 
 
 
