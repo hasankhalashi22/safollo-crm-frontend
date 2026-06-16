@@ -2,13 +2,16 @@ import { useState, useEffect } from 'react';
 import { accountingApi } from '../../api/client';
 import { Link } from 'react-router-dom';
 import { format, startOfMonth } from 'date-fns';
-import { CreditCard } from 'lucide-react';
+import { CreditCard, Download } from 'lucide-react';
+import { exportAccountingPdf } from '../../utils/accountingPdf';
+import SignatoryModal from '../../components/SignatoryModal';
 
 export default function CreditCards() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [dateFrom, setDateFrom] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
   const [dateTo, setDateTo] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [showSignModal, setShowSignModal] = useState(false);
 
   const fetchData = () => {
     setLoading(true);
@@ -16,6 +19,39 @@ export default function CreditCards() {
       setData(r.data);
       setLoading(false);
     }).catch(() => setLoading(false));
+  };
+
+const handleDownloadPdf = ({ mdName, ceoName }) => {
+    if (!data) return;
+    const period = `${format(new Date(dateFrom), 'dd/MM/yyyy')} to ${format(new Date(dateTo), 'dd/MM/yyyy')}`;
+
+    const cardRows = data.cards.map(c => `
+      <tr>
+        <td>${c.name}${c.bank_name ? ' (' + c.bank_name + ')' : ''}</td>
+        <td>Tk ${Number(c.credit_limit).toLocaleString()}</td>
+        <td>Tk ${Number(c.current_balance).toLocaleString()}</td>
+        <td>Tk ${Number(c.available_limit).toLocaleString()}</td>
+        <td>Tk ${Number(c.period_charge).toLocaleString()}</td>
+        <td>Tk ${Number(c.period_payment).toLocaleString()}</td>
+      </tr>`).join('');
+
+    const tableHtml = `
+      <table>
+        <thead><tr><th>Card</th><th>Limit</th><th>Used</th><th>Available</th><th>Period Charges</th><th>Period Payments</th></tr></thead>
+        <tbody>${cardRows}</tbody>
+        <tfoot>
+          <tr>
+            <td>Total</td>
+            <td>Tk ${Number(data.totals.credit_limit).toLocaleString()}</td>
+            <td>Tk ${Number(data.totals.current_balance).toLocaleString()}</td>
+            <td>Tk ${Number(data.totals.available_limit).toLocaleString()}</td>
+            <td>Tk ${Number(data.totals.period_charge).toLocaleString()}</td>
+            <td>Tk ${Number(data.totals.period_payment).toLocaleString()}</td>
+          </tr>
+        </tfoot>
+      </table>`;
+
+    exportAccountingPdf({ title: 'Credit Cards Overview', period, tableHtml, mdName, ceoName });
   };
 
   useEffect(() => { fetchData(); }, []);
@@ -33,7 +69,10 @@ export default function CreditCards() {
           <label className="block text-sm font-medium mb-1.5">To</label>
           <input type="date" className="input-field" value={dateTo} onChange={e => setDateTo(e.target.value)} />
         </div>
-        <button onClick={fetchData} className="btn-primary py-2.5 px-6">View</button>
+       <button onClick={fetchData} className="btn-primary py-2.5 px-6">View</button>
+        <button onClick={() => setShowSignModal(true)} className="flex items-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-xl text-sm font-medium ml-auto">
+          <Download size={16} /> PDF
+        </button>
       </div>
 
       {loading ? (
@@ -116,7 +155,14 @@ export default function CreditCards() {
               </div>
             </div>
           </div>
-        </>
+       </>
+      )}
+
+      {showSignModal && (
+        <SignatoryModal
+          onClose={() => setShowSignModal(false)}
+          onConfirm={(names) => { setShowSignModal(false); handleDownloadPdf(names); }}
+        />
       )}
     </div>
   );
