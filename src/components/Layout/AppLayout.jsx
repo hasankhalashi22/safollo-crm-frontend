@@ -237,6 +237,7 @@ const navItems = [
 { to: '/accounting/equity-statement', icon: TrendingUp, label: 'Equity Statement' },
 { to: '/accounting/credit-cards', icon: CreditCard, label: 'Credit Cards' },
 { to: '/accounting/investors', icon: TrendingUp, label: 'Investors' },
+{ to: '/accounting/shareholders', icon: Users, label: 'Shareholders' },
   ];
 
   const SidebarContent = () => (

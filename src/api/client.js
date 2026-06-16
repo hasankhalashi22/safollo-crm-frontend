@@ -149,6 +149,7 @@ getInvestorHistory: (id) => api.get(`/api/accounting/investors/${id}/history`),
 analyzeStatement: (formData) => api.post('/api/accounting/card-statements/analyze', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
 confirmStatement: (formData) => api.post('/api/accounting/card-statements/confirm', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
 distributeProfit: (data) => api.post('/api/accounting/transactions/distribute-profit', data),
+getShareholders: () => api.get('/api/accounting/shareholders'),
 
 
 
