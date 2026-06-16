@@ -87,7 +87,8 @@ export default function Employees() {
 }
 
 function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
-  const [form, setForm] = useState({
+const [form, setForm] = useState({
+    position_id: employee.position_id || '',
     designation: employee.designation || '',
     department: employee.department || '',
     reports_to: employee.reports_to || '',
@@ -100,6 +101,15 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
   });
   const [loading, setLoading] = useState(false);
 
+const [positions, setPositions] = useState([]);
+
+  useEffect(() => {
+    hrApi.getPositions().then(r => {
+      const flatten = (list) => list.flatMap(p => [p, ...flatten(p.children || [])]);
+      // positions API returns flat list already (no children nesting) - use directly
+      setPositions(r.data || []);
+    });
+  }, []);
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
   const handleSubmit = async (e) => {
@@ -123,7 +133,15 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
         </div>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="block text-sm font-medium mb-1.5">Designation</label>
+            <label className="block text-sm font-medium mb-1.5">Position (Organogram)</label>
+            <select className="input-field" value={form.position_id}
+              onChange={e => set('position_id', e.target.value)}>
+              <option value="">-- None --</option>
+              {positions.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Designation (Display Text)</label>
             <input type="text" className="input-field" value={form.designation}
               onChange={e => set('designation', e.target.value)} />
           </div>

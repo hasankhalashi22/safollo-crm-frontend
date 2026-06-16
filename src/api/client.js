@@ -177,6 +177,10 @@ export const hrApi = {
   getNotices: () => api.get('/api/hr/notices'),
   createNotice: (data) => api.post('/api/hr/notices', data),
   deleteNotice: (id) => api.delete(`/api/hr/notices/${id}`),
+getPositions: () => api.get('/api/hr/positions'),
+createPosition: (data) => api.post('/api/hr/positions', data),
+updatePosition: (id, data) => api.patch(`/api/hr/positions/${id}`, data),
+deletePosition: (id) => api.delete(`/api/hr/positions/${id}`),
 };
 
 export default api;
