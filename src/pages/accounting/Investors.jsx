@@ -3,12 +3,15 @@ import { accountingApi } from '../../api/client';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import { createPortal } from 'react-dom';
-import { TrendingUp, X } from 'lucide-react';
+import { TrendingUp, X, Download } from 'lucide-react';
+import { exportAccountingPdf } from '../../utils/accountingPdf';
+import SignatoryModal from '../../components/SignatoryModal';
 
 export default function Investors() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [historyModal, setHistoryModal] = useState(null);
+  const [showSignModal, setShowSignModal] = useState(false);
 
   const fetchData = () => {
     setLoading(true);
@@ -30,11 +33,49 @@ export default function Investors() {
     }
   };
 
+const handleDownloadPdf = ({ mdName, ceoName }) => {
+    if (!data) return;
+    const period = `As of ${format(new Date(), 'dd/MM/yyyy')}`;
+
+    const invRows = data.investors.map(inv => `
+      <tr>
+        <td>${inv.investor_name || inv.name}</td>
+        <td>Tk ${Number(inv.initial_investment).toLocaleString()}</td>
+        <td>Tk ${Number(inv.total_principal_repaid).toLocaleString()}</td>
+        <td>Tk ${Number(inv.principal).toLocaleString()}</td>
+        <td>Tk ${Number(inv.accrued_profit).toLocaleString()}</td>
+        <td>Tk ${Number(inv.total_profit_paid).toLocaleString()}</td>
+      </tr>`).join('');
+
+    const tableHtml = `
+      <table>
+        <thead><tr><th>Investor</th><th>Invested</th><th>Repaid</th><th>Outstanding</th><th>Accrued (Due)</th><th>Profit Paid</th></tr></thead>
+        <tbody>${invRows}</tbody>
+        <tfoot>
+          <tr>
+            <td>Total</td>
+            <td>Tk ${Number(data.totals.total_invested).toLocaleString()}</td>
+            <td>Tk ${Number(data.totals.total_repaid).toLocaleString()}</td>
+            <td>Tk ${Number(data.totals.total_principal).toLocaleString()}</td>
+            <td>Tk ${Number(data.totals.total_accrued).toLocaleString()}</td>
+            <td>Tk ${Number(data.totals.total_paid).toLocaleString()}</td>
+          </tr>
+        </tfoot>
+      </table>`;
+
+    exportAccountingPdf({ title: 'Investors Overview', period, tableHtml, mdName, ceoName });
+  };
+
   if (loading) return <div className="flex justify-center py-12"><div className="spinner w-8 h-8" /></div>;
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-display font-bold text-dark mb-6">Investors</h1>
+   <div className="p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-display font-bold text-dark">Investors</h1>
+        <button onClick={() => setShowSignModal(true)} className="flex items-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-xl text-sm font-medium">
+          <Download size={16} /> PDF
+        </button>
+      </div>
 
       {!data || data.investors.length === 0 ? (
         <div className="card text-center py-12 text-gray-400">No investors added yet</div>
@@ -143,6 +184,13 @@ export default function Investors() {
       {historyModal && createPortal(
         <HistoryModal investor={historyModal} onClose={() => setHistoryModal(null)} />,
         document.body
+      )}
+
+      {showSignModal && (
+        <SignatoryModal
+          onClose={() => setShowSignModal(false)}
+          onConfirm={(names) => { setShowSignModal(false); handleDownloadPdf(names); }}
+        />
       )}
     </div>
   );
