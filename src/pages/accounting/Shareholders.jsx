@@ -24,24 +24,37 @@ export default function Shareholders() {
       ) : (
         <>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-            {data.shareholders.map(sh => (
-              <div key={sh.id} className="card">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center">
-                    <Users size={20} />
-                  </div>
-                  <div>
-                    <p className="font-semibold">{sh.shareholder_name || sh.name}</p>
-                    <p className="text-xs text-gray-400">Share: {sh.share_percentage}%</p>
-                  </div>
-                </div>
+           {(() => {
+              const COLORS = [
+                { border: 'border-teal-200', bg: 'bg-teal-50', icon: 'bg-teal-100 text-teal-600', badge: 'text-teal-600' },
+                { border: 'border-indigo-200', bg: 'bg-indigo-50', icon: 'bg-indigo-100 text-indigo-600', badge: 'text-indigo-600' },
+                { border: 'border-amber-200', bg: 'bg-amber-50', icon: 'bg-amber-100 text-amber-600', badge: 'text-amber-600' },
+                { border: 'border-rose-200', bg: 'bg-rose-50', icon: 'bg-rose-100 text-rose-600', badge: 'text-rose-600' },
+                { border: 'border-emerald-200', bg: 'bg-emerald-50', icon: 'bg-emerald-100 text-emerald-600', badge: 'text-emerald-600' },
+                { border: 'border-violet-200', bg: 'bg-violet-50', icon: 'bg-violet-100 text-violet-600', badge: 'text-violet-600' },
+              ];
+              return data.shareholders.map((sh, idx) => {
+                const c = COLORS[idx % COLORS.length];
+                return (
+                  <div key={sh.id} className={`card border-2 ${c.border}`}>
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className={`w-10 h-10 rounded-full ${c.icon} flex items-center justify-center`}>
+                        <Users size={20} />
+                      </div>
+                      <div>
+                        <p className="font-semibold">{sh.shareholder_name || sh.name}</p>
+                        <p className="text-xs text-gray-400">Share: {sh.share_percentage}%</p>
+                      </div>
+                    </div>
 
-                <div className="bg-blue-50 rounded-xl p-3">
-                  <p className="text-xs text-gray-500 mb-1">Total Profit Received</p>
-                  <p className="font-bold text-blue-600">Tk {Number(sh.total_profit_received).toLocaleString()}</p>
-                </div>
-              </div>
-            ))}
+                    <div className={`${c.bg} rounded-xl p-3`}>
+                      <p className="text-xs text-gray-500 mb-1">Total Profit Received</p>
+                      <p className={`font-bold ${c.badge}`}>Tk {Number(sh.total_profit_received).toLocaleString()}</p>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
           </div>
 
           <div className={`card ${Math.abs(data.total_percentage - 100) > 0.01 ? 'bg-red-50' : 'bg-primary-50'}`}>
