@@ -14,15 +14,16 @@ import CreditCards from './pages/accounting/CreditCards';
 import Investors from './pages/accounting/Investors';
 import Shareholders from './pages/accounting/Shareholders';
 import Journal from './pages/accounting/Journal';
-import { HrLayout } from './components/Layout/AppLayout';
+
 import HrDashboard from './pages/hr/Dashboard';
 import Employees from './pages/hr/Employees';
 
 
 
+
 import Login from './pages/Login';
 import CompleteProfile from './pages/CompleteProfile';
-import { ExecutiveLayout, AdminLayout, AccountingLayout } from './components/Layout/AppLayout';
+import { ExecutiveLayout, AdminLayout, AccountingLayout, HrLayout } from './components/Layout/AppLayout';
 import Accounts from './pages/accounting/Accounts';
 
 import ExecutiveDashboard from './pages/executive/Dashboard';
