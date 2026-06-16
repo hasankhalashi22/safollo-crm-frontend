@@ -111,6 +111,8 @@ function AccountModal({ account, onClose, onSuccess }) {
     profit_rate: account?.profit_rate || '',
     contract_start_date: account?.contract_start_date?.split('T')[0] || '',
     contract_end_date: account?.contract_end_date?.split('T')[0] || '',
+    shareholder_name: account?.shareholder_name || '',
+    share_percentage: account?.share_percentage || '',
   });
   const [loading, setLoading] = useState(false);
 
@@ -177,6 +179,7 @@ function AccountModal({ account, onClose, onSuccess }) {
               <option value="bank">Bank</option>
               <option value="credit_card">Credit Card</option>
               <option value="investor_loan">Investor Loan</option>
+              <option value="shareholder">Shareholder</option>
             </select>
           </div>
 
@@ -201,6 +204,23 @@ function AccountModal({ account, onClose, onSuccess }) {
               </div>
             </>
           )}
+
+{(form.account_subtype === 'shareholder') && (
+            <>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Shareholder Name</label>
+                <input type="text" className="input-field" value={form.shareholder_name}
+                  onChange={e => set('shareholder_name', e.target.value)} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Share Percentage (%)</label>
+                <input type="number" step="0.01" className="input-field" value={form.share_percentage}
+                  onChange={e => set('share_percentage', e.target.value)} placeholder="e.g. 30" />
+              </div>
+            </>
+          )}
+
+       
 
           {(form.account_subtype === 'investor_loan') && (
             <>
