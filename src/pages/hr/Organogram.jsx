@@ -123,8 +123,11 @@ function TreeNode({ node, onAddChild, onEdit, onDelete }) {
   return (
     <div className="flex flex-col items-center">
       <div className="bg-white border-2 border-primary-100 rounded-2xl px-4 py-3 shadow-sm min-w-[200px]">
-        <div className="flex items-center justify-between gap-2 mb-1">
-          <p className="font-semibold text-sm">{node.title}</p>
+       <div className="flex items-center justify-between gap-2 mb-1">
+          <div>
+            <p className="font-semibold text-sm">{node.title}</p>
+            {node.department && <p className="text-xs text-gray-400">{node.department}</p>}
+          </div>
           <div className="flex gap-1">
             <button onClick={() => onEdit(node)} className="p-1 bg-primary-50 text-primary-600 rounded-md">
               <Edit2 size={12} />
@@ -170,6 +173,7 @@ function TreeNode({ node, onAddChild, onEdit, onDelete }) {
 function PositionModal({ position, parentId, parentTitle, onClose, onSuccess }) {
   const isEdit = !!position;
   const [title, setTitle] = useState(position?.title || '');
+  const [department, setDepartment] = useState(position?.department || '');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -178,10 +182,10 @@ function PositionModal({ position, parentId, parentTitle, onClose, onSuccess }) 
     setLoading(true);
     try {
       if (isEdit) {
-        await hrApi.updatePosition(position.id, { title });
+        await hrApi.updatePosition(position.id, { title, department });
         toast.success('পদ আপডেট হয়েছে ✅');
       } else {
-        await hrApi.createPosition({ title, parent_position_id: parentId });
+        await hrApi.createPosition({ title, department, parent_position_id: parentId });
         toast.success('পদ তৈরি হয়েছে ✅');
       }
       onSuccess();
@@ -204,6 +208,11 @@ function PositionModal({ position, parentId, parentTitle, onClose, onSuccess }) 
             <label className="block text-sm font-medium mb-1.5">পদের নাম *</label>
             <input type="text" className="input-field" value={title}
               onChange={e => setTitle(e.target.value)} placeholder="e.g. Managing Director" autoFocus />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Department</label>
+            <input type="text" className="input-field" value={department}
+              onChange={e => setDepartment(e.target.value)} placeholder="e.g. Sales" />
           </div>
           <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? 'Saving...' : '✅ Save'}
