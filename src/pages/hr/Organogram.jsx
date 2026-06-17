@@ -8,6 +8,7 @@ export default function Organogram() {
   const [loading, setLoading] = useState(true);
   const [addModal, setAddModal] = useState(null); // { parentId, parentTitle }
   const [editModal, setEditModal] = useState(null);
+  const [zoom, setZoom] = useState(1);
 
   const fetchPositions = () => {
     setLoading(true);
@@ -66,8 +67,24 @@ export default function Organogram() {
         <div className="card text-center py-12 text-gray-400">কোনো পদ তৈরি করা হয়নি। "Add Top Position" দিয়ে শুরু করুন।</div>
       ) : (
         <>
-          <div className="overflow-x-auto mb-8">
-            <div className="flex flex-col items-center min-w-max p-4">
+          <div className="flex items-center justify-end gap-2 mb-3">
+            <button onClick={() => setZoom(z => Math.max(0.4, z - 0.1))}
+              className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium">
+              − Zoom Out
+            </button>
+            <span className="text-sm text-gray-500 w-12 text-center">{Math.round(zoom * 100)}%</span>
+            <button onClick={() => setZoom(z => Math.min(2, z + 0.1))}
+              className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium">
+              + Zoom In
+            </button>
+            <button onClick={() => setZoom(1)}
+              className="px-3 py-1.5 bg-primary-50 text-primary-600 rounded-lg text-sm font-medium">
+              Reset
+            </button>
+          </div>
+
+          <div className="overflow-auto mb-8 border border-gray-100 rounded-2xl" style={{ maxHeight: '70vh' }}>
+            <div className="flex flex-col items-center p-8" style={{ transform: `scale(${zoom})`, transformOrigin: 'top center', width: 'fit-content', minWidth: '100%' }}>
               {tree.map(node => (
                 <TreeNode key={node.id} node={node}
                   onAddChild={(parentId, parentTitle) => setAddModal({ parentId, parentTitle })}
@@ -77,6 +94,7 @@ export default function Organogram() {
               ))}
             </div>
           </div>
+
 
           <div className="card">
             <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
