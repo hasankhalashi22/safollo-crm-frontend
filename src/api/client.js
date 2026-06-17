@@ -185,7 +185,11 @@ export const hrApi = {
   getNotices: () => api.get('/api/hr/notices'),
   createNotice: (data) => api.post('/api/hr/notices', data),
   deleteNotice: (id) => api.delete(`/api/hr/notices/${id}`),
+uploadEmployeePhoto: (id, formData) => api.post(`/api/hr/employees/${id}/photo`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+uploadEmployeeNid: (id, formData) => api.post(`/api/hr/employees/${id}/nid`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+uploadEmployeeSignature: (id, formData) => api.post(`/api/hr/employees/${id}/signature`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
 };
+
 
 
 export default api;
