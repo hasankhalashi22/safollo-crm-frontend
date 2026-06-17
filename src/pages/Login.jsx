@@ -5,13 +5,14 @@ import { useAuth } from '../hooks/useAuth';
 import toast from 'react-hot-toast';
 
 export default function Login() {
-  const [step, setStep] = useState('phone'); // phone | password | otp | first-otp | set-password
+  const [step, setStep] = useState('phone'); // phone | password | otp | first-otp | set-password | force-change-password
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isFirstLogin, setIsFirstLogin] = useState(false);
+  const [loggedInUser, setLoggedInUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -44,7 +45,7 @@ export default function Login() {
 const handlePasswordLogin = async (e) => {
     e.preventDefault();
     if (!password) {
-      // No password entered — try first login flow
+      // No password entered — try first login flow (legacy OTP path, for accounts without a password set)
       setLoading(true);
       try {
         await authApi.sendOtp(phone);
@@ -60,12 +61,20 @@ const handlePasswordLogin = async (e) => {
     setLoading(true);
     try {
       const res = await authApi.loginWithPassword(phone, password);
+     if (res.user.is_first_login) {
+        // Logged in with default password — force them to set a new one
+        toast.info('প্রথমবার লগইন — নতুন পাসওয়ার্ড সেট করুন');
+        login(res.token, res.user);
+        setLoggedInUser(res.user);
+        setStep('force-change-password');
+        return;
+      }
       login(res.token, res.user);
       toast.success(`স্বাগতম!`);
       redirectByRole(res.user);
     } catch (err) {
       if (err.is_first_login || err.statusCode === 428) {
-        // First time login
+        // Account has no password at all yet — legacy OTP path
         toast.info('প্রথমবার লগইন — OTP দিয়ে verify করুন');
         setIsFirstLogin(true);
         await sendFirstOtp();
@@ -115,6 +124,23 @@ const handlePasswordLogin = async (e) => {
       toast.success('পাসওয়ার্ড সেট হয়েছে! এখন লগইন করুন');
       setStep('password');
       setPassword('');
+    } catch (err) {
+      toast.error(err.message || 'সমস্যা হয়েছে');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+const handleForceChangePassword = async (e) => {
+    e.preventDefault();
+    if (newPassword.length !== 4) return toast.error('৪ সংখ্যার পাসওয়ার্ড দিন');
+    if (newPassword !== confirmPassword) return toast.error('পাসওয়ার্ড মিলছে না');
+    if (newPassword === '1234') return toast.error('ডিফল্ট পাসওয়ার্ড ব্যবহার করা যাবে না, নতুন পাসওয়ার্ড দিন');
+    setLoading(true);
+    try {
+      await authApi.changePassword('1234', newPassword);
+      toast.success('পাসওয়ার্ড পরিবর্তন হয়েছে ✅');
+      redirectByRole(loggedInUser);
     } catch (err) {
       toast.error(err.message || 'সমস্যা হয়েছে');
     } finally {
@@ -231,6 +257,29 @@ const handlePasswordLogin = async (e) => {
                 placeholder="000000" value={otp} onChange={e => setOtp(e.target.value.slice(0, 6))} autoFocus />
               <button type="submit" className="btn-primary" disabled={loading}>
                 {loading ? 'যাচাই হচ্ছে...' : 'OTP যাচাই করুন'}
+              </button>
+            </form>
+          )}
+
+         {/* Force change password (default password login) */}
+          {step === 'force-change-password' && (
+            <form onSubmit={handleForceChangePassword} className="space-y-4">
+              <div>
+                <h2 className="text-lg font-semibold text-dark mb-1">নতুন পাসওয়ার্ড সেট করুন</h2>
+                <p className="text-gray-500 text-sm">আপনার নিরাপত্তার জন্য একটি নতুন ৪ সংখ্যার পাসওয়ার্ড দিন</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">নতুন পাসওয়ার্ড</label>
+                <input type="number" className="input-field text-center text-2xl tracking-widest"
+                  placeholder="••••" value={newPassword} onChange={e => setNewPassword(e.target.value.slice(0, 4))} autoFocus />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">পাসওয়ার্ড নিশ্চিত করুন</label>
+                <input type="number" className="input-field text-center text-2xl tracking-widest"
+                  placeholder="••••" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value.slice(0, 4))} />
+              </div>
+              <button type="submit" className="btn-primary" disabled={loading}>
+                {loading ? 'সেট হচ্ছে...' : 'পাসওয়ার্ড সেট করে এগিয়ে যান'}
               </button>
             </form>
           )}
