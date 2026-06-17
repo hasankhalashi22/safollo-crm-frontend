@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { hrApi, usersApi } from '../../api/client';
+import { hrApi, usersApi, authApi } from '../../api/client';
 import toast from 'react-hot-toast';
 import { Edit2, User, Plus, Eye, Download, Key } from 'lucide-react';
 import { format } from 'date-fns';
@@ -24,7 +24,7 @@ export default function Employees() {
 const handleResetPassword = async (emp) => {
     if (!confirm(`${emp.full_name}-এর পাসওয়ার্ড রিসেট করবেন?`)) return;
     try {
-      await usersApi.resetPassword(emp.user_id);
+      await authApi.resetPassword(emp.user_id);
       toast.success('পাসওয়ার্ড রিসেট হয়েছে ✅');
     } catch (err) {
       toast.error(err.message || 'সমস্যা হয়েছে');
