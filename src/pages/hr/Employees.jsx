@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { hrApi } from '../../api/client';
+import { hrApi, usersApi } from '../../api/client';
 import toast from 'react-hot-toast';
 import { Edit2, User, Plus } from 'lucide-react';
 
@@ -110,15 +110,18 @@ function AddEmployeeModal({ allEmployees, onClose, onSuccess }) {
   const [unlinkedUsers, setUnlinkedUsers] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState('');
   const [positions, setPositions] = useState([]);
+  const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     full_name: '', phone: '', email: '', position_id: '', designation: '', department: '',
     reports_to: '', employment_type: 'full_time', is_remote: false,
+    grant_crm_access: false, crm_role_id: '', crm_manager_id: '',
   });
 
   useEffect(() => {
     hrApi.getUnlinkedCrmUsers().then(r => setUnlinkedUsers(r.data || []));
     hrApi.getPositions().then(r => setPositions(r.data || []));
+    usersApi.getRoles().then(r => setRoles(r.data || []));
   }, []);
 
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
@@ -139,6 +142,9 @@ function AddEmployeeModal({ allEmployees, onClose, onSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.full_name) return toast.error('নাম দিন');
+    if (mode === 'new' && form.grant_crm_access && (!form.phone || !form.crm_role_id)) {
+      return toast.error('CRM access দেওয়ার জন্য ফোন নম্বর ও Role আবশ্যক');
+    }
     setLoading(true);
     try {
       const payload = { ...form };
@@ -231,6 +237,40 @@ function AddEmployeeModal({ allEmployees, onClose, onSuccess }) {
               onChange={e => set('is_remote', e.target.checked)} />
             <label className="text-sm">Remote Employee</label>
           </div>
+
+          {mode === 'new' && (
+            <div className="border-t border-gray-100 pt-3 mt-1">
+              <div className="flex items-center gap-2 mb-3">
+                <input type="checkbox" checked={form.grant_crm_access}
+                  onChange={e => set('grant_crm_access', e.target.checked)} />
+                <label className="text-sm font-medium">CRM Access দিন</label>
+              </div>
+
+              {form.grant_crm_access && (
+                <div className="space-y-3 bg-blue-50 p-3 rounded-xl">
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">CRM Role *</label>
+                    <select className="input-field" value={form.crm_role_id}
+                      onChange={e => set('crm_role_id', e.target.value)}>
+                      <option value="">-- Select --</option>
+                      {roles.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">Manager (optional)</label>
+                    <select className="input-field" value={form.crm_manager_id}
+                      onChange={e => set('crm_manager_id', e.target.value)}>
+                      <option value="">-- None --</option>
+                      {allEmployees.filter(e => e.crm_phone).map(e => (
+                        <option key={e.user_id} value={e.user_id}>{e.full_name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <p className="text-xs text-gray-500">ফোন নম্বর দিয়ে প্রথমবার লগইন করার সময় OTP যাচাই করে পাসওয়ার্ড সেট করতে হবে।</p>
+                </div>
+              )}
+            </div>
+          )}
 
           <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? 'Saving...' : '✅ Save'}
