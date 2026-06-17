@@ -210,7 +210,7 @@ function PositionCard({ node, onAddChild, onEdit, onDelete, tier = 0 }) {
   const statusBorder = hasEmployee ? 'border-b-green-500' : 'border-b-amber-400';
 
   return (
-    <div className={`inline-block bg-white border ${tierColor.border} border-b-[3px] ${statusBorder} rounded-lg px-2.5 py-1.5 shadow-sm`}>
+  <div className={`inline-block ${tierColor.bg} border ${tierColor.border} border-b-[3px] ${statusBorder} rounded-lg px-2.5 py-1.5 shadow-sm`}>
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className={`font-semibold text-xs ${tierColor.text} whitespace-nowrap`}>{node.title}</p>
