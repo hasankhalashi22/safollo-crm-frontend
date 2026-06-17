@@ -87,30 +87,40 @@ export default function Employees() {
 }
 
 function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
-const [form, setForm] = useState({
+  const [form, setForm] = useState({
     position_id: employee.position_id || '',
     designation: employee.designation || '',
     department: employee.department || '',
     reports_to: employee.reports_to || '',
     employment_type: employee.employment_type || 'full_time',
-    office_start_time: employee.office_start_time || '09:00',
-    office_end_time: employee.office_end_time || '17:00',
+    office_start_time: employee.office_start_time || '11:00',
+    office_end_time: employee.office_end_time || '21:00',
     is_remote: employee.is_remote || false,
     basic_salary: employee.basic_salary || '',
     status: employee.status || 'active',
+    weekly_off_day: employee.weekly_off_day || '',
   });
   const [loading, setLoading] = useState(false);
-
-const [positions, setPositions] = useState([]);
+  const [positions, setPositions] = useState([]);
 
   useEffect(() => {
     hrApi.getPositions().then(r => {
-      const flatten = (list) => list.flatMap(p => [p, ...flatten(p.children || [])]);
-      // positions API returns flat list already (no children nesting) - use directly
       setPositions(r.data || []);
     });
   }, []);
+
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  const handlePositionChange = (e) => {
+    const posId = e.target.value;
+    const pos = positions.find(p => p.id === posId);
+    setForm(p => ({
+      ...p,
+      position_id: posId,
+      designation: pos ? pos.title : p.designation,
+      department: pos ? (pos.department || '') : p.department,
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -133,23 +143,28 @@ const [positions, setPositions] = useState([]);
         </div>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label className="block text-sm font-medium mb-1.5">Position (Organogram)</label>
+            <label className="block text-sm font-medium mb-1.5">Position</label>
             <select className="input-field" value={form.position_id}
-              onChange={e => set('position_id', e.target.value)}>
+              onChange={handlePositionChange}>
               <option value="">-- None --</option>
-              {positions.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
+              {positions.map(p => (
+                <option key={p.id} value={p.id}>{p.title}{p.department ? ` (${p.department})` : ''}</option>
+              ))}
             </select>
           </div>
+
           <div>
-            <label className="block text-sm font-medium mb-1.5">Designation (Display Text)</label>
+            <label className="block text-sm font-medium mb-1.5">Designation (editable)</label>
             <input type="text" className="input-field" value={form.designation}
               onChange={e => set('designation', e.target.value)} />
           </div>
+
           <div>
-            <label className="block text-sm font-medium mb-1.5">Department</label>
+            <label className="block text-sm font-medium mb-1.5">Department (editable)</label>
             <input type="text" className="input-field" value={form.department}
               onChange={e => set('department', e.target.value)} />
           </div>
+
           <div>
             <label className="block text-sm font-medium mb-1.5">Reports To</label>
             <select className="input-field" value={form.reports_to}
@@ -160,6 +175,7 @@ const [positions, setPositions] = useState([]);
               ))}
             </select>
           </div>
+
           <div>
             <label className="block text-sm font-medium mb-1.5">Employment Type</label>
             <select className="input-field" value={form.employment_type}
@@ -170,11 +186,13 @@ const [positions, setPositions] = useState([]);
               <option value="intern">Intern</option>
             </select>
           </div>
+
           <div className="flex items-center gap-2">
             <input type="checkbox" checked={form.is_remote}
               onChange={e => set('is_remote', e.target.checked)} />
             <label className="text-sm">Remote Employee</label>
           </div>
+
           {!form.is_remote && (
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -189,11 +207,28 @@ const [positions, setPositions] = useState([]);
               </div>
             </div>
           )}
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Weekly Off Day</label>
+            <select className="input-field" value={form.weekly_off_day}
+              onChange={e => set('weekly_off_day', e.target.value)}>
+              <option value="">-- কোনো সাপ্তাহিক ছুটি নেই --</option>
+              <option value="saturday">শনিবার</option>
+              <option value="sunday">রবিবার</option>
+              <option value="monday">সোমবার</option>
+              <option value="tuesday">মঙ্গলবার</option>
+              <option value="wednesday">বুধবার</option>
+              <option value="thursday">বৃহস্পতিবার</option>
+              <option value="friday">শুক্রবার</option>
+            </select>
+          </div>
+
           <div>
             <label className="block text-sm font-medium mb-1.5">Basic Salary</label>
             <input type="number" className="input-field" value={form.basic_salary}
               onChange={e => set('basic_salary', e.target.value)} />
           </div>
+
           <div>
             <label className="block text-sm font-medium mb-1.5">Status</label>
             <select className="input-field" value={form.status}
@@ -204,6 +239,7 @@ const [positions, setPositions] = useState([]);
               <option value="terminated">Terminated</option>
             </select>
           </div>
+
           <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? 'Saving...' : '✅ Save'}
           </button>
