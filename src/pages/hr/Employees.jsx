@@ -3,7 +3,7 @@ import { hrApi, usersApi } from '../../api/client';
 import toast from 'react-hot-toast';
 import { Edit2, User, Plus, Eye, Download, Key } from 'lucide-react';
 import { format } from 'date-fns';
-import { usersApi } from '../../api/client';
+
 
 export default function Employees() {
   const [employees, setEmployees] = useState([]);
