@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { Home, Plus, Clock, User, BarChart2, Users, BookOpen, Settings, LogOut, TrendingUp, Shield, Menu, X, Activity, CheckSquare, Wallet, FileText, BookText, Landmark, CreditCard } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { MODULES, getModuleForPath, getVisibleModules } from '../../config/modules';
 
 
 function TopModuleBar() {
@@ -11,29 +12,23 @@ function TopModuleBar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  if (user?.role !== 'super_admin') return null;
+  const visibleModules = getVisibleModules(user?.role);
+  if (visibleModules.length <= 1) return null;
 
-  const isAccounting = location.pathname.startsWith('/accounting');
-  const isHr = location.pathname.startsWith('/hr');
-  const isCrm = !isAccounting && !isHr;
+  const currentModule = getModuleForPath(location.pathname);
 
   return (
-    <div className="bg-gray-900 px-4 flex items-center gap-1">
-      <button onClick={() => navigate('/admin')}
-        className={`px-4 py-2.5 text-sm font-medium transition-all border-b-2 ${isCrm ? 'text-white border-primary-400' : 'text-gray-400 border-transparent hover:text-gray-200'}`}>
-        CRM
-      </button>
-      <button onClick={() => navigate('/accounting')}
-        className={`px-4 py-2.5 text-sm font-medium transition-all border-b-2 ${isAccounting ? 'text-white border-primary-400' : 'text-gray-400 border-transparent hover:text-gray-200'}`}>
-        Accounting
-      </button>
-      <button onClick={() => navigate('/hr')}
-        className={`px-4 py-2.5 text-sm font-medium transition-all border-b-2 ${isHr ? 'text-white border-primary-400' : 'text-gray-400 border-transparent hover:text-gray-200'}`}>
-        HR
-      </button>
+    <div className="bg-gray-900 px-4 flex items-center gap-1 overflow-x-auto">
+      {visibleModules.map(m => (
+        <button key={m.key} onClick={() => navigate(m.basePath)}
+          className={`px-4 py-2.5 text-sm font-medium transition-all border-b-2 whitespace-nowrap ${currentModule.key === m.key ? 'text-white border-primary-400' : 'text-gray-400 border-transparent hover:text-gray-200'}`}>
+          {m.label}
+        </button>
+      ))}
     </div>
   );
 }
+
 
 export function ExecutiveLayout({ children }) {
   const { user, logout } = useAuth();
@@ -231,21 +226,7 @@ export function AccountingLayout({ children }) {
     toast.success('লগআউট হয়েছে');
   };
 
-  const navItems = [
-    { to: '/accounting', icon: BarChart2, label: 'Dashboard', end: true },
-    { to: '/accounting/transactions', icon: FileText, label: 'Transactions' },
-    { to: '/accounting/accounts', icon: Wallet, label: 'Chart of Accounts' },
-    { to: '/accounting/journal', icon: BookText, label: 'Journal' },
-    { to: '/accounting/ledger', icon: BookText, label: 'Ledger' },
-    { to: '/accounting/trial-balance', icon: Activity, label: 'Trial Balance' },
-    { to: '/accounting/income-statement', icon: TrendingUp, label: 'Income Statement' },
-    { to: '/accounting/balance-sheet', icon: Landmark, label: 'Balance Sheet' },
-    { to: '/accounting/cash-flow', icon: TrendingUp, label: 'Cash Flow' },
-    { to: '/accounting/equity-statement', icon: TrendingUp, label: 'Equity Statement' },
-    { to: '/accounting/credit-cards', icon: CreditCard, label: 'Credit Cards' },
-    { to: '/accounting/investors', icon: TrendingUp, label: 'Investors' },
-    { to: '/accounting/shareholders', icon: Users, label: 'Shareholders' },
-  ];
+ const navItems = MODULES.find(m => m.key === 'accounting').sidebar;
 
   const SidebarContent = () => (
     <>
@@ -337,12 +318,7 @@ export function HrLayout({ children }) {
     toast.success('লগআউট হয়েছে');
   };
 
-  const navItems = [
-    { to: '/hr', icon: BarChart2, label: 'Dashboard', end: true },
-    { to: '/hr/employees', icon: Users, label: 'Employee Directory' },
-    { to: '/hr/organogram', icon: Activity, label: 'Organogram' },
-    { to: '/hr/notices', icon: BookText, label: 'Notice Board' },
-  ];
+const navItems = MODULES.find(m => m.key === 'hr').sidebar;
 
   const SidebarContent = () => (
     <>
