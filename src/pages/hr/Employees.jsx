@@ -21,6 +21,15 @@ export default function Employees() {
   };
 
   useEffect(() => { fetchEmployees(); }, []);
+const handleResetPassword = async (emp) => {
+    if (!confirm(`${emp.full_name}-এর পাসওয়ার্ড রিসেট করবেন?`)) return;
+    try {
+      await usersApi.resetPassword(emp.user_id);
+      toast.success('পাসওয়ার্ড রিসেট হয়েছে ✅');
+    } catch (err) {
+      toast.error(err.message || 'সমস্যা হয়েছে');
+    }
+  };
 
   if (loading) return <div className="flex justify-center py-12"><div className="spinner w-8 h-8" /></div>;
 
@@ -81,6 +90,12 @@ export default function Employees() {
                         className="px-2 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium">
                         <Eye size={14} />
                       </button>
+                      {emp.user_id && (
+                        <button onClick={() => handleResetPassword(emp)}
+                          className="px-2 py-1 bg-amber-50 text-amber-600 rounded-lg text-xs font-medium">
+                          <Key size={14} />
+                        </button>
+                      )}
                       <button onClick={() => setEditModal(emp)}
                         className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium">
                         <Edit2 size={14} />
@@ -142,17 +157,7 @@ function EmployeeViewModal({ employee, onClose }) {
     }
   };
 
-  const handleResetPassword = async () => {
-    if (!employee.user_id) return toast.error('এই কর্মীর CRM access নেই');
-    if (!confirm('পাসওয়ার্ড রিসেট করবেন?')) return;
-    try {
-      await usersApi.resetPassword(employee.user_id);
-      toast.success('পাসওয়ার্ড রিসেট হয়েছে ✅');
-    } catch (err) {
-      toast.error(err.message || 'সমস্যা হয়েছে');
-    }
-  };
-
+ 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -172,17 +177,11 @@ function EmployeeViewModal({ employee, onClose }) {
                 <p className="text-primary-200 text-sm">{employee?.phone}</p>
               </div>
             </div>
-            <div className="flex gap-2">
+           <div className="flex gap-2">
               <button onClick={handleDownloadCV} disabled={generatingPdf}
                 className="flex items-center gap-1.5 bg-white text-primary-600 px-3 py-1.5 rounded-xl text-sm font-medium active:scale-95">
                 <Download size={16} /> CV Download
               </button>
-              {employee?.user_id && (
-                <button onClick={handleResetPassword}
-                  className="flex items-center gap-1.5 bg-amber-400 text-white px-3 py-1.5 rounded-xl text-sm font-medium active:scale-95">
-                  <Key size={16} /> Reset Password
-                </button>
-              )}
               <button onClick={onClose} className="p-1.5 bg-primary-400 rounded-full">✕</button>
             </div>
           </div>
