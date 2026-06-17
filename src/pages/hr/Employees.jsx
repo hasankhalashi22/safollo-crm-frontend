@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { hrApi } from '../../api/client';
 import toast from 'react-hot-toast';
-import { Edit2, User } from 'lucide-react';
+import { Edit2, User, Plus } from 'lucide-react';
 
 export default function Employees() {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editModal, setEditModal] = useState(null);
+  const [addModal, setAddModal] = useState(false);
 
   const fetchEmployees = () => {
     setLoading(true);
@@ -22,21 +23,27 @@ export default function Employees() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-display font-bold text-dark mb-6">Employee Directory</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-display font-bold text-dark">Employee Directory</h1>
+        <button onClick={() => setAddModal(true)}
+          className="flex items-center gap-2 bg-primary-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium active:scale-95">
+          <Plus size={16} /> Add Employee
+        </button>
+      </div>
 
       <div className="card overflow-hidden p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                {['Name', 'Designation', 'Department', 'Reports To', 'Type', 'Status', 'Action'].map(h => (
+                {['Name', 'Designation', 'Department', 'Reports To', 'Type', 'CRM Access', 'Status', 'Action'].map(h => (
                   <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {employees.length === 0 ? (
-                <tr><td colSpan={7} className="text-center py-12 text-gray-400">No employees found</td></tr>
+                <tr><td colSpan={8} className="text-center py-12 text-gray-400">No employees found</td></tr>
               ) : employees.map(emp => (
                 <tr key={emp.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3">
@@ -44,17 +51,21 @@ export default function Employees() {
                       <div className="w-8 h-8 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center flex-shrink-0">
                         <User size={16} />
                       </div>
-                      <div>
-                        <p className="font-medium">{emp.full_name || emp.phone}</p>
-                        <p className="text-xs text-gray-400">{emp.role_label}</p>
-                      </div>
+                      <p className="font-medium">{emp.full_name}</p>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-gray-600">{emp.designation || '—'}</td>
+                  <td className="px-4 py-3 text-gray-600">{emp.designation || emp.position_title || '—'}</td>
                   <td className="px-4 py-3 text-gray-600">{emp.department || '—'}</td>
                   <td className="px-4 py-3 text-gray-500">{emp.reports_to_name || '—'}</td>
                   <td className="px-4 py-3 text-gray-500">
                     {emp.is_remote ? 'Remote' : 'On-site'} {emp.employment_type ? `(${emp.employment_type})` : ''}
+                  </td>
+                  <td className="px-4 py-3">
+                    {emp.crm_phone ? (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">{emp.crm_role_label || 'CRM User'}</span>
+                    ) : (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-400">No CRM access</span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <span className={`text-xs px-2 py-0.5 rounded-full ${emp.status === 'active' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
@@ -82,12 +93,159 @@ export default function Employees() {
           onSuccess={() => { setEditModal(null); fetchEmployees(); }}
         />
       )}
+
+      {addModal && (
+        <AddEmployeeModal
+          allEmployees={employees}
+          onClose={() => setAddModal(false)}
+          onSuccess={() => { setAddModal(false); fetchEmployees(); }}
+        />
+      )}
+    </div>
+  );
+}
+
+function AddEmployeeModal({ allEmployees, onClose, onSuccess }) {
+  const [mode, setMode] = useState('new'); // 'new' or 'import'
+  const [unlinkedUsers, setUnlinkedUsers] = useState([]);
+  const [selectedUserId, setSelectedUserId] = useState('');
+  const [positions, setPositions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({
+    full_name: '', phone: '', email: '', position_id: '', designation: '', department: '',
+    reports_to: '', employment_type: 'full_time', is_remote: false,
+  });
+
+  useEffect(() => {
+    hrApi.getUnlinkedCrmUsers().then(r => setUnlinkedUsers(r.data || []));
+    hrApi.getPositions().then(r => setPositions(r.data || []));
+  }, []);
+
+  const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
+
+  const handlePositionChange = (posId) => {
+    const pos = positions.find(p => p.id === posId);
+    setForm(p => ({ ...p, position_id: posId, designation: pos ? pos.title : p.designation, department: pos ? (pos.department || '') : p.department }));
+  };
+
+  const handleImportSelect = (userId) => {
+    setSelectedUserId(userId);
+    const u = unlinkedUsers.find(x => x.id === userId);
+    if (u) {
+      setForm(p => ({ ...p, full_name: u.full_name || '', phone: u.phone || '' }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.full_name) return toast.error('নাম দিন');
+    setLoading(true);
+    try {
+      const payload = { ...form };
+      if (mode === 'import' && selectedUserId) payload.user_id = selectedUserId;
+      await hrApi.createEmployee(payload);
+      toast.success('কর্মী যুক্ত হয়েছে ✅');
+      onSuccess();
+    } catch (err) {
+      toast.error(err.message || 'সমস্যা হয়েছে');
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md p-5 max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between mb-4">
+          <h3 className="font-bold text-lg">Add Employee</h3>
+          <button onClick={onClose} className="p-1.5 bg-gray-100 rounded-full">✕</button>
+        </div>
+
+        <div className="flex gap-2 mb-4">
+          <button onClick={() => setMode('new')}
+            className={`flex-1 py-2 rounded-xl text-sm font-medium ${mode === 'new' ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-600'}`}>
+            নতুন কর্মী
+          </button>
+          <button onClick={() => setMode('import')}
+            className={`flex-1 py-2 rounded-xl text-sm font-medium ${mode === 'import' ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-600'}`}>
+            CRM থেকে আনুন
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-3">
+          {mode === 'import' && (
+            <div>
+              <label className="block text-sm font-medium mb-1.5">CRM User বেছে নিন</label>
+              <select className="input-field" value={selectedUserId}
+                onChange={e => handleImportSelect(e.target.value)}>
+                <option value="">-- Select --</option>
+                {unlinkedUsers.map(u => (
+                  <option key={u.id} value={u.id}>{u.full_name || u.phone} ({u.role_label})</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5">নাম *</label>
+            <input type="text" className="input-field" value={form.full_name}
+              onChange={e => set('full_name', e.target.value)} />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5">ফোন</label>
+            <input type="text" className="input-field" value={form.phone}
+              onChange={e => set('phone', e.target.value)} />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Position</label>
+            <select className="input-field" value={form.position_id}
+              onChange={e => handlePositionChange(e.target.value)}>
+              <option value="">-- None --</option>
+              {positions.map(p => <option key={p.id} value={p.id}>{p.title}{p.department ? ` (${p.department})` : ''}</option>)}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Designation (editable)</label>
+            <input type="text" className="input-field" value={form.designation}
+              onChange={e => set('designation', e.target.value)} />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Department (editable)</label>
+            <input type="text" className="input-field" value={form.department}
+              onChange={e => set('department', e.target.value)} />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Reports To</label>
+            <select className="input-field" value={form.reports_to}
+              onChange={e => set('reports_to', e.target.value)}>
+              <option value="">-- None --</option>
+              {allEmployees.map(e => <option key={e.id} value={e.id}>{e.full_name}</option>)}
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input type="checkbox" checked={form.is_remote}
+              onChange={e => set('is_remote', e.target.checked)} />
+            <label className="text-sm">Remote Employee</label>
+          </div>
+
+          <button type="submit" className="btn-primary" disabled={loading}>
+            {loading ? 'Saving...' : '✅ Save'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
 
 function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
   const [form, setForm] = useState({
+    full_name: employee.full_name || '',
+    phone: employee.phone || '',
+    email: employee.email || '',
     position_id: employee.position_id || '',
     designation: employee.designation || '',
     department: employee.department || '',
@@ -104,9 +262,7 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
   const [positions, setPositions] = useState([]);
 
   useEffect(() => {
-    hrApi.getPositions().then(r => {
-      setPositions(r.data || []);
-    });
+    hrApi.getPositions().then(r => setPositions(r.data || []));
   }, []);
 
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
@@ -126,8 +282,8 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
     e.preventDefault();
     setLoading(true);
     try {
-      await hrApi.updateEmployeeDetails(employee.id, form);
-      toast.success('Employee details updated ✅');
+      await hrApi.updateEmployee(employee.id, form);
+      toast.success('তথ্য আপডেট হয়েছে ✅');
       onSuccess();
     } catch (err) {
       toast.error(err.message || 'Something went wrong');
@@ -138,10 +294,22 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl w-full max-w-md p-5 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between mb-4">
-          <h3 className="font-bold text-lg">{employee.full_name || employee.phone}</h3>
+          <h3 className="font-bold text-lg">{employee.full_name}</h3>
           <button onClick={onClose} className="p-1.5 bg-gray-100 rounded-full">✕</button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-3">
+          <div>
+            <label className="block text-sm font-medium mb-1.5">নাম</label>
+            <input type="text" className="input-field" value={form.full_name}
+              onChange={e => set('full_name', e.target.value)} />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5">ফোন</label>
+            <input type="text" className="input-field" value={form.phone}
+              onChange={e => set('phone', e.target.value)} />
+          </div>
+
           <div>
             <label className="block text-sm font-medium mb-1.5">Position</label>
             <select className="input-field" value={form.position_id}
@@ -171,7 +339,7 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
               onChange={e => set('reports_to', e.target.value)}>
               <option value="">-- None --</option>
               {allEmployees.filter(e => e.id !== employee.id).map(e => (
-                <option key={e.id} value={e.id}>{e.full_name || e.phone}</option>
+                <option key={e.id} value={e.id}>{e.full_name}</option>
               ))}
             </select>
           </div>

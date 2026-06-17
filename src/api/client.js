@@ -172,15 +172,20 @@ export const bookApi = {
 
 export const hrApi = {
   getEmployees: () => api.get('/api/hr/employees'),
-  updateEmployeeDetails: (userId, data) => api.patch(`/api/hr/employees/${userId}`, data),
+  getEmployeeById: (id) => api.get(`/api/hr/employees/${id}`),
+  getUnlinkedCrmUsers: () => api.get('/api/hr/employees/unlinked-crm-users'),
+  createEmployee: (data) => api.post('/api/hr/employees', data),
+  updateEmployee: (id, data) => api.patch(`/api/hr/employees/${id}`, data),
+  deleteEmployee: (id) => api.delete(`/api/hr/employees/${id}`),
+  getPositions: () => api.get('/api/hr/positions'),
+  createPosition: (data) => api.post('/api/hr/positions', data),
+  updatePosition: (id, data) => api.patch(`/api/hr/positions/${id}`, data),
+  deletePosition: (id) => api.delete(`/api/hr/positions/${id}`),
   getOrganogram: () => api.get('/api/hr/organogram'),
   getNotices: () => api.get('/api/hr/notices'),
   createNotice: (data) => api.post('/api/hr/notices', data),
   deleteNotice: (id) => api.delete(`/api/hr/notices/${id}`),
-getPositions: () => api.get('/api/hr/positions'),
-createPosition: (data) => api.post('/api/hr/positions', data),
-updatePosition: (id, data) => api.patch(`/api/hr/positions/${id}`, data),
-deletePosition: (id) => api.delete(`/api/hr/positions/${id}`),
 };
+
 
 export default api;
