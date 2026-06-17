@@ -85,11 +85,11 @@ export default function Organogram() {
 
          <div className="overflow-auto mb-8 border border-gray-100 rounded-2xl bg-white" style={{ maxHeight: '75vh' }}>
             <div className="p-6" style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', width: 'fit-content', minWidth: '100%' }}>
-              {tree.map(topNode => (
-                <div key={topNode.id} className="mb-6">
+{tree.map(topNode => (
+                <div key={topNode.id} className="mb-8">
                   {/* Tier 1 node */}
                   <div className="flex justify-center mb-2">
-                    <PositionCard node={topNode}
+                    <PositionCard node={topNode} tier={0}
                       onAddChild={(parentId, parentTitle) => setAddModal({ parentId, parentTitle })}
                       onEdit={setEditModal} onDelete={handleDelete} />
                   </div>
@@ -97,20 +97,20 @@ export default function Organogram() {
                   {/* Tier 2 row - horizontal */}
                   {topNode.children && topNode.children.length > 0 && (
                     <>
-                      <div className="flex justify-center"><div className="w-px h-6 bg-gray-300" /></div>
-                      <div className="flex gap-6 justify-center flex-wrap">
+                      <div className="flex justify-center"><div className="w-px h-5 bg-gray-300" /></div>
+                      <div className="flex gap-5 justify-center flex-wrap">
                         {topNode.children.map(tier2Node => (
                           <div key={tier2Node.id} className="flex flex-col items-center">
-                            <PositionCard node={tier2Node}
+                            <PositionCard node={tier2Node} tier={1}
                               onAddChild={(parentId, parentTitle) => setAddModal({ parentId, parentTitle })}
                               onEdit={setEditModal} onDelete={handleDelete} />
 
                             {/* Tier 3+ as vertical staircase below this Tier 2 node */}
                             {tier2Node.children && tier2Node.children.length > 0 && (
-                              <div className="mt-2">
-                                <div className="flex justify-center"><div className="w-px h-4 bg-gray-300" /></div>
+                              <div className="mt-1.5">
+                                <div className="flex justify-center"><div className="w-px h-3 bg-gray-300" /></div>
                                 {tier2Node.children.map(child => (
-                                  <VerticalBranch key={child.id} node={child}
+                                  <VerticalBranch key={child.id} node={child} tier={2}
                                     onAddChild={(parentId, parentTitle) => setAddModal({ parentId, parentTitle })}
                                     onEdit={setEditModal} onDelete={handleDelete} />
                                 ))}
@@ -166,26 +166,26 @@ export default function Organogram() {
   );
 }
 
-function VerticalBranch({ node, onAddChild, onEdit, onDelete }) {
-  // Renders node and all its descendants as a vertical staircase
+function VerticalBranch({ node, onAddChild, onEdit, onDelete, tier = 2 }) {
   const chain = [];
   let current = node;
   while (current) {
     chain.push(current);
     current = current.children && current.children.length > 0 ? current.children[0] : null;
   }
-  // Note: only follows first child path; if a node has multiple children at deeper levels, render them as nested branches
 
   return (
     <div className="flex flex-col">
       {chain.map((n, idx) => (
-        <div key={n.id} className="flex flex-col" style={{ paddingLeft: `${idx * 24}px` }}>
-          {idx > 0 && <div className="w-px h-4 bg-gray-300" style={{ marginLeft: '20px' }} />}
-          <PositionCard node={n} onAddChild={onAddChild} onEdit={onEdit} onDelete={onDelete} />
+        <div key={n.id} className="flex flex-col" style={{ paddingLeft: `${idx * 20}px` }}>
+          {idx > 0 && <div className="w-px h-3 bg-gray-300" style={{ marginLeft: '14px' }} />}
+          <div>
+            <PositionCard node={n} onAddChild={onAddChild} onEdit={onEdit} onDelete={onDelete} tier={tier + idx} />
+          </div>
           {n.children && n.children.length > 1 && (
-            <div className="mt-2 space-y-2" style={{ paddingLeft: '24px' }}>
+            <div className="mt-1.5 space-y-1.5" style={{ paddingLeft: '20px' }}>
               {n.children.slice(1).map(child => (
-                <VerticalBranch key={child.id} node={child} onAddChild={onAddChild} onEdit={onEdit} onDelete={onDelete} />
+                <VerticalBranch key={child.id} node={child} onAddChild={onAddChild} onEdit={onEdit} onDelete={onDelete} tier={tier + idx + 1} />
               ))}
             </div>
           )}
@@ -195,37 +195,48 @@ function VerticalBranch({ node, onAddChild, onEdit, onDelete }) {
   );
 }
 
-function PositionCard({ node, onAddChild, onEdit, onDelete }) {
+const TIER_COLORS = [
+  { border: 'border-rose-300', bg: 'bg-rose-50', text: 'text-rose-700' },
+  { border: 'border-indigo-300', bg: 'bg-indigo-50', text: 'text-indigo-700' },
+  { border: 'border-amber-300', bg: 'bg-amber-50', text: 'text-amber-700' },
+  { border: 'border-teal-300', bg: 'bg-teal-50', text: 'text-teal-700' },
+  { border: 'border-violet-300', bg: 'bg-violet-50', text: 'text-violet-700' },
+  { border: 'border-sky-300', bg: 'bg-sky-50', text: 'text-sky-700' },
+];
+
+function PositionCard({ node, onAddChild, onEdit, onDelete, tier = 0 }) {
+  const hasEmployee = node.employees.length > 0;
+  const tierColor = TIER_COLORS[tier % TIER_COLORS.length];
+  const statusBorder = hasEmployee ? 'border-b-green-500' : 'border-b-amber-400';
+
   return (
-    <div className="bg-white border-2 border-primary-100 rounded-xl px-3 py-2 shadow-sm w-64">
-      <div className="flex items-center justify-between gap-2">
+    <div className={`inline-block bg-white border ${tierColor.border} border-b-[3px] ${statusBorder} rounded-lg px-2.5 py-1.5 shadow-sm`}>
+      <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="font-semibold text-sm">{node.title}</p>
-          {node.department && <p className="text-xs text-gray-400">{node.department}</p>}
+          <p className={`font-semibold text-xs ${tierColor.text} whitespace-nowrap`}>{node.title}</p>
+          {node.department && <p className="text-[10px] text-gray-400 whitespace-nowrap">{node.department}</p>}
         </div>
-        <div className="flex gap-1 flex-shrink-0">
-          <button onClick={() => onEdit(node)} className="p-1 bg-primary-50 text-primary-600 rounded-md">
-            <Edit2 size={12} />
+        <div className="flex gap-0.5 flex-shrink-0">
+          <button onClick={() => onEdit(node)} className="p-0.5 bg-primary-50 text-primary-600 rounded">
+            <Edit2 size={10} />
           </button>
-          <button onClick={() => onDelete(node)} className="p-1 bg-red-50 text-red-500 rounded-md">
-            <Trash2 size={12} />
+          <button onClick={() => onDelete(node)} className="p-0.5 bg-red-50 text-red-500 rounded">
+            <Trash2 size={10} />
           </button>
         </div>
       </div>
 
-      {node.employees.length > 0 ? (
-        <div className="mt-1 space-y-0.5">
+      {hasEmployee && (
+        <div className="mt-0.5">
           {node.employees.map(e => (
-            <p key={e.user_id} className="text-xs text-gray-500">👤 {e.full_name || 'Unnamed'}</p>
+            <p key={e.user_id} className="text-[10px] text-gray-500 whitespace-nowrap">👤 {e.full_name || 'Unnamed'}</p>
           ))}
         </div>
-      ) : (
-        <p className="text-xs text-gray-300 mt-1">কোনো কর্মী নিয়োগ করা হয়নি</p>
       )}
 
       <button onClick={() => onAddChild(node.id, node.title)}
-        className="flex items-center gap-1 text-xs text-primary-500 font-medium mt-1.5">
-        <Plus size={12} /> Add Sub-position
+        className="flex items-center gap-0.5 text-[10px] text-primary-500 font-medium mt-0.5">
+        <Plus size={10} /> Add
       </button>
     </div>
   );
