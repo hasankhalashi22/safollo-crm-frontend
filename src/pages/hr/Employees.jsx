@@ -106,7 +106,7 @@ export default function Employees() {
 }
 
 function AddEmployeeModal({ allEmployees, onClose, onSuccess }) {
-  const [mode, setMode] = useState('new'); // 'new' or 'import'
+  const [mode, setMode] = useState('new');
   const [unlinkedUsers, setUnlinkedUsers] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState('');
   const [positions, setPositions] = useState([]);
@@ -281,7 +281,23 @@ function AddEmployeeModal({ allEmployees, onClose, onSuccess }) {
   );
 }
 
+function FileUploadBox({ label, currentUrl, onUpload }) {
+  return (
+    <div>
+      <label className="block text-sm font-medium mb-1.5">{label}</label>
+      {currentUrl && (
+        <a href={currentUrl} target="_blank" rel="noreferrer" className="text-primary-500 underline text-xs block mb-1.5">বর্তমান ফাইল দেখুন</a>
+      )}
+      <label className="flex items-center gap-3 p-3 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer">
+        <span className="text-sm text-gray-400">নতুন ফাইল আপলোড করুন</span>
+        <input type="file" accept="image/*" className="hidden" onChange={e => onUpload(e.target.files[0])} />
+      </label>
+    </div>
+  );
+}
+
 function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
+  const [tab, setTab] = useState('basic');
   const [form, setForm] = useState({
     full_name: employee.full_name || '',
     phone: employee.phone || '',
@@ -297,7 +313,20 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
     basic_salary: employee.basic_salary || '',
     status: employee.status || 'active',
     weekly_off_day: employee.weekly_off_day || '',
+    father_name: employee.father_name || '',
+    mother_name: employee.mother_name || '',
+    date_of_birth: employee.date_of_birth?.split('T')[0] || '',
+    blood_group: employee.blood_group || '',
+    gender: employee.gender || '',
+    guardian_mobile: employee.guardian_mobile || '',
+    guardian_relation: employee.guardian_relation || '',
+    present_address: employee.present_address || '',
+    permanent_address: employee.permanent_address || '',
+    education_level: employee.education_level || '',
+    education_details: employee.education_details || '',
+    nid_number: employee.nid_number || '',
   });
+  const [isLocked, setIsLocked] = useState(employee.is_locked || false);
   const [loading, setLoading] = useState(false);
   const [positions, setPositions] = useState([]);
 
@@ -330,123 +359,259 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
     } finally { setLoading(false); }
   };
 
+  const handleToggleLock = async () => {
+    setLoading(true);
+    try {
+      await hrApi.updateEmployee(employee.id, { is_locked: !isLocked });
+      setIsLocked(!isLocked);
+      toast.success(!isLocked ? 'প্রোফাইল লক করা হয়েছে ✅' : 'প্রোফাইল আনলক করা হয়েছে ✅');
+    } catch (err) {
+      toast.error(err.message || 'সমস্যা হয়েছে');
+    } finally { setLoading(false); }
+  };
+
+  const handleFileUpload = async (type, file) => {
+    if (!file) return;
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append(type, file);
+      if (type === 'photo') await hrApi.uploadEmployeePhoto(employee.id, formData);
+      if (type === 'nid') await hrApi.uploadEmployeeNid(employee.id, formData);
+      if (type === 'signature') await hrApi.uploadEmployeeSignature(employee.id, formData);
+      toast.success('আপলোড সফল হয়েছে ✅');
+      onSuccess();
+    } catch (err) {
+      toast.error(err.message || 'আপলোড ব্যর্থ হয়েছে');
+    } finally { setLoading(false); }
+  };
+
+  const tabs = [
+    { key: 'basic', label: 'Basic Info' },
+    { key: 'personal', label: 'Personal Details' },
+    { key: 'documents', label: 'Documents' },
+    { key: 'hr', label: 'HR Settings' },
+  ];
+
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md p-5 max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between mb-4">
+      <div className="bg-white rounded-2xl w-full max-w-lg p-5 max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between mb-3">
           <h3 className="font-bold text-lg">{employee.full_name}</h3>
           <button onClick={onClose} className="p-1.5 bg-gray-100 rounded-full">✕</button>
         </div>
+
+        <div className="flex items-center justify-between mb-4 p-2.5 bg-gray-50 rounded-xl">
+          <span className="text-sm font-medium">{isLocked ? '🔒 প্রোফাইল লক করা আছে' : '🔓 প্রোফাইল আনলক করা আছে'}</span>
+          <button type="button" onClick={handleToggleLock} disabled={loading}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium ${isLocked ? 'bg-amber-100 text-amber-700' : 'bg-red-50 text-red-600'}`}>
+            {isLocked ? 'Unlock' : 'Lock'}
+          </button>
+        </div>
+
+        <div className="flex gap-1 mb-4 overflow-x-auto border-b border-gray-100">
+          {tabs.map(t => (
+            <button key={t.key} type="button" onClick={() => setTab(t.key)}
+              className={`px-3 py-2 text-sm font-medium whitespace-nowrap border-b-2 ${tab === t.key ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-400'}`}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-3">
-          <div>
-            <label className="block text-sm font-medium mb-1.5">নাম</label>
-            <input type="text" className="input-field" value={form.full_name}
-              onChange={e => set('full_name', e.target.value)} />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1.5">ফোন</label>
-            <input type="text" className="input-field" value={form.phone}
-              onChange={e => set('phone', e.target.value)} />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1.5">Position</label>
-            <select className="input-field" value={form.position_id}
-              onChange={handlePositionChange}>
-              <option value="">-- None --</option>
-              {positions.map(p => (
-                <option key={p.id} value={p.id}>{p.title}{p.department ? ` (${p.department})` : ''}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1.5">Designation (editable)</label>
-            <input type="text" className="input-field" value={form.designation}
-              onChange={e => set('designation', e.target.value)} />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1.5">Department (editable)</label>
-            <input type="text" className="input-field" value={form.department}
-              onChange={e => set('department', e.target.value)} />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1.5">Reports To</label>
-            <select className="input-field" value={form.reports_to}
-              onChange={e => set('reports_to', e.target.value)}>
-              <option value="">-- None --</option>
-              {allEmployees.filter(e => e.id !== employee.id).map(e => (
-                <option key={e.id} value={e.id}>{e.full_name}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1.5">Employment Type</label>
-            <select className="input-field" value={form.employment_type}
-              onChange={e => set('employment_type', e.target.value)}>
-              <option value="full_time">Full Time</option>
-              <option value="part_time">Part Time</option>
-              <option value="contractual">Contractual</option>
-              <option value="intern">Intern</option>
-            </select>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <input type="checkbox" checked={form.is_remote}
-              onChange={e => set('is_remote', e.target.checked)} />
-            <label className="text-sm">Remote Employee</label>
-          </div>
-
-          {!form.is_remote && (
-            <div className="grid grid-cols-2 gap-3">
+          {tab === 'basic' && (
+            <>
               <div>
-                <label className="block text-sm font-medium mb-1.5">Office Start</label>
-                <input type="time" className="input-field" value={form.office_start_time}
-                  onChange={e => set('office_start_time', e.target.value)} />
+                <label className="block text-sm font-medium mb-1.5">নাম</label>
+                <input type="text" className="input-field" value={form.full_name}
+                  onChange={e => set('full_name', e.target.value)} />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1.5">Office End</label>
-                <input type="time" className="input-field" value={form.office_end_time}
-                  onChange={e => set('office_end_time', e.target.value)} />
+                <label className="block text-sm font-medium mb-1.5">ফোন</label>
+                <input type="text" className="input-field" value={form.phone}
+                  onChange={e => set('phone', e.target.value)} />
               </div>
-            </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Email</label>
+                <input type="email" className="input-field" value={form.email}
+                  onChange={e => set('email', e.target.value)} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Position</label>
+                <select className="input-field" value={form.position_id} onChange={handlePositionChange}>
+                  <option value="">-- None --</option>
+                  {positions.map(p => <option key={p.id} value={p.id}>{p.title}{p.department ? ` (${p.department})` : ''}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Designation (editable)</label>
+                <input type="text" className="input-field" value={form.designation}
+                  onChange={e => set('designation', e.target.value)} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Department (editable)</label>
+                <input type="text" className="input-field" value={form.department}
+                  onChange={e => set('department', e.target.value)} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Reports To</label>
+                <select className="input-field" value={form.reports_to} onChange={e => set('reports_to', e.target.value)}>
+                  <option value="">-- None --</option>
+                  {allEmployees.filter(e => e.id !== employee.id).map(e => <option key={e.id} value={e.id}>{e.full_name}</option>)}
+                </select>
+              </div>
+            </>
           )}
 
-          <div>
-            <label className="block text-sm font-medium mb-1.5">Weekly Off Day</label>
-            <select className="input-field" value={form.weekly_off_day}
-              onChange={e => set('weekly_off_day', e.target.value)}>
-              <option value="">-- কোনো সাপ্তাহিক ছুটি নেই --</option>
-              <option value="saturday">শনিবার</option>
-              <option value="sunday">রবিবার</option>
-              <option value="monday">সোমবার</option>
-              <option value="tuesday">মঙ্গলবার</option>
-              <option value="wednesday">বুধবার</option>
-              <option value="thursday">বৃহস্পতিবার</option>
-              <option value="friday">শুক্রবার</option>
-            </select>
-          </div>
+          {tab === 'personal' && (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">পিতার নাম</label>
+                  <input type="text" className="input-field" value={form.father_name}
+                    onChange={e => set('father_name', e.target.value)} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">মাতার নাম</label>
+                  <input type="text" className="input-field" value={form.mother_name}
+                    onChange={e => set('mother_name', e.target.value)} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">জন্ম তারিখ</label>
+                  <input type="date" className="input-field" value={form.date_of_birth}
+                    onChange={e => set('date_of_birth', e.target.value)} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">Blood Group</label>
+                  <select className="input-field" value={form.blood_group} onChange={e => set('blood_group', e.target.value)}>
+                    <option value="">-- Select --</option>
+                    {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(b => <option key={b} value={b}>{b}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Gender</label>
+                <select className="input-field" value={form.gender} onChange={e => set('gender', e.target.value)}>
+                  <option value="">-- Select --</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">Guardian Mobile</label>
+                  <input type="text" className="input-field" value={form.guardian_mobile}
+                    onChange={e => set('guardian_mobile', e.target.value)} />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">Guardian Relation</label>
+                  <input type="text" className="input-field" value={form.guardian_relation}
+                    onChange={e => set('guardian_relation', e.target.value)} />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">বর্তমান ঠিকানা</label>
+                <textarea className="input-field resize-none" rows={2} value={form.present_address}
+                  onChange={e => set('present_address', e.target.value)} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">স্থায়ী ঠিকানা</label>
+                <textarea className="input-field resize-none" rows={2} value={form.permanent_address}
+                  onChange={e => set('permanent_address', e.target.value)} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">শিক্ষাগত যোগ্যতা</label>
+                <input type="text" className="input-field" value={form.education_level}
+                  onChange={e => set('education_level', e.target.value)} placeholder="e.g. Honours" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">শিক্ষাগত বিস্তারিত</label>
+                <textarea className="input-field resize-none" rows={2} value={form.education_details}
+                  onChange={e => set('education_details', e.target.value)} />
+              </div>
+            </>
+          )}
 
-          <div>
-            <label className="block text-sm font-medium mb-1.5">Basic Salary</label>
-            <input type="number" className="input-field" value={form.basic_salary}
-              onChange={e => set('basic_salary', e.target.value)} />
-          </div>
+          {tab === 'documents' && (
+            <>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">NID Number</label>
+                <input type="text" className="input-field" value={form.nid_number}
+                  onChange={e => set('nid_number', e.target.value)} />
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1.5">Status</label>
-            <select className="input-field" value={form.status}
-              onChange={e => set('status', e.target.value)}>
-              <option value="active">Active</option>
-              <option value="on_leave">On Leave</option>
-              <option value="resigned">Resigned</option>
-              <option value="terminated">Terminated</option>
-            </select>
-          </div>
+              <FileUploadBox label="ছবি (Photo)" currentUrl={employee.photo_url}
+                onUpload={file => handleFileUpload('photo', file)} />
+
+              <FileUploadBox label="NID Image" currentUrl={employee.nid_image_url}
+                onUpload={file => handleFileUpload('nid', file)} />
+
+              <FileUploadBox label="Signature" currentUrl={employee.signature_url}
+                onUpload={file => handleFileUpload('signature', file)} />
+            </>
+          )}
+
+          {tab === 'hr' && (
+            <>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Employment Type</label>
+                <select className="input-field" value={form.employment_type} onChange={e => set('employment_type', e.target.value)}>
+                  <option value="full_time">Full Time</option>
+                  <option value="part_time">Part Time</option>
+                  <option value="contractual">Contractual</option>
+                  <option value="intern">Intern</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <input type="checkbox" checked={form.is_remote} onChange={e => set('is_remote', e.target.checked)} />
+                <label className="text-sm">Remote Employee</label>
+              </div>
+              {!form.is_remote && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">Office Start</label>
+                    <input type="time" className="input-field" value={form.office_start_time}
+                      onChange={e => set('office_start_time', e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1.5">Office End</label>
+                    <input type="time" className="input-field" value={form.office_end_time}
+                      onChange={e => set('office_end_time', e.target.value)} />
+                  </div>
+                </div>
+              )}
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Weekly Off Day</label>
+                <select className="input-field" value={form.weekly_off_day} onChange={e => set('weekly_off_day', e.target.value)}>
+                  <option value="">-- কোনো সাপ্তাহিক ছুটি নেই --</option>
+                  <option value="saturday">শনিবার</option>
+                  <option value="sunday">রবিবার</option>
+                  <option value="monday">সোমবার</option>
+                  <option value="tuesday">মঙ্গলবার</option>
+                  <option value="wednesday">বুধবার</option>
+                  <option value="thursday">বৃহস্পতিবার</option>
+                  <option value="friday">শুক্রবার</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Basic Salary</label>
+                <input type="number" className="input-field" value={form.basic_salary}
+                  onChange={e => set('basic_salary', e.target.value)} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Status</label>
+                <select className="input-field" value={form.status} onChange={e => set('status', e.target.value)}>
+                  <option value="active">Active</option>
+                  <option value="on_leave">On Leave</option>
+                  <option value="resigned">Resigned</option>
+                  <option value="terminated">Terminated</option>
+                </select>
+              </div>
+            </>
+          )}
 
           <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? 'Saving...' : '✅ Save'}
