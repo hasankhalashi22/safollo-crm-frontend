@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { hrApi, usersApi } from '../../api/client';
 import toast from 'react-hot-toast';
-import { Edit2, User, Plus } from 'lucide-react';
+import { Edit2, User, Plus, Eye, Download, Key } from 'lucide-react';
+import { format } from 'date-fns';
+import { usersApi } from '../../api/client';
 
 export default function Employees() {
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editModal, setEditModal] = useState(null);
   const [addModal, setAddModal] = useState(false);
+  const [viewModal, setViewModal] = useState(null);
 
   const fetchEmployees = () => {
     setLoading(true);
@@ -73,10 +76,16 @@ export default function Employees() {
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <button onClick={() => setEditModal(emp)}
-                      className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium">
-                      <Edit2 size={14} />
-                    </button>
+                    <div className="flex gap-1">
+                      <button onClick={() => setViewModal(emp)}
+                        className="px-2 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium">
+                        <Eye size={14} />
+                      </button>
+                      <button onClick={() => setEditModal(emp)}
+                        className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium">
+                        <Edit2 size={14} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -94,15 +103,246 @@ export default function Employees() {
         />
       )}
 
-      {addModal && (
+     {addModal && (
         <AddEmployeeModal
           allEmployees={employees}
           onClose={() => setAddModal(false)}
           onSuccess={() => { setAddModal(false); fetchEmployees(); }}
         />
       )}
+
+      {viewModal && (
+        <EmployeeViewModal
+          employee={viewModal}
+          onClose={() => setViewModal(null)}
+        />
+      )}
     </div>
   );
+}
+
+function EmployeeViewModal({ employee, onClose }) {
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+
+  const handleDownloadCV = () => {
+    setGeneratingPdf(true);
+    try {
+      const cvWindow = window.open('', '_blank');
+      const cvHtml = generateCVHtml(employee);
+      cvWindow.document.write(cvHtml);
+      cvWindow.document.close();
+      cvWindow.focus();
+      setTimeout(() => {
+        cvWindow.print();
+        setGeneratingPdf(false);
+      }, 500);
+    } catch (err) {
+      toast.error('CV তৈরি হয়নি');
+      setGeneratingPdf(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!employee.user_id) return toast.error('এই কর্মীর CRM access নেই');
+    if (!confirm('পাসওয়ার্ড রিসেট করবেন?')) return;
+    try {
+      await usersApi.resetPassword(employee.user_id);
+      toast.success('পাসওয়ার্ড রিসেট হয়েছে ✅');
+    } catch (err) {
+      toast.error(err.message || 'সমস্যা হয়েছে');
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="bg-primary-500 text-white p-5 rounded-t-2xl">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-4">
+              {employee?.photo_url ? (
+                <img src={employee.photo_url} className="w-16 h-16 rounded-full object-cover border-2 border-white" alt="" />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-primary-400 flex items-center justify-center border-2 border-white">
+                  <span className="text-2xl font-bold">{(employee?.full_name || '?')[0]}</span>
+                </div>
+              )}
+              <div>
+                <h2 className="text-xl font-bold">{employee?.full_name || '—'}</h2>
+                <p className="text-primary-200">{employee?.designation || employee?.position_title || '—'}</p>
+                <p className="text-primary-200 text-sm">{employee?.phone}</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={handleDownloadCV} disabled={generatingPdf}
+                className="flex items-center gap-1.5 bg-white text-primary-600 px-3 py-1.5 rounded-xl text-sm font-medium active:scale-95">
+                <Download size={16} /> CV Download
+              </button>
+              {employee?.user_id && (
+                <button onClick={handleResetPassword}
+                  className="flex items-center gap-1.5 bg-amber-400 text-white px-3 py-1.5 rounded-xl text-sm font-medium active:scale-95">
+                  <Key size={16} /> Reset Password
+                </button>
+              )}
+              <button onClick={onClose} className="p-1.5 bg-primary-400 rounded-full">✕</button>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-5 space-y-4">
+          <ViewSection title="ব্যক্তিগত তথ্য">
+            <ViewRow label="পিতার নাম" value={employee?.father_name} />
+            <ViewRow label="মাতার নাম" value={employee?.mother_name} />
+            <ViewRow label="জন্ম তারিখ" value={employee?.date_of_birth ? format(new Date(employee.date_of_birth), 'dd/MM/yyyy') : null} />
+            <ViewRow label="রক্তের গ্রুপ" value={employee?.blood_group} />
+            <ViewRow label="লিঙ্গ" value={employee?.gender === 'male' ? 'পুরুষ' : employee?.gender === 'female' ? 'মহিলা' : employee?.gender} />
+          </ViewSection>
+
+          <ViewSection title="যোগাযোগ">
+            <ViewRow label="মোবাইল" value={employee?.phone} />
+            <ViewRow label="ইমেইল" value={employee?.email} />
+            <ViewRow label="অভিভাবকের মোবাইল" value={employee?.guardian_mobile} />
+            <ViewRow label="অভিভাবকের সম্পর্ক" value={employee?.guardian_relation} />
+          </ViewSection>
+
+          <ViewSection title="ঠিকানা">
+            <ViewRow label="বর্তমান ঠিকানা" value={employee?.present_address} />
+            <ViewRow label="স্থায়ী ঠিকানা" value={employee?.permanent_address} />
+          </ViewSection>
+
+          <ViewSection title="শিক্ষা ও পরিচয়">
+            <ViewRow label="শিক্ষার স্তর" value={employee?.education_level} />
+            <ViewRow label="বিস্তারিত" value={employee?.education_details} />
+            <ViewRow label="NID নম্বর" value={employee?.nid_number} />
+            {employee?.nid_image_url && (
+              <div className="flex justify-between py-2 border-b border-gray-50">
+                <span className="text-gray-500 text-sm">NID ছবি</span>
+                <a href={employee.nid_image_url} target="_blank" rel="noreferrer" className="text-primary-500 text-sm underline">দেখুন</a>
+              </div>
+            )}
+          </ViewSection>
+
+          <ViewSection title="চাকরির তথ্য">
+            <ViewRow label="পদ" value={employee?.designation || employee?.position_title} />
+            <ViewRow label="বিভাগ" value={employee?.department} />
+            <ViewRow label="রিপোর্ট করে" value={employee?.reports_to_name} />
+            <ViewRow label="CRM Role" value={employee?.crm_role_label} />
+            <ViewRow label="স্ট্যাটাস" value={employee?.status} />
+          </ViewSection>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ViewSection({ title, children }) {
+  return (
+    <div>
+      <h3 className="text-xs font-semibold text-primary-600 uppercase tracking-wide border-b-2 border-primary-50 pb-1.5 mb-2">{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+function ViewRow({ label, value }) {
+  if (!value) return null;
+  return (
+    <div className="flex justify-between py-2 border-b border-gray-50">
+      <span className="text-gray-500 text-sm">{label}</span>
+      <span className="font-medium text-sm text-right max-w-xs">{value}</span>
+    </div>
+  );
+}
+
+function generateCVHtml(employee) {
+  return `
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <title>CV — ${employee?.full_name || ''}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Hind Siliguri', sans-serif; color: #1C2B2A; background: white; }
+    .page { max-width: 800px; margin: 0 auto; padding: 40px; }
+    .header { display: flex; align-items: center; gap: 24px; background: #1A7A6E; color: white; padding: 24px; border-radius: 12px; margin-bottom: 24px; }
+    .photo { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid white; }
+    .photo-placeholder { width: 80px; height: 80px; border-radius: 50%; background: rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; border: 3px solid white; }
+    .header-info h1 { font-size: 24px; font-weight: 700; }
+    .header-info p { opacity: 0.85; font-size: 14px; margin-top: 2px; }
+    .section { margin-bottom: 20px; }
+    .section-title { font-size: 13px; font-weight: 600; color: #1A7A6E; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2px solid #E6F4F1; padding-bottom: 6px; margin-bottom: 12px; }
+    .row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f5f5f5; font-size: 14px; }
+    .row:last-child { border-bottom: none; }
+    .label { color: #666; }
+    .value { font-weight: 500; text-align: right; max-width: 60%; }
+    .footer { text-align: center; margin-top: 40px; padding-top: 16px; border-top: 1px solid #eee; color: #999; font-size: 12px; }
+    @media print {
+      body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      .page { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    ${employee?.photo_url
+      ? `<img src="${employee.photo_url}" class="photo" alt="photo">`
+      : `<div class="photo-placeholder">${(employee?.full_name || '?')[0]}</div>`
+    }
+    <div class="header-info">
+      <h1>${employee?.full_name || '—'}</h1>
+      <p>${employee?.designation || employee?.position_title || ''}</p>
+      <p>${employee?.phone || ''} ${employee?.email ? '• ' + employee.email : ''}</p>
+      ${employee?.joining_date ? `<p>যোগদান: ${format(new Date(employee.joining_date), 'dd/MM/yyyy')}</p>` : ''}
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title">ব্যক্তিগত তথ্য</div>
+    ${cvRow('পিতার নাম', employee?.father_name)}
+    ${cvRow('মাতার নাম', employee?.mother_name)}
+    ${cvRow('জন্ম তারিখ', employee?.date_of_birth ? format(new Date(employee.date_of_birth), 'dd/MM/yyyy') : null)}
+    ${cvRow('রক্তের গ্রুপ', employee?.blood_group)}
+    ${cvRow('লিঙ্গ', employee?.gender === 'male' ? 'পুরুষ' : employee?.gender === 'female' ? 'মহিলা' : employee?.gender)}
+  </div>
+  <div class="section">
+    <div class="section-title">যোগাযোগ</div>
+    ${cvRow('মোবাইল', employee?.phone)}
+    ${cvRow('ইমেইল', employee?.email)}
+    ${cvRow('অভিভাবকের মোবাইল', employee?.guardian_mobile)}
+    ${cvRow('অভিভাবকের সম্পর্ক', employee?.guardian_relation)}
+  </div>
+  <div class="section">
+    <div class="section-title">ঠিকানা</div>
+    ${cvRow('বর্তমান ঠিকানা', employee?.present_address)}
+    ${cvRow('স্থায়ী ঠিকানা', employee?.permanent_address)}
+  </div>
+  <div class="section">
+    <div class="section-title">শিক্ষাগত যোগ্যতা</div>
+    ${cvRow('শিক্ষার স্তর', employee?.education_level)}
+    ${cvRow('বিস্তারিত', employee?.education_details)}
+  </div>
+  <div class="section">
+    <div class="section-title">পরিচয়</div>
+    ${cvRow('NID নম্বর', employee?.nid_number)}
+  </div>
+  <div class="section">
+    <div class="section-title">চাকরির তথ্য</div>
+    ${cvRow('পদ', employee?.designation || employee?.position_title)}
+    ${cvRow('বিভাগ', employee?.department)}
+    ${cvRow('রিপোর্ট করে', employee?.reports_to_name)}
+  </div>
+  <div class="footer">
+    সাফল্য একাডেমি — সফলতার অগ্রণী | Generated: ${new Date().toLocaleDateString('bn-BD')}
+  </div>
+</div>
+</body>
+</html>`;
+}
+
+function cvRow(label, value) {
+  if (!value) return '';
+  return `<div class="row"><span class="label">${label}</span><span class="value">${value}</span></div>`;
 }
 
 function AddEmployeeModal({ allEmployees, onClose, onSuccess }) {
