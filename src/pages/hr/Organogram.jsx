@@ -83,14 +83,45 @@ export default function Organogram() {
             </button>
           </div>
 
-          <div className="overflow-auto mb-8 border border-gray-100 rounded-2xl bg-white" style={{ maxHeight: '75vh' }}>
-            <div className="p-4" style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', width: 'fit-content', minWidth: '100%' }}>
-              {tree.map(node => (
-                <TreeNode key={node.id} node={node}
-                  onAddChild={(parentId, parentTitle) => setAddModal({ parentId, parentTitle })}
-                  onEdit={setEditModal}
-                  onDelete={handleDelete}
-                />
+         <div className="overflow-auto mb-8 border border-gray-100 rounded-2xl bg-white" style={{ maxHeight: '75vh' }}>
+            <div className="p-6" style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', width: 'fit-content', minWidth: '100%' }}>
+              {tree.map(topNode => (
+                <div key={topNode.id} className="mb-6">
+                  {/* Tier 1 node */}
+                  <div className="flex justify-center mb-2">
+                    <PositionCard node={topNode}
+                      onAddChild={(parentId, parentTitle) => setAddModal({ parentId, parentTitle })}
+                      onEdit={setEditModal} onDelete={handleDelete} />
+                  </div>
+
+                  {/* Tier 2 row - horizontal */}
+                  {topNode.children && topNode.children.length > 0 && (
+                    <>
+                      <div className="flex justify-center"><div className="w-px h-6 bg-gray-300" /></div>
+                      <div className="flex gap-6 justify-center flex-wrap">
+                        {topNode.children.map(tier2Node => (
+                          <div key={tier2Node.id} className="flex flex-col items-center">
+                            <PositionCard node={tier2Node}
+                              onAddChild={(parentId, parentTitle) => setAddModal({ parentId, parentTitle })}
+                              onEdit={setEditModal} onDelete={handleDelete} />
+
+                            {/* Tier 3+ as vertical staircase below this Tier 2 node */}
+                            {tier2Node.children && tier2Node.children.length > 0 && (
+                              <div className="mt-2">
+                                <div className="flex justify-center"><div className="w-px h-4 bg-gray-300" /></div>
+                                {tier2Node.children.map(child => (
+                                  <VerticalBranch key={child.id} node={child}
+                                    onAddChild={(parentId, parentTitle) => setAddModal({ parentId, parentTitle })}
+                                    onEdit={setEditModal} onDelete={handleDelete} />
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
               ))}
             </div>
           </div>
@@ -135,62 +166,67 @@ export default function Organogram() {
   );
 }
 
-function TreeNode({ node, onAddChild, onEdit, onDelete, level = 0 }) {
-  const hasChildren = node.children && node.children.length > 0;
-  const [collapsed, setCollapsed] = useState(false);
+function VerticalBranch({ node, onAddChild, onEdit, onDelete }) {
+  // Renders node and all its descendants as a vertical staircase
+  const chain = [];
+  let current = node;
+  while (current) {
+    chain.push(current);
+    current = current.children && current.children.length > 0 ? current.children[0] : null;
+  }
+  // Note: only follows first child path; if a node has multiple children at deeper levels, render them as nested branches
 
   return (
-    <div className="w-full">
-      <div className="flex items-center gap-2" style={{ paddingLeft: `${level * 28}px` }}>
-        {hasChildren ? (
-          <button onClick={() => setCollapsed(c => !c)}
-            className="w-5 h-5 flex items-center justify-center text-gray-400 flex-shrink-0">
-            {collapsed ? '▶' : '▼'}
-          </button>
-        ) : (
-          <div className="w-5 flex-shrink-0" />
-        )}
-
-        <div className="bg-white border-2 border-primary-100 rounded-xl px-3 py-2 shadow-sm flex-1 max-w-md my-1">
-          <div className="flex items-center justify-between gap-2">
-            <div>
-              <p className="font-semibold text-sm">{node.title}</p>
-              {node.department && <p className="text-xs text-gray-400">{node.department}</p>}
-            </div>
-            <div className="flex gap-1 flex-shrink-0">
-              <button onClick={() => onEdit(node)} className="p-1 bg-primary-50 text-primary-600 rounded-md">
-                <Edit2 size={12} />
-              </button>
-              <button onClick={() => onDelete(node)} className="p-1 bg-red-50 text-red-500 rounded-md">
-                <Trash2 size={12} />
-              </button>
-            </div>
-          </div>
-
-          {node.employees.length > 0 ? (
-            <div className="mt-1 space-y-0.5">
-              {node.employees.map(e => (
-                <p key={e.user_id} className="text-xs text-gray-500">👤 {e.full_name || 'Unnamed'}</p>
+    <div className="flex flex-col">
+      {chain.map((n, idx) => (
+        <div key={n.id} className="flex flex-col" style={{ paddingLeft: `${idx * 24}px` }}>
+          {idx > 0 && <div className="w-px h-4 bg-gray-300" style={{ marginLeft: '20px' }} />}
+          <PositionCard node={n} onAddChild={onAddChild} onEdit={onEdit} onDelete={onDelete} />
+          {n.children && n.children.length > 1 && (
+            <div className="mt-2 space-y-2" style={{ paddingLeft: '24px' }}>
+              {n.children.slice(1).map(child => (
+                <VerticalBranch key={child.id} node={child} onAddChild={onAddChild} onEdit={onEdit} onDelete={onDelete} />
               ))}
             </div>
-          ) : (
-            <p className="text-xs text-gray-300 mt-1">কোনো কর্মী নিয়োগ করা হয়নি</p>
           )}
+        </div>
+      ))}
+    </div>
+  );
+}
 
-          <button onClick={() => onAddChild(node.id, node.title)}
-            className="flex items-center gap-1 text-xs text-primary-500 font-medium mt-1.5">
-            <Plus size={12} /> Add Sub-position
+function PositionCard({ node, onAddChild, onEdit, onDelete }) {
+  return (
+    <div className="bg-white border-2 border-primary-100 rounded-xl px-3 py-2 shadow-sm w-64">
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <p className="font-semibold text-sm">{node.title}</p>
+          {node.department && <p className="text-xs text-gray-400">{node.department}</p>}
+        </div>
+        <div className="flex gap-1 flex-shrink-0">
+          <button onClick={() => onEdit(node)} className="p-1 bg-primary-50 text-primary-600 rounded-md">
+            <Edit2 size={12} />
+          </button>
+          <button onClick={() => onDelete(node)} className="p-1 bg-red-50 text-red-500 rounded-md">
+            <Trash2 size={12} />
           </button>
         </div>
       </div>
 
-      {hasChildren && !collapsed && (
-        <div>
-          {node.children.map(child => (
-            <TreeNode key={child.id} node={child} onAddChild={onAddChild} onEdit={onEdit} onDelete={onDelete} level={level + 1} />
+      {node.employees.length > 0 ? (
+        <div className="mt-1 space-y-0.5">
+          {node.employees.map(e => (
+            <p key={e.user_id} className="text-xs text-gray-500">👤 {e.full_name || 'Unnamed'}</p>
           ))}
         </div>
+      ) : (
+        <p className="text-xs text-gray-300 mt-1">কোনো কর্মী নিয়োগ করা হয়নি</p>
       )}
+
+      <button onClick={() => onAddChild(node.id, node.title)}
+        className="flex items-center gap-1 text-xs text-primary-500 font-medium mt-1.5">
+        <Plus size={12} /> Add Sub-position
+      </button>
     </div>
   );
 }
