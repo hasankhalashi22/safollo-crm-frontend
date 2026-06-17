@@ -83,8 +83,8 @@ export default function Organogram() {
             </button>
           </div>
 
-          <div className="overflow-auto mb-8 border border-gray-100 rounded-2xl" style={{ maxHeight: '70vh' }}>
-            <div className="flex flex-col items-center p-8" style={{ transform: `scale(${zoom})`, transformOrigin: 'top center', width: 'fit-content', minWidth: '100%' }}>
+          <div className="overflow-auto mb-8 border border-gray-100 rounded-2xl bg-white" style={{ maxHeight: '75vh' }}>
+            <div className="p-4" style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', width: 'fit-content', minWidth: '100%' }}>
               {tree.map(node => (
                 <TreeNode key={node.id} node={node}
                   onAddChild={(parentId, parentTitle) => setAddModal({ parentId, parentTitle })}
@@ -135,54 +135,61 @@ export default function Organogram() {
   );
 }
 
-function TreeNode({ node, onAddChild, onEdit, onDelete }) {
+function TreeNode({ node, onAddChild, onEdit, onDelete, level = 0 }) {
   const hasChildren = node.children && node.children.length > 0;
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className="flex flex-col items-center">
-      <div className="bg-white border-2 border-primary-100 rounded-2xl px-4 py-3 shadow-sm min-w-[200px]">
-       <div className="flex items-center justify-between gap-2 mb-1">
-          <div>
-            <p className="font-semibold text-sm">{node.title}</p>
-            {node.department && <p className="text-xs text-gray-400">{node.department}</p>}
-          </div>
-          <div className="flex gap-1">
-            <button onClick={() => onEdit(node)} className="p-1 bg-primary-50 text-primary-600 rounded-md">
-              <Edit2 size={12} />
-            </button>
-            <button onClick={() => onDelete(node)} className="p-1 bg-red-50 text-red-500 rounded-md">
-              <Trash2 size={12} />
-            </button>
-          </div>
-        </div>
-
-        {node.employees.length > 0 ? (
-          <div className="space-y-0.5 mb-2">
-            {node.employees.map(e => (
-              <p key={e.user_id} className="text-xs text-gray-500">👤 {e.full_name || 'Unnamed'}</p>
-            ))}
-          </div>
+    <div className="w-full">
+      <div className="flex items-center gap-2" style={{ paddingLeft: `${level * 28}px` }}>
+        {hasChildren ? (
+          <button onClick={() => setCollapsed(c => !c)}
+            className="w-5 h-5 flex items-center justify-center text-gray-400 flex-shrink-0">
+            {collapsed ? '▶' : '▼'}
+          </button>
         ) : (
-          <p className="text-xs text-gray-300 mb-2">কোনো কর্মী নিয়োগ করা হয়নি</p>
+          <div className="w-5 flex-shrink-0" />
         )}
 
-        <button onClick={() => onAddChild(node.id, node.title)}
-          className="flex items-center gap-1 text-xs text-primary-500 font-medium">
-          <Plus size={12} /> Add Sub-position
-        </button>
+        <div className="bg-white border-2 border-primary-100 rounded-xl px-3 py-2 shadow-sm flex-1 max-w-md my-1">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <p className="font-semibold text-sm">{node.title}</p>
+              {node.department && <p className="text-xs text-gray-400">{node.department}</p>}
+            </div>
+            <div className="flex gap-1 flex-shrink-0">
+              <button onClick={() => onEdit(node)} className="p-1 bg-primary-50 text-primary-600 rounded-md">
+                <Edit2 size={12} />
+              </button>
+              <button onClick={() => onDelete(node)} className="p-1 bg-red-50 text-red-500 rounded-md">
+                <Trash2 size={12} />
+              </button>
+            </div>
+          </div>
+
+          {node.employees.length > 0 ? (
+            <div className="mt-1 space-y-0.5">
+              {node.employees.map(e => (
+                <p key={e.user_id} className="text-xs text-gray-500">👤 {e.full_name || 'Unnamed'}</p>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-gray-300 mt-1">কোনো কর্মী নিয়োগ করা হয়নি</p>
+          )}
+
+          <button onClick={() => onAddChild(node.id, node.title)}
+            className="flex items-center gap-1 text-xs text-primary-500 font-medium mt-1.5">
+            <Plus size={12} /> Add Sub-position
+          </button>
+        </div>
       </div>
 
-      {hasChildren && (
-        <>
-          <div className="w-px h-6 bg-gray-300" />
-          <div className="flex gap-6">
-            {node.children.map(child => (
-              <div key={child.id} className="flex flex-col items-center">
-                <TreeNode node={child} onAddChild={onAddChild} onEdit={onEdit} onDelete={onDelete} />
-              </div>
-            ))}
-          </div>
-        </>
+      {hasChildren && !collapsed && (
+        <div>
+          {node.children.map(child => (
+            <TreeNode key={child.id} node={child} onAddChild={onAddChild} onEdit={onEdit} onDelete={onDelete} level={level + 1} />
+          ))}
+        </div>
       )}
     </div>
   );
