@@ -1,14 +1,103 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { hrApi } from '../../api/client';
 import toast from 'react-hot-toast';
 import { Plus, Trash2, Edit2, Users } from 'lucide-react';
+import {
+  ReactFlow, Background, Controls, MiniMap, Handle, Position,
+  useNodesState, useEdgesState, applyNodeChanges,
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+import dagre from 'dagre';
+
+const TIER_COLORS = [
+  { border: '#fb7185', bg: '#fff1f2', text: '#be123c' },
+  { border: '#818cf8', bg: '#eef2ff', text: '#4338ca' },
+  { border: '#fbbf24', bg: '#fffbeb', text: '#b45309' },
+  { border: '#2dd4bf', bg: '#f0fdfa', text: '#0f766e' },
+  { border: '#a78bfa', bg: '#f5f3ff', text: '#6d28d9' },
+  { border: '#38bdf8', bg: '#f0f9ff', text: '#0369a1' },
+];
+
+const NODE_WIDTH = 200;
+const NODE_HEIGHT = 80;
+
+function getLayoutedElements(nodes, edges) {
+  const g = new dagre.graphlib.Graph();
+  g.setGraph({ rankdir: 'TB', nodesep: 40, ranksep: 70 });
+  g.setDefaultEdgeLabel(() => ({}));
+
+  nodes.forEach(node => g.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT }));
+  edges.forEach(edge => g.setEdge(edge.source, edge.target));
+
+  dagre.layout(g);
+
+  const layoutedNodes = nodes.map(node => {
+    const { x, y } = g.node(node.id);
+    return { ...node, position: { x: x - NODE_WIDTH / 2, y: y - NODE_HEIGHT / 2 } };
+  });
+
+  return { nodes: layoutedNodes, edges };
+}
+
+function PositionNode({ data }) {
+  const hasEmployee = data.employees.length > 0;
+  const tierColor = TIER_COLORS[data.tier % TIER_COLORS.length];
+
+  return (
+    <div
+      style={{
+        background: tierColor.bg,
+        border: `1px solid ${tierColor.border}`,
+        borderBottom: `3px solid ${hasEmployee ? '#22c55e' : '#fbbf24'}`,
+        borderRadius: 10,
+        padding: '8px 10px',
+        width: NODE_WIDTH,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+      }}
+    >
+      <Handle type="target" position={Position.Top} style={{ background: tierColor.border }} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 6 }}>
+        <div style={{ minWidth: 0 }}>
+          <p style={{ fontWeight: 600, fontSize: 12, color: tierColor.text, margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{data.title}</p>
+          {data.department && <p style={{ fontSize: 10, color: '#9ca3af', margin: 0 }}>{data.department}</p>}
+        </div>
+        <div style={{ display: 'flex', gap: 3, flexShrink: 0 }}>
+          <button onClick={() => data.onEdit(data.raw)} style={{ padding: 3, background: '#eff6ff', color: '#2563eb', borderRadius: 4, border: 'none', cursor: 'pointer' }}>
+            <Edit2 size={10} />
+          </button>
+          <button onClick={() => data.onDelete(data.raw)} style={{ padding: 3, background: '#fef2f2', color: '#ef4444', borderRadius: 4, border: 'none', cursor: 'pointer' }}>
+            <Trash2 size={10} />
+          </button>
+        </div>
+      </div>
+
+      {hasEmployee && (
+        <div style={{ marginTop: 3 }}>
+          {data.employees.map(e => (
+            <p key={e.user_id} style={{ fontSize: 10, color: '#6b7280', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>👤 {e.full_name || 'Unnamed'}</p>
+          ))}
+        </div>
+      )}
+
+      <button onClick={() => data.onAddChild(data.raw.id, data.raw.title)}
+        style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 10, color: '#3b82f6', fontWeight: 500, marginTop: 4, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+        <Plus size={10} /> Add Sub-position
+      </button>
+
+      <Handle type="source" position={Position.Bottom} style={{ background: tierColor.border }} />
+    </div>
+  );
+}
+
+const nodeTypes = { position: PositionNode };
 
 export default function Organogram() {
   const [positions, setPositions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [addModal, setAddModal] = useState(null); // { parentId, parentTitle }
+  const [addModal, setAddModal] = useState(null);
   const [editModal, setEditModal] = useState(null);
-  const [zoom, setZoom] = useState(1);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
   const fetchPositions = () => {
     setLoading(true);
@@ -20,7 +109,7 @@ export default function Organogram() {
 
   useEffect(() => { fetchPositions(); }, []);
 
-  const handleDelete = async (pos) => {
+  const handleDelete = useCallback(async (pos) => {
     if (!confirm(`"${pos.title}" পদটি ডিলিট করবেন?`)) return;
     try {
       await hrApi.deletePosition(pos.id);
@@ -29,33 +118,87 @@ export default function Organogram() {
     } catch (err) {
       toast.error(err.message || 'সমস্যা হয়েছে');
     }
-  };
+  }, []);
+
+  const handleAddChild = useCallback((parentId, parentTitle) => {
+    setAddModal({ parentId, parentTitle });
+  }, []);
+
+  const handleEdit = useCallback((pos) => {
+    setEditModal(pos);
+  }, []);
+
+  // Compute tier for each position (depth from root)
+  const tierMap = useMemo(() => {
+    const map = {};
+    const getTier = (id) => {
+      if (map[id] !== undefined) return map[id];
+      const pos = positions.find(p => p.id === id);
+      if (!pos || !pos.parent_position_id) {
+        map[id] = 0;
+      } else {
+        map[id] = getTier(pos.parent_position_id) + 1;
+      }
+      return map[id];
+    };
+    positions.forEach(p => getTier(p.id));
+    return map;
+  }, [positions]);
+
+  useEffect(() => {
+    if (positions.length === 0) {
+      setNodes([]);
+      setEdges([]);
+      return;
+    }
+
+    const flowNodes = positions.map(p => ({
+      id: p.id,
+      type: 'position',
+      data: {
+        title: p.title,
+        department: p.department,
+        employees: p.employees,
+        tier: tierMap[p.id] || 0,
+        raw: p,
+        onAddChild: handleAddChild,
+        onEdit: handleEdit,
+        onDelete: handleDelete,
+      },
+      position: { x: 0, y: 0 },
+    }));
+
+    const flowEdges = positions
+      .filter(p => p.parent_position_id)
+      .map(p => ({
+        id: `${p.parent_position_id}-${p.id}`,
+        source: p.parent_position_id,
+        target: p.id,
+        type: 'smoothstep',
+        style: { stroke: '#cbd5e1', strokeWidth: 1.5 },
+      }));
+
+    const layouted = getLayoutedElements(flowNodes, flowEdges);
+    setNodes(layouted.nodes);
+    setEdges(layouted.edges);
+  }, [positions, tierMap, handleAddChild, handleEdit, handleDelete, setNodes, setEdges]);
 
   if (loading) return <div className="flex justify-center py-12"><div className="spinner w-8 h-8" /></div>;
 
-  const buildTree = (parentId = null) =>
-    positions.filter(p => (p.parent_position_id || null) === parentId)
-      .map(p => ({ ...p, children: buildTree(p.id) }));
-
-  const tree = buildTree(null);
-
-  // Tier-wise employee count
+  // Tier-wise employee count summary
   const tiers = [];
-  const collectTiers = (nodes, level) => {
-    if (!tiers[level]) tiers[level] = { level: level + 1, positions: [], employeeCount: 0 };
-    nodes.forEach(n => {
-      tiers[level].positions.push(n.title);
-      tiers[level].employeeCount += n.employees.length;
-      if (n.children.length > 0) collectTiers(n.children, level + 1);
-    });
-  };
-  collectTiers(tree, 0);
+  positions.forEach(p => {
+    const t = tierMap[p.id] || 0;
+    if (!tiers[t]) tiers[t] = { level: t + 1, positions: [], employeeCount: 0 };
+    tiers[t].positions.push(p.title);
+    tiers[t].employeeCount += p.employees.length;
+  });
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-6 flex flex-col h-full">
+      <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <h1 className="text-2xl font-display font-bold text-dark">Organogram</h1>
-        {tree.length === 0 && (
+        {positions.length === 0 && (
           <button onClick={() => setAddModal({ parentId: null, parentTitle: null })}
             className="flex items-center gap-2 bg-primary-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium active:scale-95">
             <Plus size={16} /> Add Top Position
@@ -63,71 +206,29 @@ export default function Organogram() {
         )}
       </div>
 
-      {tree.length === 0 ? (
+      {positions.length === 0 ? (
         <div className="card text-center py-12 text-gray-400">কোনো পদ তৈরি করা হয়নি। "Add Top Position" দিয়ে শুরু করুন।</div>
       ) : (
         <>
-          <div className="flex items-center justify-end gap-2 mb-3">
-            <button onClick={() => setZoom(z => Math.max(0.4, z - 0.1))}
-              className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium">
-              − Zoom Out
-            </button>
-            <span className="text-sm text-gray-500 w-12 text-center">{Math.round(zoom * 100)}%</span>
-            <button onClick={() => setZoom(z => Math.min(2, z + 0.1))}
-              className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium">
-              + Zoom In
-            </button>
-            <button onClick={() => setZoom(1)}
-              className="px-3 py-1.5 bg-primary-50 text-primary-600 rounded-lg text-sm font-medium">
-              Reset
-            </button>
+          <div className="border border-gray-100 rounded-2xl bg-gray-50 flex-shrink-0" style={{ height: '65vh' }}>
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              nodeTypes={nodeTypes}
+              fitView
+              minZoom={0.2}
+              maxZoom={2}
+              proOptions={{ hideAttribution: true }}
+            >
+              <Background color="#e2e8f0" gap={20} />
+              <Controls />
+              <MiniMap pannable zoomable style={{ width: 120, height: 80 }} />
+            </ReactFlow>
           </div>
 
-         <div className="overflow-auto mb-8 border border-gray-100 rounded-2xl bg-white" style={{ maxHeight: '75vh' }}>
-            <div className="p-6" style={{ transform: `scale(${zoom})`, transformOrigin: 'top left', width: 'fit-content', minWidth: '100%' }}>
-{tree.map(topNode => (
-                <div key={topNode.id} className="mb-8">
-                  {/* Tier 1 node */}
-                  <div className="flex justify-center mb-2">
-                    <PositionCard node={topNode} tier={0}
-                      onAddChild={(parentId, parentTitle) => setAddModal({ parentId, parentTitle })}
-                      onEdit={setEditModal} onDelete={handleDelete} />
-                  </div>
-
-                  {/* Tier 2 row - horizontal */}
-                  {topNode.children && topNode.children.length > 0 && (
-                    <>
-                      <div className="flex justify-center"><div className="w-px h-5 bg-gray-300" /></div>
-                      <div className="flex gap-5 justify-center flex-wrap">
-                        {topNode.children.map(tier2Node => (
-                          <div key={tier2Node.id} className="flex flex-col items-center">
-                            <PositionCard node={tier2Node} tier={1}
-                              onAddChild={(parentId, parentTitle) => setAddModal({ parentId, parentTitle })}
-                              onEdit={setEditModal} onDelete={handleDelete} />
-
-                            {/* Tier 3+ as vertical staircase below this Tier 2 node */}
-                            {tier2Node.children && tier2Node.children.length > 0 && (
-                              <div className="mt-1.5">
-                                <div className="flex justify-center"><div className="w-px h-3 bg-gray-300" /></div>
-                                {tier2Node.children.map(child => (
-                                  <VerticalBranch key={child.id} node={child} tier={2}
-                                    onAddChild={(parentId, parentTitle) => setAddModal({ parentId, parentTitle })}
-                                    onEdit={setEditModal} onDelete={handleDelete} />
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-
-          <div className="card">
+          <div className="card mt-4">
             <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
               <Users size={18} /> Tier-wise Employee Summary
             </h3>
@@ -162,82 +263,6 @@ export default function Organogram() {
           onSuccess={() => { setEditModal(null); fetchPositions(); }}
         />
       )}
-    </div>
-  );
-}
-
-function VerticalBranch({ node, onAddChild, onEdit, onDelete, tier = 2 }) {
-  const chain = [];
-  let current = node;
-  while (current) {
-    chain.push(current);
-    current = current.children && current.children.length > 0 ? current.children[0] : null;
-  }
-
-  return (
-    <div className="flex flex-col">
-      {chain.map((n, idx) => (
-        <div key={n.id} className="flex flex-col" style={{ paddingLeft: `${idx * 20}px` }}>
-          {idx > 0 && <div className="w-px h-3 bg-gray-300" style={{ marginLeft: '14px' }} />}
-          <div>
-            <PositionCard node={n} onAddChild={onAddChild} onEdit={onEdit} onDelete={onDelete} tier={tier + idx} />
-          </div>
-          {n.children && n.children.length > 1 && (
-            <div className="mt-1.5 space-y-1.5" style={{ paddingLeft: '20px' }}>
-              {n.children.slice(1).map(child => (
-                <VerticalBranch key={child.id} node={child} onAddChild={onAddChild} onEdit={onEdit} onDelete={onDelete} tier={tier + idx + 1} />
-              ))}
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-const TIER_COLORS = [
-  { border: 'border-rose-300', bg: 'bg-rose-50', text: 'text-rose-700' },
-  { border: 'border-indigo-300', bg: 'bg-indigo-50', text: 'text-indigo-700' },
-  { border: 'border-amber-300', bg: 'bg-amber-50', text: 'text-amber-700' },
-  { border: 'border-teal-300', bg: 'bg-teal-50', text: 'text-teal-700' },
-  { border: 'border-violet-300', bg: 'bg-violet-50', text: 'text-violet-700' },
-  { border: 'border-sky-300', bg: 'bg-sky-50', text: 'text-sky-700' },
-];
-
-function PositionCard({ node, onAddChild, onEdit, onDelete, tier = 0 }) {
-  const hasEmployee = node.employees.length > 0;
-  const tierColor = TIER_COLORS[tier % TIER_COLORS.length];
-  const statusBorder = hasEmployee ? 'border-b-green-500' : 'border-b-amber-400';
-
-  return (
-  <div className={`inline-block ${tierColor.bg} border ${tierColor.border} border-b-[3px] ${statusBorder} rounded-lg px-2.5 py-1.5 shadow-sm`}>
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <p className={`font-semibold text-xs ${tierColor.text} whitespace-nowrap`}>{node.title}</p>
-          {node.department && <p className="text-[10px] text-gray-400 whitespace-nowrap">{node.department}</p>}
-        </div>
-        <div className="flex gap-0.5 flex-shrink-0">
-          <button onClick={() => onEdit(node)} className="p-0.5 bg-primary-50 text-primary-600 rounded">
-            <Edit2 size={10} />
-          </button>
-          <button onClick={() => onDelete(node)} className="p-0.5 bg-red-50 text-red-500 rounded">
-            <Trash2 size={10} />
-          </button>
-        </div>
-      </div>
-
-      {hasEmployee && (
-        <div className="mt-0.5">
-          {node.employees.map(e => (
-            <p key={e.user_id} className="text-[10px] text-gray-500 whitespace-nowrap">👤 {e.full_name || 'Unnamed'}</p>
-          ))}
-        </div>
-      )}
-
-      <button onClick={() => onAddChild(node.id, node.title)}
-        className="flex items-center gap-0.5 text-[10px] text-primary-500 font-medium mt-0.5">
-        <Plus size={10} /> Add
-      </button>
     </div>
   );
 }
