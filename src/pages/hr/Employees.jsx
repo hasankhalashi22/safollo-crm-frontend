@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { hrApi, usersApi, authApi } from '../../api/client';
+import { MODULES } from '../../config/modules';
 import toast from 'react-hot-toast';
 import { Edit2, User, Plus, Eye, Download, Key } from 'lucide-react';
 import { format } from 'date-fns';
@@ -569,12 +570,47 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
     nid_number: employee.nid_number || '',
   });
   const [isLocked, setIsLocked] = useState(employee.is_locked || false);
-  const [loading, setLoading] = useState(false);
+const [loading, setLoading] = useState(false);
   const [positions, setPositions] = useState([]);
+  const [moduleAccess, setModuleAccess] = useState({}); // { [module_key]: role_key }
+  const [crmRoles, setCrmRoles] = useState([]);
 
   useEffect(() => {
     hrApi.getPositions().then(r => setPositions(r.data || []));
+    hrApi.getEmployeeModuleAccess(employee.id).then(r => {
+      const map = {};
+      (r.data || []).forEach(a => { map[a.module_key] = a.role_key; });
+      setModuleAccess(map);
+    });
+    usersApi.getRoles().then(r => setCrmRoles(r.data || []));
   }, []);
+
+  const toggleModuleAccess = (moduleKey, defaultRole) => {
+    setModuleAccess(prev => {
+      const next = { ...prev };
+      if (next[moduleKey]) {
+        delete next[moduleKey];
+      } else {
+        next[moduleKey] = defaultRole;
+      }
+      return next;
+    });
+  };
+
+  const setModuleRole = (moduleKey, roleKey) => {
+    setModuleAccess(prev => ({ ...prev, [moduleKey]: roleKey }));
+  };
+
+  const handleSaveModuleAccess = async () => {
+    setLoading(true);
+    try {
+      const accessList = Object.entries(moduleAccess).map(([module_key, role_key]) => ({ module_key, role_key }));
+      await hrApi.setEmployeeModuleAccess(employee.id, accessList);
+      toast.success('Module Access আপডেট হয়েছে ✅');
+    } catch (err) {
+      toast.error(err.message || 'সমস্যা হয়েছে');
+    } finally { setLoading(false); }
+  };
 
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
@@ -633,6 +669,7 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
     { key: 'personal', label: 'Personal Details' },
     { key: 'documents', label: 'Documents' },
     { key: 'hr', label: 'HR Settings' },
+    { key: 'access', label: 'Module Access' },
   ];
 
   return (
@@ -844,6 +881,7 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
                   onChange={e => set('basic_salary', e.target.value)} />
               </div>
               <div>
+<div>
                 <label className="block text-sm font-medium mb-1.5">Status</label>
                 <select className="input-field" value={form.status} onChange={e => set('status', e.target.value)}>
                   <option value="active">Active</option>
@@ -855,9 +893,47 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
             </>
           )}
 
-          <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? 'Saving...' : '✅ Save'}
-          </button>
+          {tab === 'access' && (
+            <div className="space-y-3">
+              <p className="text-xs text-gray-500 mb-2">কোন মডিউলে এই কর্মীর প্রবেশের অনুমতি আছে এবং সেখানে তার role কী, তা নির্বাচন করুন।</p>
+              {MODULES.map(m => {
+                const hasAccess = !!moduleAccess[m.key];
+                const roleOptions = m.key === 'crm'
+                  ? crmRoles.map(r => ({ key: r.name, label: r.label }))
+                  : (m.roles || []);
+
+                return (
+                  <div key={m.key} className="border border-gray-100 rounded-xl p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <input type="checkbox" checked={hasAccess}
+                          onChange={() => toggleModuleAccess(m.key, roleOptions[0]?.key || '')} />
+                        <label className="text-sm font-medium">{m.label}</label>
+                      </div>
+                    </div>
+                    {hasAccess && (
+                      <div className="mt-2 pl-6">
+                        <select className="input-field" value={moduleAccess[m.key] || ''}
+                          onChange={e => setModuleRole(m.key, e.target.value)}>
+                          <option value="">-- Role বেছে নিন --</option>
+                          {roleOptions.map(r => <option key={r.key} value={r.key}>{r.label}</option>)}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              <button type="button" onClick={handleSaveModuleAccess} className="btn-primary" disabled={loading}>
+                {loading ? 'Saving...' : '✅ Module Access সংরক্ষণ করুন'}
+              </button>
+            </div>
+          )}
+
+          {tab !== 'access' && (
+            <button type="submit" className="btn-primary" disabled={loading}>
+              {loading ? 'Saving...' : '✅ Save'}
+            </button>
+          )}
         </form>
       </div>
     </div>
