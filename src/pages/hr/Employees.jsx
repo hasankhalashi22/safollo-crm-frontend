@@ -49,7 +49,7 @@ const handleResetPassword = async (emp) => {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                {['Name', 'Designation', 'Department', 'Reports To', 'Type', 'CRM Access', 'Status', 'Action'].map(h => (
+               {['Name', 'Designation', 'Department', 'Reports To', 'Type', 'Module Access', 'Status', 'Action'].map(h => (
                   <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -76,12 +76,20 @@ const handleResetPassword = async (emp) => {
                   <td className="px-4 py-3 text-gray-500">
                     {emp.is_remote ? 'Remote' : 'On-site'} {emp.employment_type ? `(${emp.employment_type})` : ''}
                   </td>
-                  <td className="px-4 py-3">
-                    {emp.crm_phone ? (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">{emp.crm_role_label || 'CRM User'}</span>
-                    ) : (
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-400">No CRM access</span>
-                    )}
+                 <td className="px-4 py-3">
+                    <div className="flex flex-wrap gap-1">
+                      {emp.crm_phone && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">CRM: {emp.crm_role_label || 'User'}</span>
+                      )}
+                      {(emp.module_access || []).filter(a => a.module_key !== 'crm').map(a => (
+                        <span key={a.module_key} className="text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-600">
+                          {MODULES.find(m => m.key === a.module_key)?.label || a.module_key}: {a.role_key}
+                        </span>
+                      ))}
+                      {!emp.crm_phone && (emp.module_access || []).length === 0 && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-400">কোনো access নেই</span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-3">
                     <span className={`text-xs px-2 py-0.5 rounded-full ${emp.status === 'active' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
