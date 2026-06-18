@@ -9,12 +9,18 @@ export const MODULES = [
     basePath: '/admin',
     allowedRoles: ['super_admin', 'manager'],
     sidebar: [], // CRM sidebar is role-dependent (manager vs admin), handled separately in AppLayout for now
+    rolesSource: 'dynamic', // CRM roles come from the roles table via API, not hardcoded here
   },
   {
     key: 'accounting',
     label: 'Accounting',
     basePath: '/accounting',
     allowedRoles: ['super_admin'],
+    roles: [
+      { key: 'viewer', label: 'Viewer (দেখতে পারবে)' },
+      { key: 'editor', label: 'Editor (যুক্ত/পরিবর্তন করতে পারবে)' },
+      { key: 'admin', label: 'Admin (সম্পূর্ণ নিয়ন্ত্রণ)' },
+    ],
     sidebar: [
       { to: '/accounting', icon: BarChart2, label: 'Dashboard', end: true },
       { to: '/accounting/transactions', icon: FileText, label: 'Transactions' },
@@ -31,11 +37,15 @@ export const MODULES = [
       { to: '/accounting/shareholders', icon: Users, label: 'Shareholders' },
     ],
   },
-  {
+ {
     key: 'hr',
     label: 'HR',
     basePath: '/hr',
     allowedRoles: ['super_admin'],
+    roles: [
+      { key: 'viewer', label: 'Viewer (দেখতে পারবে)' },
+      { key: 'hr_manager', label: 'HR Manager (সম্পূর্ণ নিয়ন্ত্রণ)' },
+    ],
     sidebar: [
       { to: '/hr', icon: BarChart2, label: 'Dashboard', end: true },
       { to: '/hr/employees', icon: Users, label: 'Employee Directory' },
