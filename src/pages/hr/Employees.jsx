@@ -881,7 +881,6 @@ const [loading, setLoading] = useState(false);
                   onChange={e => set('basic_salary', e.target.value)} />
               </div>
               <div>
-<div>
                 <label className="block text-sm font-medium mb-1.5">Status</label>
                 <select className="input-field" value={form.status} onChange={e => set('status', e.target.value)}>
                   <option value="active">Active</option>
