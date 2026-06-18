@@ -58,12 +58,15 @@ const handleResetPassword = async (emp) => {
                 <tr><td colSpan={8} className="text-center py-12 text-gray-400">No employees found</td></tr>
               ) : employees.map(emp => (
                 <tr key={emp.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">
+              <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center flex-shrink-0">
                         <User size={16} />
                       </div>
-                      <p className="font-medium">{emp.full_name}</p>
+                      <div>
+                        <p className="font-medium">{emp.full_name}</p>
+                        <p className="text-xs text-gray-400">{emp.phone || '—'}</p>
+                      </div>
                     </div>
                   </td>
                   <td className="px-4 py-3 text-gray-600">{emp.designation || emp.position_title || '—'}</td>
