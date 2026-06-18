@@ -188,6 +188,8 @@ export const hrApi = {
 uploadEmployeePhoto: (id, formData) => api.post(`/api/hr/employees/${id}/photo`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
 uploadEmployeeNid: (id, formData) => api.post(`/api/hr/employees/${id}/nid`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
 uploadEmployeeSignature: (id, formData) => api.post(`/api/hr/employees/${id}/signature`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+getEmployeeModuleAccess: (id) => api.get(`/api/hr/employees/${id}/module-access`),
+setEmployeeModuleAccess: (id, access) => api.put(`/api/hr/employees/${id}/module-access`, { access }),
 };
 
 
