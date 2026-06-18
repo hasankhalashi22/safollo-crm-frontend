@@ -42,12 +42,12 @@ import AuditLog from './pages/admin/AuditLog';
 import SaleApproval from './pages/admin/SaleApproval';
 import { AdminDueList, AdminSettings, CourseManagement } from './pages/admin/AdminPages';
 
-function ProtectedRoute({ children, allowedLevels }) {
+function ProtectedRoute({ children, allowedLevels, moduleKey }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="flex items-center justify-center h-screen"><div className="spinner w-10 h-10" /></div>;
   if (!user) return <Navigate to="/login" replace />;
 
-  if (user.is_first_login && user.role !== 'super_admin') {
+  if (user.is_first_login) {
     return <Navigate to="/change-password" replace />;
   }
 
@@ -55,6 +55,18 @@ function ProtectedRoute({ children, allowedLevels }) {
   if (needsProfile && !user.is_profile_complete) {
     return <Navigate to="/complete-profile" replace />;
   }
+
+  // Module-based access: super_admin always passes; otherwise check hr_employee_module_access
+  if (moduleKey && user.role !== 'super_admin') {
+    const hasModuleAccess = (user.module_access || []).some(a => a.module_key === moduleKey);
+    if (!hasModuleAccess) {
+      if (user.role === 'manager') return <Navigate to="/manager" replace />;
+      if (user.role_level <= 2) return <Navigate to="/admin" replace />;
+      return <Navigate to="/executive" replace />;
+    }
+    return children;
+  }
+
   if (allowedLevels && !allowedLevels.includes(user.role_level)) {
     if (user.role === 'manager') return <Navigate to="/manager" replace />;
     if (user.role_level <= 2) return <Navigate to="/admin" replace />;
@@ -62,7 +74,6 @@ function ProtectedRoute({ children, allowedLevels }) {
   }
   return children;
 }
-
 
 function AppRoutes() {
 useNotifications();
@@ -107,38 +118,37 @@ useNotifications();
       <Route path="/admin/approvals" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><SaleApproval /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/profile" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><Profile /></AdminLayout></ProtectedRoute>} />
 
-   <Route path="/accounting" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><AccountingDashboard /></AccountingLayout></ProtectedRoute>} />
+<Route path="/accounting" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><AccountingLayout><AccountingDashboard /></AccountingLayout></ProtectedRoute>} />
 
-      <Route path="/accounting/accounts" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><Accounts /></AccountingLayout></ProtectedRoute>} />
+      <Route path="/accounting/accounts" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><AccountingLayout><Accounts /></AccountingLayout></ProtectedRoute>} />
 
-<Route path="/accounting/transactions" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><Transactions /></AccountingLayout></ProtectedRoute>} />
+<Route path="/accounting/transactions" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><AccountingLayout><Transactions /></AccountingLayout></ProtectedRoute>} />
 
-<Route path="/accounting/ledger" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><Ledger /></AccountingLayout></ProtectedRoute>} />
+<Route path="/accounting/ledger" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><AccountingLayout><Ledger /></AccountingLayout></ProtectedRoute>} />
 
-<Route path="/accounting/trial-balance" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><TrialBalance /></AccountingLayout></ProtectedRoute>} />
+<Route path="/accounting/trial-balance" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><AccountingLayout><TrialBalance /></AccountingLayout></ProtectedRoute>} />
 
-<Route path="/accounting/income-statement" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><IncomeStatement /></AccountingLayout></ProtectedRoute>} />
+<Route path="/accounting/income-statement" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><AccountingLayout><IncomeStatement /></AccountingLayout></ProtectedRoute>} />
 
-<Route path="/accounting/balance-sheet" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><BalanceSheet /></AccountingLayout></ProtectedRoute>} />
+<Route path="/accounting/balance-sheet" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><AccountingLayout><BalanceSheet /></AccountingLayout></ProtectedRoute>} />
 
-<Route path="/accounting/cash-flow" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><CashFlow /></AccountingLayout></ProtectedRoute>} />
+<Route path="/accounting/cash-flow" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><AccountingLayout><CashFlow /></AccountingLayout></ProtectedRoute>} />
 
-<Route path="/accounting/equity-statement" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><EquityStatement /></AccountingLayout></ProtectedRoute>} />
+<Route path="/accounting/equity-statement" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><AccountingLayout><EquityStatement /></AccountingLayout></ProtectedRoute>} />
 
-<Route path="/accounting/credit-cards" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><CreditCards /></AccountingLayout></ProtectedRoute>} />
+<Route path="/accounting/credit-cards" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><AccountingLayout><CreditCards /></AccountingLayout></ProtectedRoute>} />
 
-<Route path="/accounting/investors" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><Investors /></AccountingLayout></ProtectedRoute>} />
+<Route path="/accounting/investors" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><AccountingLayout><Investors /></AccountingLayout></ProtectedRoute>} />
 
-<Route path="/accounting/shareholders" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><Shareholders /></AccountingLayout></ProtectedRoute>} />
+<Route path="/accounting/shareholders" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><AccountingLayout><Shareholders /></AccountingLayout></ProtectedRoute>} />
 
-<Route path="/accounting/journal" element={<ProtectedRoute allowedLevels={[1]}><AccountingLayout><Journal /></AccountingLayout></ProtectedRoute>} />
+<Route path="/accounting/journal" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><AccountingLayout><Journal /></AccountingLayout></ProtectedRoute>} />
 
-<Route path="/hr" element={<ProtectedRoute allowedLevels={[1]}><HrLayout><HrDashboard /></HrLayout></ProtectedRoute>} />
+<Route path="/hr" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><HrLayout><HrDashboard /></HrLayout></ProtectedRoute>} />
 
-<Route path="/hr/employees" element={<ProtectedRoute allowedLevels={[1]}><HrLayout><Employees /></HrLayout></ProtectedRoute>} />
+<Route path="/hr/employees" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><HrLayout><Employees /></HrLayout></ProtectedRoute>} />
 
-<Route path="/hr/organogram" element={<ProtectedRoute allowedLevels={[1]}><HrLayout><Organogram /></HrLayout></ProtectedRoute>} />
-
+<Route path="/hr/organogram" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><HrLayout><Organogram /></HrLayout></ProtectedRoute>} />
 
 
 

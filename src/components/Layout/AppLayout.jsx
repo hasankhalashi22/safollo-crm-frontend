@@ -12,7 +12,7 @@ function TopModuleBar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const visibleModules = getVisibleModules(user?.role);
+ const visibleModules = getVisibleModules(user);
   if (visibleModules.length <= 1) return null;
 
   const currentModule = getModuleForPath(location.pathname);

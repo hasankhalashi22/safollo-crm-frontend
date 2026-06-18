@@ -64,6 +64,10 @@ export function getModuleForPath(pathname) {
   return sorted.find(m => pathname.startsWith(m.basePath)) || MODULES[0];
 }
 
-export function getVisibleModules(userRole) {
-  return MODULES.filter(m => m.allowedRoles.includes(userRole));
+export function getVisibleModules(user) {
+  if (!user) return [];
+  if (user.role === 'super_admin') return MODULES; // super_admin sees everything
+
+  const accessibleKeys = (user.module_access || []).map(a => a.module_key);
+  return MODULES.filter(m => m.allowedRoles.includes(user.role) || accessibleKeys.includes(m.key));
 }
