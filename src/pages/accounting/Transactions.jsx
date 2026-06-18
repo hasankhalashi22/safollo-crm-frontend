@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { accountingApi } from '../../api/client';
 import { useAuth } from '../../hooks/useAuth';
+import { canEditModule } from '../../utils/moduleAccess';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { Trash2, Camera, X, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Edit2, CreditCard, TrendingUp, Users } from 'lucide-react';
 
 export default function Transactions() {
-  const { user } = useAuth();
+ const { user } = useAuth();
+  const canEdit = canEditModule(user, 'accounting');
   const [transactions, setTransactions] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -135,16 +137,18 @@ export default function Transactions() {
                     <td className="px-4 py-3 text-gray-500">{t.created_by_name || t.created_by_phone || '—'}</td>
                     <td className="px-4 py-3">
                       <div className="flex gap-1">
-                        {isSuperAdmin && (
+                        {(isSuperAdmin || canEdit) && (
                           <button onClick={() => setEditTxn(t)}
                             className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium">
                             <Edit2 size={14} />
                           </button>
                         )}
-                        <button onClick={() => handleDelete(t)}
-                          className="px-2 py-1 bg-red-50 text-red-500 rounded-lg text-xs font-medium">
-                          <Trash2 size={14} />
-                        </button>
+                        {(isSuperAdmin || canEdit) && (
+                          <button onClick={() => handleDelete(t)}
+                            className="px-2 py-1 bg-red-50 text-red-500 rounded-lg text-xs font-medium">
+                            <Trash2 size={14} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
