@@ -23,6 +23,7 @@ import Organogram from './pages/hr/Organogram';
 
 import Login from './pages/Login';
 import CompleteProfile from './pages/CompleteProfile';
+import ForceChangePassword from './pages/ForceChangePassword';
 import { ExecutiveLayout, AdminLayout, AccountingLayout, HrLayout } from './components/Layout/AppLayout';
 import Accounts from './pages/accounting/Accounts';
 
@@ -46,11 +47,14 @@ function ProtectedRoute({ children, allowedLevels }) {
   if (loading) return <div className="flex items-center justify-center h-screen"><div className="spinner w-10 h-10" /></div>;
   if (!user) return <Navigate to="/login" replace />;
 
+  if (user.is_first_login) {
+    return <Navigate to="/change-password" replace />;
+  }
+
   const needsProfile = user.role === 'manager' || (user.role !== 'super_admin' && user.role !== 'advisor' && user.role_level >= 4);
   if (needsProfile && !user.is_profile_complete) {
     return <Navigate to="/complete-profile" replace />;
   }
-
   if (allowedLevels && !allowedLevels.includes(user.role_level)) {
     if (user.role === 'manager') return <Navigate to="/manager" replace />;
     if (user.role_level <= 2) return <Navigate to="/admin" replace />;
@@ -73,6 +77,8 @@ useNotifications();
       } /> : <Login />} />
 
       <Route path="/complete-profile" element={<CompleteProfile />} />
+
+<Route path="/change-password" element={<ForceChangePassword />} />
 
       <Route path="/executive" element={<ProtectedRoute allowedLevels={[4, 5]}><ExecutiveLayout><ExecutiveDashboard /></ExecutiveLayout></ProtectedRoute>} />
       <Route path="/executive/new-sale" element={<ProtectedRoute allowedLevels={[4, 5]}><ExecutiveLayout><NewSale /></ExecutiveLayout></ProtectedRoute>} />

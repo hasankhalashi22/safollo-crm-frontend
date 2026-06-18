@@ -61,21 +61,17 @@ const handlePasswordLogin = async (e) => {
     setLoading(true);
     try {
       const res = await authApi.loginWithPassword(phone, password);
-     if (res.user.is_first_login) {
-        // Logged in with default password — force them to set a new one
-     toast('প্রথমবার লগইন — নতুন পাসওয়ার্ড সেট করুন');
-        login(res.token, res.user);
-        setLoggedInUser(res.user);
-        setStep('force-change-password');
-        return;
-      }
       login(res.token, res.user);
-      toast.success(`স্বাগতম!`);
+      if (res.user.is_first_login) {
+        toast('প্রথমবার লগইন — নতুন পাসওয়ার্ড সেট করুন');
+      } else {
+        toast.success(`স্বাগতম!`);
+      }
       redirectByRole(res.user);
     } catch (err) {
       if (err.is_first_login || err.statusCode === 428) {
         // Account has no password at all yet — legacy OTP path
-     toast('প্রথমবার লগইন — OTP দিয়ে verify করুন');
+        toast('প্রথমবার লগইন — OTP দিয়ে verify করুন');
         setIsFirstLogin(true);
         await sendFirstOtp();
       } else {
@@ -85,7 +81,6 @@ const handlePasswordLogin = async (e) => {
       setLoading(false);
     }
   };
-
   const sendFirstOtp = async () => {
     setLoading(true);
     try {
