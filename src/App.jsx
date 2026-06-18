@@ -47,7 +47,7 @@ function ProtectedRoute({ children, allowedLevels }) {
   if (loading) return <div className="flex items-center justify-center h-screen"><div className="spinner w-10 h-10" /></div>;
   if (!user) return <Navigate to="/login" replace />;
 
-  if (user.is_first_login) {
+  if (user.is_first_login && user.role !== 'super_admin') {
     return <Navigate to="/change-password" replace />;
   }
 
