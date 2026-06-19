@@ -20,13 +20,14 @@ export default function LeaveRegister() {
   // Group by employee
   const byEmployee = {};
   data.forEach(row => {
-    if (!byEmployee[row.employee_id]) {
+   if (!byEmployee[row.employee_id]) {
       byEmployee[row.employee_id] = {
         id: row.employee_id,
         name: row.full_name,
         phone: row.phone,
         designation: row.designation,
         department: row.department,
+        joiningDate: row.joining_date,
         leaves: [],
       };
     }
@@ -75,14 +76,23 @@ export default function LeaveRegister() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {selectedEmployee.leaves.map(l => (
-                  <tr key={l.leave_type_id}>
-                    <td className="px-3 py-2">{l.name_bn} ({l.code})</td>
-                    <td className="px-3 py-2">{l.total_days} দিন</td>
-                    <td className="px-3 py-2 text-amber-600">{l.used_days} দিন</td>
-                    <td className="px-3 py-2 font-medium text-green-600">{l.remaining_days} দিন</td>
-                  </tr>
-                ))}
+                {selectedEmployee.leaves.map(l => {
+                  const noJoiningDate = !selectedEmployee.joiningDate;
+                  return (
+                    <tr key={l.leave_type_id}>
+                      <td className="px-3 py-2">{l.name_bn} ({l.code})</td>
+                      {noJoiningDate && l.eligibility_months > 0 ? (
+                        <td colSpan={3} className="px-3 py-2 text-amber-600 text-xs">জয়েনিং ডেট দেওয়া হয়নি — eligibility যাচাই করা যাচ্ছে না</td>
+                      ) : (
+                        <>
+                          <td className="px-3 py-2">{l.total_days} দিন</td>
+                          <td className="px-3 py-2 text-amber-600">{l.used_days} দিন</td>
+                          <td className="px-3 py-2 font-medium text-green-600">{l.remaining_days} দিন</td>
+                        </>
+                      )}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
