@@ -214,7 +214,15 @@ export const attendanceApi = {
   getMyToday: () => api.get('/api/attendance/my/today'),
   getMyHistory: (month, year) => api.get(`/api/attendance/my/history?month=${month}&year=${year}`),
   getMySummary: (month, year) => api.get(`/api/attendance/my/summary?month=${month}&year=${year}`),
-  getAll: (date, employeeId) => api.get(`/api/attendance/all${date ? `?date=${date}` : ''}${employeeId ? `${date ? '&' : '?'}employeeId=${employeeId}` : ''}`),
+getAll: (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.date) query.append('date', params.date);
+    if (params.dateFrom) query.append('dateFrom', params.dateFrom);
+    if (params.dateTo) query.append('dateTo', params.dateTo);
+    if (params.employeeId) query.append('employeeId', params.employeeId);
+    if (params.status) query.append('status', params.status);
+    return api.get(`/api/attendance/all?${query.toString()}`);
+  },
 };
 
 export default api;
