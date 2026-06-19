@@ -14,7 +14,7 @@ const portalNavItems = [
 export default function PortalLayout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const visibleModules = getVisibleModules(user).filter(m => m.key !== 'crm' || user.module_access?.some(a => a.module_key === 'crm'));
+const visibleModules = getVisibleModules(user);
 
   const handleLogout = async () => {
     await logout();
