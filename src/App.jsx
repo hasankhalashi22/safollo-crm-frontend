@@ -20,7 +20,7 @@ import Employees from './pages/hr/Employees';
 import Organogram from './pages/hr/Organogram';
 import LeaveSettings from './pages/hr/LeaveSettings';
 import LeaveRegister from './pages/hr/LeaveRegister';
-
+import AttendanceOverview from './pages/hr/AttendanceOverview';
 
 
 import Login from './pages/Login';
@@ -155,6 +155,8 @@ useNotifications();
 <Route path="/hr/leave-settings" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><HrLayout><LeaveSettings /></HrLayout></ProtectedRoute>} />
 
 <Route path="/hr/leave-register" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><HrLayout><LeaveRegister /></HrLayout></ProtectedRoute>} />
+
+<Route path="/hr/attendance" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><HrLayout><AttendanceOverview /></HrLayout></ProtectedRoute>} />
 
 
 

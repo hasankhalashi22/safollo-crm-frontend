@@ -208,5 +208,13 @@ getRegister: (year) => api.get(`/api/leave/register${year ? `?year=${year}` : ''
 getEmployeeApplications: (employeeId, year) => api.get(`/api/leave/employees/${employeeId}/applications${year ? `?year=${year}` : ''}`),
 };
 
+export const attendanceApi = {
+  checkIn: () => api.post('/api/attendance/check-in'),
+  checkOut: () => api.post('/api/attendance/check-out'),
+  getMyToday: () => api.get('/api/attendance/my/today'),
+  getMyHistory: (month, year) => api.get(`/api/attendance/my/history?month=${month}&year=${year}`),
+  getMySummary: (month, year) => api.get(`/api/attendance/my/summary?month=${month}&year=${year}`),
+  getAll: (date, employeeId) => api.get(`/api/attendance/all${date ? `?date=${date}` : ''}${employeeId ? `${date ? '&' : '?'}employeeId=${employeeId}` : ''}`),
+};
 
 export default api;
