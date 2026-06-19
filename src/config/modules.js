@@ -52,6 +52,7 @@ export const MODULES = [
       { to: '/hr/organogram', icon: Activity, label: 'Organogram' },
       { to: '/hr/leave-settings', icon: BookText, label: 'Leave Settings' },
       { to: '/hr/leave-applications', icon: CheckSquare, label: 'Leave Applications' },
+{ to: '/hr/leave-register', icon: BookText, label: 'Leave Register' },
       { to: '/hr/notices', icon: BookText, label: 'Notice Board' },
     ],
   },
