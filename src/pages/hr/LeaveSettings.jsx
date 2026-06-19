@@ -46,7 +46,7 @@ export default function LeaveSettings() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                {['নাম', 'Code', 'বার্ষিক কোটা', 'Paid?', 'প্রযোজ্য', 'Action'].map(h => (
+               {['নাম', 'Code', 'বার্ষিক কোটা', 'Eligibility', 'Paid?', 'প্রযোজ্য', 'Action'].map(h => (
                   <th key={h} className="text-left px-3 py-2 text-xs font-semibold text-gray-500 uppercase">{h}</th>
                 ))}
               </tr>
@@ -57,6 +57,7 @@ export default function LeaveSettings() {
                   <td className="px-3 py-2">{t.name_bn} <span className="text-gray-400">({t.name})</span></td>
                   <td className="px-3 py-2">{t.code}</td>
                   <td className="px-3 py-2">{t.annual_quota_days} দিন</td>
+                  <td className="px-3 py-2">{t.eligibility_months > 0 ? `${t.eligibility_months} মাস পর` : 'তাৎক্ষণিক'}</td>
                   <td className="px-3 py-2">{t.is_paid ? '✅ Paid' : '❌ Unpaid'}</td>
                   <td className="px-3 py-2">{t.applicable_to === 'full_time' ? 'Full Time' : 'সবার জন্য'}</td>
                   <td className="px-3 py-2">
@@ -124,7 +125,7 @@ function PolicyEditor({ policy, positions, onUpdate }) {
             <label className="block text-sm font-medium mb-1.5">Check (প্রথম ধাপ)</label>
             <select className="input-field" value={checkPos} onChange={e => setCheckPos(e.target.value)}>
               <option value="">-- Position বেছে নিন --</option>
-              {positions.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
+             {positions.map(p => <option key={p.id} value={p.id}>{p.title}{p.department ? ` — ${p.department}` : ''}</option>)}
             </select>
             <p className="text-xs text-gray-400 mt-1">শুধু Forward করতে পারবে</p>
           </div>
@@ -132,7 +133,7 @@ function PolicyEditor({ policy, positions, onUpdate }) {
             <label className="block text-sm font-medium mb-1.5">Consent (পূর্ণ দিবসের জন্য)</label>
             <select className="input-field" value={consentPos} onChange={e => setConsentPos(e.target.value)}>
               <option value="">-- Position বেছে নিন --</option>
-              {positions.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
+              {positions.map(p => <option key={p.id} value={p.id}>{p.title}{p.department ? ` — ${p.department}` : ''}</option>)}
             </select>
             <p className="text-xs text-gray-400 mt-1">Reject বা Forward করতে পারবে</p>
           </div>
@@ -140,7 +141,7 @@ function PolicyEditor({ policy, positions, onUpdate }) {
             <label className="block text-sm font-medium mb-1.5">Approval (চূড়ান্ত)</label>
             <select className="input-field" value={approvalPos} onChange={e => setApprovalPos(e.target.value)}>
               <option value="">-- Position বেছে নিন --</option>
-              {positions.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
+             {positions.map(p => <option key={p.id} value={p.id}>{p.title}{p.department ? ` — ${p.department}` : ''}</option>)}
             </select>
             <p className="text-xs text-gray-400 mt-1">Accept/Reject/Modify করতে পারবে</p>
           </div>
@@ -162,7 +163,7 @@ function PolicyEditor({ policy, positions, onUpdate }) {
 
 function LeaveTypeModal({ leaveType, onClose, onSuccess }) {
   const isEdit = !!leaveType;
-  const [form, setForm] = useState({
+ const [form, setForm] = useState({
     name: leaveType?.name || '',
     name_bn: leaveType?.name_bn || '',
     code: leaveType?.code || '',
@@ -170,6 +171,7 @@ function LeaveTypeModal({ leaveType, onClose, onSuccess }) {
     is_paid: leaveType?.is_paid !== false,
     applicable_to: leaveType?.applicable_to || 'full_time',
     is_active: leaveType?.is_active !== false,
+    eligibility_months: leaveType?.eligibility_months || 0,
   });
   const [loading, setLoading] = useState(false);
 
@@ -213,8 +215,10 @@ function LeaveTypeModal({ leaveType, onClose, onSuccess }) {
             <input type="text" className="input-field" value={form.code} onChange={e => set('code', e.target.value.toUpperCase())} disabled={isEdit} />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1.5">বার্ষিক কোটা (দিন)</label>
-            <input type="number" step="0.5" className="input-field" value={form.annual_quota_days} onChange={e => set('annual_quota_days', e.target.value)} />
+            <label className="block text-sm font-medium mb-1.5">Eligibility (সর্বনিম্ন কর্মকাল, মাসে)</label>
+            <input type="number" className="input-field" value={form.eligibility_months}
+              onChange={e => set('eligibility_months', e.target.value)} placeholder="e.g. 3" />
+            <p className="text-xs text-gray-400 mt-1">জয়েনিং তারিখ থেকে এই কয়েক মাস পার হলেই কর্মী এই ছুটির জন্য যোগ্য হবে (০ = সবসময় যোগ্য)</p>
           </div>
           <div className="flex items-center gap-2">
             <input type="checkbox" checked={form.is_paid} onChange={e => set('is_paid', e.target.checked)} />
