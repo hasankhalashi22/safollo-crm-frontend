@@ -363,10 +363,11 @@ function AddEmployeeModal({ allEmployees, onClose, onSuccess }) {
   const [positions, setPositions] = useState([]);
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({
+const [form, setForm] = useState({
     full_name: '', phone: '', email: '', position_id: '', designation: '', department: '',
     reports_to: '', employment_type: 'full_time', is_remote: false,
     grant_crm_access: false, crm_role_id: '', crm_manager_id: '',
+    grant_basic_login: false,
   });
 
   useEffect(() => {
@@ -390,11 +391,14 @@ function AddEmployeeModal({ allEmployees, onClose, onSuccess }) {
     }
   };
 
-  const handleSubmit = async (e) => {
+ const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.full_name) return toast.error('নাম দিন');
     if (mode === 'new' && form.grant_crm_access && (!form.phone || !form.crm_role_id)) {
       return toast.error('CRM access দেওয়ার জন্য ফোন নম্বর ও Role আবশ্যক');
+    }
+    if (mode === 'new' && form.grant_basic_login && !form.phone) {
+      return toast.error('ESS Portal access দেওয়ার জন্য ফোন নম্বর আবশ্যক');
     }
     setLoading(true);
     try {
@@ -496,6 +500,14 @@ function AddEmployeeModal({ allEmployees, onClose, onSuccess }) {
                   onChange={e => set('grant_crm_access', e.target.checked)} />
                 <label className="text-sm font-medium">CRM Access দিন</label>
               </div>
+
+              {!form.grant_crm_access && (
+                <div className="flex items-center gap-2 mb-3">
+                  <input type="checkbox" checked={form.grant_basic_login}
+                    onChange={e => set('grant_basic_login', e.target.checked)} />
+                  <label className="text-sm font-medium">শুধু ESS Portal Access দিন (CRM ছাড়া)</label>
+                </div>
+              )}
 
               {form.grant_crm_access && (
                 <div className="space-y-3 bg-blue-50 p-3 rounded-xl">
