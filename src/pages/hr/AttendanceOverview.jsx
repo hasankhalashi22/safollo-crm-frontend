@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { attendanceApi, hrApi } from '../../api/client';
 import { format } from 'date-fns';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Download } from 'lucide-react';
+import { exportAccountingPdf } from '../../utils/accountingPdf';
 
 const today = new Date().toISOString().split('T')[0];
 
@@ -33,6 +34,44 @@ export default function AttendanceOverview() {
     setDateTo(today);
     setEmployeeId('');
     setStatus('');
+  };
+
+const handleDownload = () => {
+    const period = dateFrom === dateTo ? format(new Date(dateFrom), 'dd MMMM, yyyy') : `${format(new Date(dateFrom), 'dd MMM yyyy')} – ${format(new Date(dateTo), 'dd MMM yyyy')}`;
+
+    let rows = '';
+    dates.forEach(d => {
+      rows += `<tr><td colspan="6" style="background:#f0fdfa; font-weight:bold; padding:8px;">${format(new Date(d), 'dd MMMM, yyyy')}</td></tr>`;
+      byDate[d].forEach(r => {
+        const statusLabel = !r.check_in_time ? 'অনুপস্থিত' : r.is_late ? 'দেরি' : 'সময়মতো';
+        rows += `
+          <tr>
+            <td>${r.full_name}</td>
+            <td>${r.department || '—'}</td>
+            <td>${r.check_in_time ? format(new Date(r.check_in_time), 'hh:mm a') : '—'}</td>
+            <td>${r.check_out_time ? format(new Date(r.check_out_time), 'hh:mm a') : '—'}</td>
+            <td>${r.working_hours ? `${r.working_hours} ঘণ্টা` : '—'}</td>
+            <td>${statusLabel}</td>
+          </tr>`;
+      });
+    });
+
+    const tableHtml = `
+      <table>
+        <thead>
+          <tr>
+            <th>নাম</th><th>বিভাগ</th><th>Check-in</th><th>Check-out</th><th>কাজের সময়</th><th>স্ট্যাটাস</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+
+    exportAccountingPdf({
+      title: 'Attendance Report',
+      period,
+      tableHtml,
+    });
   };
 
   // Group by date for day-wise display
@@ -81,6 +120,15 @@ export default function AttendanceOverview() {
             <RotateCcw size={14} /> Reset
           </button>
         </div>
+
+        {records.length > 0 && (
+          <div className="flex justify-end mt-3">
+            <button onClick={handleDownload}
+              className="flex items-center gap-1.5 bg-primary-500 text-white px-3 py-2 rounded-xl text-sm font-medium">
+              <Download size={14} /> PDF Report Download
+            </button>
+          </div>
+        )}
       </div>
 
       {loading ? (
