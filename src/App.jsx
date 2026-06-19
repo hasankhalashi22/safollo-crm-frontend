@@ -31,6 +31,7 @@ import PortalLayout from './components/Layout/PortalLayout';
 import PortalHome from './pages/portal/PortalHome';
 import PortalAttendance from './pages/portal/PortalAttendance';
 import PortalLeave from './pages/portal/PortalLeave';
+import PortalApprovals from './pages/portal/PortalApprovals';
 import Accounts from './pages/accounting/Accounts';
 
 import ExecutiveDashboard from './pages/executive/Dashboard';
@@ -101,6 +102,8 @@ useNotifications();
 <Route path="/portal" element={<ProtectedRoute><PortalLayout><PortalHome /></PortalLayout></ProtectedRoute>} />
       <Route path="/portal/attendance" element={<ProtectedRoute><PortalLayout><PortalAttendance /></PortalLayout></ProtectedRoute>} />
       <Route path="/portal/leave" element={<ProtectedRoute><PortalLayout><PortalLeave /></PortalLayout></ProtectedRoute>} />
+
+<Route path="/portal/approvals" element={<ProtectedRoute><PortalLayout><PortalApprovals /></PortalLayout></ProtectedRoute>} />
 
 <Route path="/change-password" element={<ForceChangePassword />} />
 

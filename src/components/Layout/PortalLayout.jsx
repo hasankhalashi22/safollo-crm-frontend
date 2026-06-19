@@ -1,13 +1,13 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { getVisibleModules } from '../../config/modules';
-import { Home, Calendar, Clock, User, LogOut, Bell } from 'lucide-react';
+import { Home, Calendar, Clock, User, LogOut, Bell, CheckSquare } from 'lucide-react';
 
 const portalNavItems = [
   { to: '/portal', icon: Home, label: 'Home', end: true },
   { to: '/portal/attendance', icon: Clock, label: 'Attendance' },
   { to: '/portal/leave', icon: Calendar, label: 'Leave' },
-  { to: '/portal/notices', icon: Bell, label: 'Notice Board' },
+  { to: '/portal/approvals', icon: CheckSquare, label: 'Approvals' },
   { to: '/portal/profile', icon: User, label: 'Profile' },
 ];
 
