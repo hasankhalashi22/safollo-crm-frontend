@@ -59,9 +59,10 @@ function ProtectedRoute({ children, allowedLevels, moduleKey }) {
   }
 
   // Module-based access: super_admin always passes; otherwise check hr_employee_module_access
-  if (moduleKey && user.role !== 'super_admin') {
+ if (moduleKey && user.role !== 'super_admin') {
     const hasModuleAccess = (user.module_access || []).some(a => a.module_key === moduleKey);
     if (!hasModuleAccess) {
+      if (user.role === 'employee') return <Navigate to="/portal" replace />;
       if (user.role === 'manager') return <Navigate to="/manager" replace />;
       if (user.role_level <= 2) return <Navigate to="/admin" replace />;
       return <Navigate to="/executive" replace />;
@@ -69,7 +70,8 @@ function ProtectedRoute({ children, allowedLevels, moduleKey }) {
     return children;
   }
 
-  if (allowedLevels && !allowedLevels.includes(user.role_level)) {
+ if (allowedLevels && !allowedLevels.includes(user.role_level)) {
+    if (user.role === 'employee') return <Navigate to="/portal" replace />;
     if (user.role === 'manager') return <Navigate to="/manager" replace />;
     if (user.role_level <= 2) return <Navigate to="/admin" replace />;
     return <Navigate to="/executive" replace />;
@@ -85,6 +87,7 @@ useNotifications();
   return (
     <Routes>
       <Route path="/login" element={user ? <Navigate to={
+        user.role === 'employee' ? '/portal' :
         user.role === 'manager' ? '/manager' :
         user.role_level <= 2 ? '/admin' : '/executive'
       } /> : <Login />} />

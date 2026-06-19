@@ -159,8 +159,9 @@ const handleForceChangePassword = async (e) => {
     }
   };
 
-  const redirectByRole = (user) => {
-    if (user.role === 'manager') navigate('/manager');
+const redirectByRole = (user) => {
+    if (user.role === 'employee') navigate('/portal');
+    else if (user.role === 'manager') navigate('/manager');
     else if (user.role_level <= 2) navigate('/admin');
     else navigate('/executive');
   };
