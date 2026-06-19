@@ -205,6 +205,7 @@ export const leaveApi = {
   getEmployeeBalances: (employeeId, year) => api.get(`/api/leave/employees/${employeeId}/balances${year ? `?year=${year}` : ''}`),
   processApplication: (id, data) => api.patch(`/api/leave/applications/${id}/process`, data),
 getRegister: (year) => api.get(`/api/leave/register${year ? `?year=${year}` : ''}`),
+getEmployeeApplications: (employeeId, year) => api.get(`/api/leave/employees/${employeeId}/applications${year ? `?year=${year}` : ''}`),
 };
 
 
