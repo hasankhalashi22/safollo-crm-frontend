@@ -46,10 +46,12 @@ export const MODULES = [
       { key: 'viewer', label: 'Viewer (দেখতে পারবে)' },
       { key: 'hr_manager', label: 'HR Manager (সম্পূর্ণ নিয়ন্ত্রণ)' },
     ],
-    sidebar: [
+   sidebar: [
       { to: '/hr', icon: BarChart2, label: 'Dashboard', end: true },
       { to: '/hr/employees', icon: Users, label: 'Employee Directory' },
       { to: '/hr/organogram', icon: Activity, label: 'Organogram' },
+      { to: '/hr/leave-settings', icon: BookText, label: 'Leave Settings' },
+      { to: '/hr/leave-applications', icon: CheckSquare, label: 'Leave Applications' },
       { to: '/hr/notices', icon: BookText, label: 'Notice Board' },
     ],
   },

@@ -192,6 +192,19 @@ getEmployeeModuleAccess: (id) => api.get(`/api/hr/employees/${id}/module-access`
 setEmployeeModuleAccess: (id, access) => api.put(`/api/hr/employees/${id}/module-access`, { access }),
 };
 
+export const leaveApi = {
+  getTypes: () => api.get('/api/leave/types'),
+  createType: (data) => api.post('/api/leave/types', data),
+  updateType: (id, data) => api.patch(`/api/leave/types/${id}`, data),
+  getPolicy: () => api.get('/api/leave/policy'),
+  updatePolicy: (data) => api.patch('/api/leave/policy', data),
+  getMyBalances: (year) => api.get(`/api/leave/my/balances${year ? `?year=${year}` : ''}`),
+  getMyApplications: (year) => api.get(`/api/leave/my/applications${year ? `?year=${year}` : ''}`),
+  applyLeave: (data) => api.post('/api/leave/my/apply', data),
+  getAllApplications: (status) => api.get(`/api/leave/applications${status ? `?status=${status}` : ''}`),
+  getEmployeeBalances: (employeeId, year) => api.get(`/api/leave/employees/${employeeId}/balances${year ? `?year=${year}` : ''}`),
+  processApplication: (id, data) => api.patch(`/api/leave/applications/${id}/process`, data),
+};
 
 
 export default api;
