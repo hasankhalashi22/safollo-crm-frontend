@@ -121,14 +121,12 @@ const handleDownload = () => {
           </button>
         </div>
 
-        {records.length > 0 && (
-          <div className="flex justify-end mt-3">
-            <button onClick={handleDownload}
-              className="flex items-center gap-1.5 bg-primary-500 text-white px-3 py-2 rounded-xl text-sm font-medium">
-              <Download size={14} /> PDF Report Download
-            </button>
-          </div>
-        )}
+        <div className="flex justify-end mt-3">
+          <button onClick={handleDownload} disabled={records.length === 0}
+            className="flex items-center gap-1.5 bg-primary-500 text-white px-3 py-2 rounded-xl text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed">
+            <Download size={14} /> PDF Report Download
+          </button>
+        </div>
       </div>
 
       {loading ? (
