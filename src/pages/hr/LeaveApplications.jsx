@@ -27,16 +27,21 @@ export default function LeaveApplications() {
 
   if (loading) return <div className="flex justify-center py-12"><div className="spinner w-8 h-8" /></div>;
 
-  const stageLabel = (status) => {
+  const stageLabel = (app) => {
     const map = {
-      pending_check: 'Pending (Check)',
-      pending_consent: 'Pending (Consent)',
-      pending_approval: 'Pending (Approval)',
+      pending_check: 'Check',
+      pending_consent: 'Consent',
+      pending_approval: 'Approval',
       approved: 'Approved',
       rejected: 'Rejected',
     };
-    return map[status] || status;
+    const base = map[app.status] || app.status;
+    if (app.status.startsWith('pending_') && app.pending_with) {
+      return `${base} — ${app.pending_with}-এর কাছে`;
+    }
+    return base;
   };
+
 
   const statusColor = (status) => {
     if (status === 'approved') return 'bg-green-50 text-green-600';
@@ -80,7 +85,7 @@ export default function LeaveApplications() {
                     <td className="px-4 py-3 whitespace-nowrap">{format(new Date(app.end_date), 'dd/MM/yyyy')}</td>
                     <td className="px-4 py-3">{app.duration_days} দিন</td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${statusColor(app.status)}`}>{stageLabel(app.status)}</span>
+                     <span className={`text-xs px-2 py-0.5 rounded-full ${statusColor(app.status)}`}>{stageLabel(app)}</span>
                     </td>
                     <td className="px-4 py-3">
                       {canActOn(app) ? (
@@ -124,7 +129,7 @@ export default function LeaveApplications() {
                     <td className="px-4 py-3 whitespace-nowrap">{format(new Date(app.end_date), 'dd/MM/yyyy')}</td>
                     <td className="px-4 py-3">{app.modified_duration_days || app.duration_days} দিন</td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${statusColor(app.status)}`}>{stageLabel(app.status)}</span>
+                     <span className={`text-xs px-2 py-0.5 rounded-full ${statusColor(app.status)}`}>{stageLabel(app)}</span>
                     </td>
                     <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{format(new Date(app.created_at), 'dd/MM/yyyy')}</td>
                   </tr>
@@ -180,6 +185,14 @@ function ActionModal({ application, onClose, onSuccess }) {
           <p><span className="text-gray-500">সময়কাল:</span> {application.duration_days} দিন</p>
           {application.reason && <p><span className="text-gray-500">কারণ:</span> {application.reason}</p>}
         </div>
+
+        {(application.check_note || application.consent_note) && (
+          <div className="text-sm space-y-2 mb-4 bg-blue-50 rounded-xl p-3">
+            <p className="text-xs font-semibold text-blue-700">পূর্ববর্তী মন্তব্য:</p>
+            {application.check_note && <p className="text-xs"><span className="text-gray-500">Check:</span> {application.check_note}</p>}
+            {application.consent_note && <p className="text-xs"><span className="text-gray-500">Consent ({application.consent_action === 'reject' ? 'Reject' : 'Forward'}):</span> {application.consent_note}</p>}
+          </div>
+        )}
 
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1.5">মন্তব্য (ঐচ্ছিক)</label>
