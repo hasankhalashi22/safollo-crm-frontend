@@ -5,28 +5,17 @@ import { useState, useEffect } from 'react';
 import { Home, Calendar, Clock, User, LogOut, Bell, CheckSquare } from 'lucide-react';
 import { leaveApi } from '../../api/client';
 
-const baseNavItems = [
+const portalNavItems = [
   { to: '/portal', icon: Home, label: 'Home', end: true },
   { to: '/portal/attendance', icon: Clock, label: 'Attendance' },
   { to: '/portal/leave', icon: Calendar, label: 'Leave' },
   { to: '/portal/profile', icon: User, label: 'Profile' },
 ];
 
-const approvalsNavItem = { to: '/portal/approvals', icon: CheckSquare, label: 'Approvals' };
-
 export default function PortalLayout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const visibleModules = getVisibleModules(user);
-  const [isApprover, setIsApprover] = useState(false);
-
-  useEffect(() => {
-    leaveApi.checkIsApprover().then(r => setIsApprover(r.data?.is_approver || false)).catch(() => setIsApprover(false));
-  }, []);
-
-  const portalNavItems = isApprover
-    ? [...baseNavItems.slice(0, 3), approvalsNavItem, baseNavItems[3]]
-    : baseNavItems;
 
   const handleLogout = async () => {
     await logout();
