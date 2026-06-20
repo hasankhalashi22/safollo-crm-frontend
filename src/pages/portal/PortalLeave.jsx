@@ -99,7 +99,7 @@ function ApplyLeaveModal({ balances, onClose, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!leaveTypeId || !startDate || !endDate) return toast.error('সব তথ্য দিন');
+   if (!leaveTypeId || !startDate || (!isHalfDay && !endDate)) return toast.error('সব তথ্য দিন');
     setLoading(true);
     try {
       await leaveApi.applyLeave({
