@@ -207,6 +207,7 @@ export const leaveApi = {
 getMyApprovalQueue: () => api.get('/api/leave/my/approval-queue'),
 getRegister: (year) => api.get(`/api/leave/register${year ? `?year=${year}` : ''}`),
 getEmployeeApplications: (employeeId, year) => api.get(`/api/leave/employees/${employeeId}/applications${year ? `?year=${year}` : ''}`),
+checkIsApprover: () => api.get('/api/leave/my/is-approver'),
 };
 
 export const attendanceApi = {
