@@ -204,6 +204,7 @@ export const leaveApi = {
   getAllApplications: (status) => api.get(`/api/leave/applications${status ? `?status=${status}` : ''}`),
   getEmployeeBalances: (employeeId, year) => api.get(`/api/leave/employees/${employeeId}/balances${year ? `?year=${year}` : ''}`),
   processApplication: (id, data) => api.patch(`/api/leave/applications/${id}/process`, data),
+getMyApprovalQueue: () => api.get('/api/leave/my/approval-queue'),
 getRegister: (year) => api.get(`/api/leave/register${year ? `?year=${year}` : ''}`),
 getEmployeeApplications: (employeeId, year) => api.get(`/api/leave/employees/${employeeId}/applications${year ? `?year=${year}` : ''}`),
 };
