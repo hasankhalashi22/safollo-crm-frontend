@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { Home, Plus, Clock, User, BarChart2, Users, BookOpen, Settings, LogOut, TrendingUp, Shield, Menu, X, Activity, CheckSquare, Wallet, FileText, BookText, Landmark, CreditCard } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { MODULES, getModuleForPath, getVisibleModules } from '../../config/modules';
-
+import { leaveApi } from '../../api/client';
 
 function TopModuleBar() {
   const { user } = useAuth();
@@ -311,6 +311,11 @@ export function HrLayout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [pendingLeaveCount, setPendingLeaveCount] = useState(0);
+
+  useEffect(() => {
+    leaveApi.getMyApprovalQueue().then(r => setPendingLeaveCount((r.data || []).length)).catch(() => setPendingLeaveCount(0));
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -335,8 +340,13 @@ const navItems = MODULES.find(m => m.key === 'hr').sidebar;
               `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
                ${isActive ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'}`
             }>
-            <Icon size={18} />
-            {label}
+           <Icon size={18} />
+            <span className="flex-1">{label}</span>
+            {to === '/hr/leave-applications' && pendingLeaveCount > 0 && (
+              <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                {pendingLeaveCount}
+              </span>
+            )}
           </NavLink>
         ))}
       </nav>
