@@ -160,7 +160,19 @@ const handleDownload = () => {
                           {r.check_out_time ? format(new Date(r.check_out_time), 'hh:mm a') : '—'}
                           {r.is_early_leave && <span className="text-xs text-amber-500 ml-1">({r.early_by_minutes} মিনিট আগে)</span>}
                         </td>
-                        <td className="px-3 py-2">{r.working_hours ? `${r.working_hours} ঘণ্টা` : '—'}</td>
+                        <td className="px-3 py-2">
+                          {r.working_hours ? `${r.working_hours} ঘণ্টা` : '—'}
+                          {r.breaks && r.breaks.length > 0 && (
+                            <div className="mt-1 space-y-0.5">
+                              {r.breaks.map(b => (
+                                <p key={b.id} className="text-[10px] text-gray-400">
+                                  {b.break_name}: {b.duration_minutes ? `${b.duration_minutes} মিনিট` : 'চলমান'}
+                                  {b.excess_minutes > 0 && <span className="text-red-500"> (+{b.excess_minutes})</span>}
+                                </p>
+                              ))}
+                            </div>
+                          )}
+                        </td>
                         <td className="px-3 py-2">
                           {!r.check_in_time ? (
                             <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-400">অনুপস্থিত</span>
