@@ -23,6 +23,8 @@ import LeaveApplications from './pages/hr/LeaveApplications';
 import LeaveRegister from './pages/hr/LeaveRegister';
 import AttendanceOverview from './pages/hr/AttendanceOverview';
 import AttendanceSettings from './pages/hr/AttendanceSettings';
+import Payroll from './pages/hr/Payroll';
+import PayrollSettings from './pages/hr/PayrollSettings';
 
 
 import Login from './pages/Login';
@@ -176,6 +178,9 @@ useNotifications();
 
 <Route path="/hr/attendance-settings" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><HrLayout><AttendanceSettings /></HrLayout></ProtectedRoute>} />
 
+<Route path="/hr/payroll" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><HrLayout><Payroll /></HrLayout></ProtectedRoute>} />
+
+<Route path="/hr/payroll-settings" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><HrLayout><PayrollSettings /></HrLayout></ProtectedRoute>} />
 
 
       <Route path="/" element={<Navigate to="/login" replace />} />

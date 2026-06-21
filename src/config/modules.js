@@ -1,4 +1,4 @@
-import { BarChart2, Wallet, FileText, BookText, Landmark, CreditCard, TrendingUp, Users, Activity, CheckSquare, Plus, Clock, Shield, BookOpen, Settings, User } from 'lucide-react';
+import { BarChart2, Wallet, FileText, BookText, Landmark, CreditCard, TrendingUp, Users, Activity, CheckSquare, Plus, Clock, Shield, BookOpen, Settings, User, DollarSign } from 'lucide-react';
 
 // Central registry of all modules in the system.
 // Adding a new module = adding one entry here (plus its pages/routes).
@@ -54,7 +54,9 @@ export const MODULES = [
       { to: '/hr/leave-applications', icon: CheckSquare, label: 'Leave Applications' },
 { to: '/hr/leave-register', icon: BookText, label: 'Leave Register' },
 { to: '/hr/attendance-settings', icon: Settings, label: 'Attendance Settings' },
-{ to: '/hr/attendance', icon: Clock, label: 'Attendance' },
+{ to: '/hr/attendance', icon: Clock, label: 'Attendance Overview' },
+{ to: '/hr/payroll', icon: DollarSign, label: 'Payroll' },
+{ to: '/hr/payroll-settings', icon: Settings, label: 'Payroll Settings' },
       { to: '/hr/notices', icon: BookText, label: 'Notice Board' },
     ],
   },
