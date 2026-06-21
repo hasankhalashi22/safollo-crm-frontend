@@ -94,12 +94,15 @@ function ApplyLeaveModal({ balances, onClose, onSuccess }) {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [isHalfDay, setIsHalfDay] = useState(false);
+const [halfDayFrom, setHalfDayFrom] = useState('');
+  const [halfDayTo, setHalfDayTo] = useState('');
   const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-   if (!leaveTypeId || !startDate || (!isHalfDay && !endDate)) return toast.error('সব তথ্য দিন');
+    if (!leaveTypeId || !startDate || (!isHalfDay && !endDate)) return toast.error('সব তথ্য দিন');
+    if (isHalfDay && (!halfDayFrom || !halfDayTo)) return toast.error('কয়টা থেকে কয়টা বাইরে থাকবেন তা দিন');
     setLoading(true);
     try {
       await leaveApi.applyLeave({
@@ -107,6 +110,8 @@ function ApplyLeaveModal({ balances, onClose, onSuccess }) {
         start_date: startDate,
         end_date: isHalfDay ? startDate : endDate,
         is_half_day: isHalfDay,
+        half_day_from: isHalfDay ? halfDayFrom : null,
+        half_day_to: isHalfDay ? halfDayTo : null,
         reason,
       });
       toast.success('আবেদন জমা হয়েছে ✅');
@@ -138,6 +143,19 @@ function ApplyLeaveModal({ balances, onClose, onSuccess }) {
             <input type="checkbox" checked={isHalfDay} onChange={e => setIsHalfDay(e.target.checked)} />
             <label className="text-sm">অর্ধ দিবস</label>
           </div>
+
+          {isHalfDay && (
+            <div className="grid grid-cols-2 gap-3 bg-amber-50 p-3 rounded-xl">
+              <div>
+                <label className="block text-xs font-medium mb-1.5">কয়টা থেকে</label>
+                <input type="time" className="input-field" value={halfDayFrom} onChange={e => setHalfDayFrom(e.target.value)} />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1.5">কয়টা পর্যন্ত</label>
+                <input type="time" className="input-field" value={halfDayTo} onChange={e => setHalfDayTo(e.target.value)} />
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium mb-1.5">শুরুর তারিখ *</label>

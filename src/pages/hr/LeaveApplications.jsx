@@ -182,7 +182,11 @@ function ActionModal({ application, onClose, onSuccess }) {
         <div className="text-sm space-y-1 mb-4 bg-gray-50 rounded-xl p-3">
           <p><span className="text-gray-500">ধরন:</span> {application.leave_type_name_bn}</p>
           <p><span className="text-gray-500">তারিখ:</span> {format(new Date(application.start_date), 'dd MMM')} – {format(new Date(application.end_date), 'dd MMM, yyyy')}</p>
-          <p><span className="text-gray-500">সময়কাল:</span> {application.duration_days} দিন</p>
+          {application.is_half_day && application.half_day_from && application.half_day_to ? (
+            <p><span className="text-gray-500">সময়কাল:</span> অর্ধ দিবস ({application.half_day_from.slice(0,5)} – {application.half_day_to.slice(0,5)})</p>
+          ) : (
+            <p><span className="text-gray-500">সময়কাল:</span> {application.duration_days} দিন</p>
+          )}
           {application.reason && <p><span className="text-gray-500">কারণ:</span> {application.reason}</p>}
         </div>
 
