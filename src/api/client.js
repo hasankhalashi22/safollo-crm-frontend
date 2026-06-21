@@ -211,20 +211,44 @@ checkIsApprover: () => api.get('/api/leave/my/is-approver'),
 };
 
 export const attendanceApi = {
+  getPolicy: () => api.get('/api/attendance/policy'),
+  updatePolicy: (data) => api.patch('/api/attendance/policy', data),
+  getBreakTypes: () => api.get('/api/attendance/break-types'),
+  updateBreakType: (id, data) => api.patch(`/api/attendance/break-types/${id}`, data),
   checkIn: () => api.post('/api/attendance/check-in'),
+  breakOut: (breakTypeId) => api.post('/api/attendance/break-out', { break_type_id: breakTypeId }),
+  breakIn: (breakId) => api.patch(`/api/attendance/break-in/${breakId}`),
   checkOut: () => api.post('/api/attendance/check-out'),
   getMyToday: () => api.get('/api/attendance/my/today'),
   getMyHistory: (month, year) => api.get(`/api/attendance/my/history?month=${month}&year=${year}`),
   getMySummary: (month, year) => api.get(`/api/attendance/my/summary?month=${month}&year=${year}`),
-getAll: (params = {}) => {
-    const query = new URLSearchParams();
-    if (params.date) query.append('date', params.date);
-    if (params.dateFrom) query.append('dateFrom', params.dateFrom);
-    if (params.dateTo) query.append('dateTo', params.dateTo);
-    if (params.employeeId) query.append('employeeId', params.employeeId);
-    if (params.status) query.append('status', params.status);
-    return api.get(`/api/attendance/all?${query.toString()}`);
+  requestWaiver: (data) => api.post('/api/attendance/waivers', data),
+  getWaivers: (status) => api.get(`/api/attendance/waivers${status ? `?status=${status}` : ''}`),
+  decideWaiver: (id, decision) => api.patch(`/api/attendance/waivers/${id}/decide`, { decision }),
+  getAll: (params = {}) => {
+    const q = new URLSearchParams();
+    if (params.date) q.append('date', params.date);
+    if (params.dateFrom) q.append('dateFrom', params.dateFrom);
+    if (params.dateTo) q.append('dateTo', params.dateTo);
+    if (params.employeeId) q.append('employeeId', params.employeeId);
+    if (params.status) q.append('status', params.status);
+    return api.get(`/api/attendance/all?${q.toString()}`);
   },
+};
+export const payrollApi = {
+  getEmployeeComponents: (employeeId) => api.get(`/api/payroll/employees/${employeeId}/components`),
+  addComponent: (employeeId, data) => api.post(`/api/payroll/employees/${employeeId}/components`, data),
+  removeComponent: (id) => api.delete(`/api/payroll/components/${id}`),
+  getSettings: () => api.get('/api/payroll/settings'),
+  updateSettings: (data) => api.patch('/api/payroll/settings', data),
+  prepareMonth: (month, year) => api.post('/api/payroll/prepare', { month, year }),
+  updateDraftRun: (id, data) => api.patch(`/api/payroll/runs/${id}`, data),
+  finalizeRun: (id) => api.patch(`/api/payroll/runs/${id}/finalize`),
+  finalizeAllDrafts: (month, year) => api.post('/api/payroll/finalize-all', { month, year }),
+  recordPayment: (id, data) => api.post(`/api/payroll/runs/${id}/payments`, data),
+  getPayments: (id) => api.get(`/api/payroll/runs/${id}/payments`),
+  closeMonth: (month, year) => api.post('/api/payroll/close', { month, year }),
+  getPayrollRuns: (month, year) => api.get(`/api/payroll/runs?month=${month}&year=${year}`),
 };
 
 export default api;
