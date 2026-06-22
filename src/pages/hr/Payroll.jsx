@@ -40,6 +40,16 @@ export default function Payroll() {
     } finally { setPreparing(false); }
   };
 
+const handleRecalculate = async (id) => {
+    try {
+      await payrollApi.recalculateRun(id);
+      toast.success('Recalculate হয়েছে ✅');
+      fetchRuns();
+    } catch (err) {
+      toast.error(err.message || 'সমস্যা হয়েছে');
+    }
+  };
+
   const handleFinalizeAll = async () => {
     if (!confirm('সব draft payroll finalize করতে চান?')) return;
     try {
@@ -235,11 +245,19 @@ export default function Payroll() {
                     <td className="px-3 py-3 whitespace-nowrap">{statusBadge(run.status)}</td>
                     <td className="px-3 py-3 whitespace-nowrap">
                       <div className="flex gap-1">
-                        {run.status === 'draft' && (
-                          <button onClick={() => setEditModal(run)} className="p-1.5 bg-primary-50 text-primary-600 rounded-lg">
-                            <Edit2 size={14} />
-                          </button>
+                      {run.status === 'draft' && (
+                          <>
+                            <button onClick={() => handleRecalculate(run.id)} title="Recalculate"
+                              className="p-1.5 bg-amber-50 text-amber-600 rounded-lg">
+                              ↻
+                            </button>
+                            <button onClick={() => setEditModal(run)} title="Edit"
+                              className="p-1.5 bg-primary-50 text-primary-600 rounded-lg">
+                              <Edit2 size={14} />
+                            </button>
+                          </>
                         )}
+
                         {(run.status === 'finalized' || run.status === 'closed') && (
                           <button onClick={() => setPaymentModal(run)} className="p-1.5 bg-green-50 text-green-600 rounded-lg">
                             <DollarSign size={14} />
