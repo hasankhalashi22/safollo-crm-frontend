@@ -273,11 +273,9 @@ const handleRecalculate = async (id) => {
                           </>
                         )}
 
-                        {(run.status === 'finalized' || run.status === 'closed') && (
-                          <button onClick={() => setPaymentModal(run)} className="p-1.5 bg-green-50 text-green-600 rounded-lg">
+                        <button onClick={() => setPaymentModal(run)} className="p-1.5 bg-green-50 text-green-600 rounded-lg">
                             <DollarSign size={14} />
                           </button>
-                        )}
                       </div>
                     </td>
                   </tr>
