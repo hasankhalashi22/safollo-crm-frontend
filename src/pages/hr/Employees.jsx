@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import { hrApi, usersApi, authApi } from '../../api/client';
+import { hrApi, usersApi, leaveApi, payrollApi, authApi } from '../../api/client';
 import { MODULES } from '../../config/modules';
 import toast from 'react-hot-toast';
 import { Edit2, User, Plus, Eye, Download, Key } from 'lucide-react';
 import { format } from 'date-fns';
-
 
 export default function Employees() {
   const [employees, setEmployees] = useState([]);
@@ -22,7 +21,8 @@ export default function Employees() {
   };
 
   useEffect(() => { fetchEmployees(); }, []);
-const handleResetPassword = async (emp) => {
+
+  const handleResetPassword = async (emp) => {
     if (!confirm(`${emp.full_name}-এর পাসওয়ার্ড রিসেট করবেন?`)) return;
     try {
       await authApi.resetPassword(emp.user_id);
@@ -49,7 +49,7 @@ const handleResetPassword = async (emp) => {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-               {['Name', 'Designation', 'Department', 'Reports To', 'Type', 'Module Access', 'Status', 'Action'].map(h => (
+                {['Name', 'Designation', 'Department', 'Reports To', 'Type', 'Module Access', 'Status', 'Action'].map(h => (
                   <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -59,7 +59,7 @@ const handleResetPassword = async (emp) => {
                 <tr><td colSpan={8} className="text-center py-12 text-gray-400">No employees found</td></tr>
               ) : employees.map(emp => (
                 <tr key={emp.id} className="hover:bg-gray-50">
-              <td className="px-4 py-3">
+                  <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center flex-shrink-0">
                         <User size={16} />
@@ -76,7 +76,7 @@ const handleResetPassword = async (emp) => {
                   <td className="px-4 py-3 text-gray-500">
                     {emp.is_remote ? 'Remote' : 'On-site'} {emp.employment_type ? `(${emp.employment_type})` : ''}
                   </td>
-                 <td className="px-4 py-3">
+                  <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-1">
                       {emp.crm_phone && (
                         <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">CRM: {emp.crm_role_label || 'User'}</span>
@@ -129,15 +129,13 @@ const handleResetPassword = async (emp) => {
           onSuccess={() => { setEditModal(null); fetchEmployees(); }}
         />
       )}
-
-     {addModal && (
+      {addModal && (
         <AddEmployeeModal
           allEmployees={employees}
           onClose={() => setAddModal(false)}
           onSuccess={() => { setAddModal(false); fetchEmployees(); }}
         />
       )}
-
       {viewModal && (
         <EmployeeViewModal
           employee={viewModal}
@@ -159,17 +157,13 @@ function EmployeeViewModal({ employee, onClose }) {
       cvWindow.document.write(cvHtml);
       cvWindow.document.close();
       cvWindow.focus();
-      setTimeout(() => {
-        cvWindow.print();
-        setGeneratingPdf(false);
-      }, 500);
+      setTimeout(() => { cvWindow.print(); setGeneratingPdf(false); }, 500);
     } catch (err) {
       toast.error('CV তৈরি হয়নি');
       setGeneratingPdf(false);
     }
   };
 
- 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -189,16 +183,15 @@ function EmployeeViewModal({ employee, onClose }) {
                 <p className="text-primary-200 text-sm">{employee?.phone}</p>
               </div>
             </div>
-           <div className="flex gap-2">
+            <div className="flex gap-2">
               <button onClick={handleDownloadCV} disabled={generatingPdf}
-                className="flex items-center gap-1.5 bg-white text-primary-600 px-3 py-1.5 rounded-xl text-sm font-medium active:scale-95">
+                className="flex items-center gap-1.5 bg-white text-primary-600 px-3 py-1.5 rounded-xl text-sm font-medium">
                 <Download size={16} /> CV Download
               </button>
               <button onClick={onClose} className="p-1.5 bg-primary-400 rounded-full">✕</button>
             </div>
           </div>
         </div>
-
         <div className="p-5 space-y-4">
           <ViewSection title="ব্যক্তিগত তথ্য">
             <ViewRow label="পিতার নাম" value={employee?.father_name} />
@@ -207,19 +200,16 @@ function EmployeeViewModal({ employee, onClose }) {
             <ViewRow label="রক্তের গ্রুপ" value={employee?.blood_group} />
             <ViewRow label="লিঙ্গ" value={employee?.gender === 'male' ? 'পুরুষ' : employee?.gender === 'female' ? 'মহিলা' : employee?.gender} />
           </ViewSection>
-
           <ViewSection title="যোগাযোগ">
             <ViewRow label="মোবাইল" value={employee?.phone} />
             <ViewRow label="ইমেইল" value={employee?.email} />
             <ViewRow label="অভিভাবকের মোবাইল" value={employee?.guardian_mobile} />
             <ViewRow label="অভিভাবকের সম্পর্ক" value={employee?.guardian_relation} />
           </ViewSection>
-
           <ViewSection title="ঠিকানা">
             <ViewRow label="বর্তমান ঠিকানা" value={employee?.present_address} />
             <ViewRow label="স্থায়ী ঠিকানা" value={employee?.permanent_address} />
           </ViewSection>
-
           <ViewSection title="শিক্ষা ও পরিচয়">
             <ViewRow label="শিক্ষার স্তর" value={employee?.education_level} />
             <ViewRow label="বিস্তারিত" value={employee?.education_details} />
@@ -231,7 +221,6 @@ function EmployeeViewModal({ employee, onClose }) {
               </div>
             )}
           </ViewSection>
-
           <ViewSection title="চাকরির তথ্য">
             <ViewRow label="পদ" value={employee?.designation || employee?.position_title} />
             <ViewRow label="বিভাগ" value={employee?.department} />
@@ -288,19 +277,13 @@ function generateCVHtml(employee) {
     .label { color: #666; }
     .value { font-weight: 500; text-align: right; max-width: 60%; }
     .footer { text-align: center; margin-top: 40px; padding-top: 16px; border-top: 1px solid #eee; color: #999; font-size: 12px; }
-    @media print {
-      body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-      .page { padding: 20px; }
-    }
+    @media print { body { print-color-adjust: exact; -webkit-print-color-adjust: exact; } .page { padding: 20px; } }
   </style>
 </head>
 <body>
 <div class="page">
   <div class="header">
-    ${employee?.photo_url
-      ? `<img src="${employee.photo_url}" class="photo" alt="photo">`
-      : `<div class="photo-placeholder">${(employee?.full_name || '?')[0]}</div>`
-    }
+    ${employee?.photo_url ? `<img src="${employee.photo_url}" class="photo" alt="photo">` : `<div class="photo-placeholder">${(employee?.full_name || '?')[0]}</div>`}
     <div class="header-info">
       <h1>${employee?.full_name || '—'}</h1>
       <p>${employee?.designation || employee?.position_title || ''}</p>
@@ -343,9 +326,7 @@ function generateCVHtml(employee) {
     ${cvRow('বিভাগ', employee?.department)}
     ${cvRow('রিপোর্ট করে', employee?.reports_to_name)}
   </div>
-  <div class="footer">
-    সাফল্য একাডেমি — সফলতার অগ্রণী | Generated: ${new Date().toLocaleDateString('bn-BD')}
-  </div>
+  <div class="footer">সাফল্য একাডেমি — সফলতার অগ্রণী | Generated: ${new Date().toLocaleDateString('bn-BD')}</div>
 </div>
 </body>
 </html>`;
@@ -363,7 +344,7 @@ function AddEmployeeModal({ allEmployees, onClose, onSuccess }) {
   const [positions, setPositions] = useState([]);
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(false);
-const [form, setForm] = useState({
+  const [form, setForm] = useState({
     full_name: '', phone: '', email: '', position_id: '', designation: '', department: '',
     reports_to: '', employment_type: 'full_time', is_remote: false,
     grant_crm_access: false, crm_role_id: '', crm_manager_id: '',
@@ -386,20 +367,14 @@ const [form, setForm] = useState({
   const handleImportSelect = (userId) => {
     setSelectedUserId(userId);
     const u = unlinkedUsers.find(x => x.id === userId);
-    if (u) {
-      setForm(p => ({ ...p, full_name: u.full_name || '', phone: u.phone || '' }));
-    }
+    if (u) setForm(p => ({ ...p, full_name: u.full_name || '', phone: u.phone || '' }));
   };
 
- const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.full_name) return toast.error('নাম দিন');
-    if (mode === 'new' && form.grant_crm_access && (!form.phone || !form.crm_role_id)) {
-      return toast.error('CRM access দেওয়ার জন্য ফোন নম্বর ও Role আবশ্যক');
-    }
-    if (mode === 'new' && form.grant_basic_login && !form.phone) {
-      return toast.error('ESS Portal access দেওয়ার জন্য ফোন নম্বর আবশ্যক');
-    }
+    if (mode === 'new' && form.grant_crm_access && (!form.phone || !form.crm_role_id)) return toast.error('CRM access দেওয়ার জন্য ফোন নম্বর ও Role আবশ্যক');
+    if (mode === 'new' && form.grant_basic_login && !form.phone) return toast.error('ESS Portal access দেওয়ার জন্য ফোন নম্বর আবশ্যক');
     setLoading(true);
     try {
       const payload = { ...form };
@@ -419,7 +394,6 @@ const [form, setForm] = useState({
           <h3 className="font-bold text-lg">Add Employee</h3>
           <button onClick={onClose} className="p-1.5 bg-gray-100 rounded-full">✕</button>
         </div>
-
         <div className="flex gap-2 mb-4">
           <button onClick={() => setMode('new')}
             className={`flex-1 py-2 rounded-xl text-sm font-medium ${mode === 'new' ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-600'}`}>
@@ -430,111 +404,82 @@ const [form, setForm] = useState({
             CRM থেকে আনুন
           </button>
         </div>
-
         <form onSubmit={handleSubmit} className="space-y-3">
           {mode === 'import' && (
             <div>
               <label className="block text-sm font-medium mb-1.5">CRM User বেছে নিন</label>
-              <select className="input-field" value={selectedUserId}
-                onChange={e => handleImportSelect(e.target.value)}>
+              <select className="input-field" value={selectedUserId} onChange={e => handleImportSelect(e.target.value)}>
                 <option value="">-- Select --</option>
-                {unlinkedUsers.map(u => (
-                  <option key={u.id} value={u.id}>{u.full_name || u.phone} ({u.role_label})</option>
-                ))}
+                {unlinkedUsers.map(u => <option key={u.id} value={u.id}>{u.full_name || u.phone} ({u.role_label})</option>)}
               </select>
             </div>
           )}
-
           <div>
             <label className="block text-sm font-medium mb-1.5">নাম *</label>
-            <input type="text" className="input-field" value={form.full_name}
-              onChange={e => set('full_name', e.target.value)} />
+            <input type="text" className="input-field" value={form.full_name} onChange={e => set('full_name', e.target.value)} />
           </div>
-
           <div>
             <label className="block text-sm font-medium mb-1.5">ফোন</label>
-            <input type="text" className="input-field" value={form.phone}
-              onChange={e => set('phone', e.target.value)} />
+            <input type="text" className="input-field" value={form.phone} onChange={e => set('phone', e.target.value)} />
           </div>
-
           <div>
             <label className="block text-sm font-medium mb-1.5">Position</label>
-            <select className="input-field" value={form.position_id}
-              onChange={e => handlePositionChange(e.target.value)}>
+            <select className="input-field" value={form.position_id} onChange={e => handlePositionChange(e.target.value)}>
               <option value="">-- None --</option>
               {positions.map(p => <option key={p.id} value={p.id}>{p.title}{p.department ? ` (${p.department})` : ''}</option>)}
             </select>
           </div>
-
           <div>
-            <label className="block text-sm font-medium mb-1.5">Designation (editable)</label>
-            <input type="text" className="input-field" value={form.designation}
-              onChange={e => set('designation', e.target.value)} />
+            <label className="block text-sm font-medium mb-1.5">Designation</label>
+            <input type="text" className="input-field" value={form.designation} onChange={e => set('designation', e.target.value)} />
           </div>
-
           <div>
-            <label className="block text-sm font-medium mb-1.5">Department (editable)</label>
-            <input type="text" className="input-field" value={form.department}
-              onChange={e => set('department', e.target.value)} />
+            <label className="block text-sm font-medium mb-1.5">Department</label>
+            <input type="text" className="input-field" value={form.department} onChange={e => set('department', e.target.value)} />
           </div>
-
           <div>
             <label className="block text-sm font-medium mb-1.5">Reports To</label>
-            <select className="input-field" value={form.reports_to}
-              onChange={e => set('reports_to', e.target.value)}>
+            <select className="input-field" value={form.reports_to} onChange={e => set('reports_to', e.target.value)}>
               <option value="">-- None --</option>
               {allEmployees.map(e => <option key={e.id} value={e.id}>{e.full_name}</option>)}
             </select>
           </div>
-
           <div className="flex items-center gap-2">
-            <input type="checkbox" checked={form.is_remote}
-              onChange={e => set('is_remote', e.target.checked)} />
+            <input type="checkbox" checked={form.is_remote} onChange={e => set('is_remote', e.target.checked)} />
             <label className="text-sm">Remote Employee</label>
           </div>
-
           {mode === 'new' && (
             <div className="border-t border-gray-100 pt-3 mt-1">
               <div className="flex items-center gap-2 mb-3">
-                <input type="checkbox" checked={form.grant_crm_access}
-                  onChange={e => set('grant_crm_access', e.target.checked)} />
+                <input type="checkbox" checked={form.grant_crm_access} onChange={e => set('grant_crm_access', e.target.checked)} />
                 <label className="text-sm font-medium">CRM Access দিন</label>
               </div>
-
               {!form.grant_crm_access && (
                 <div className="flex items-center gap-2 mb-3">
-                  <input type="checkbox" checked={form.grant_basic_login}
-                    onChange={e => set('grant_basic_login', e.target.checked)} />
+                  <input type="checkbox" checked={form.grant_basic_login} onChange={e => set('grant_basic_login', e.target.checked)} />
                   <label className="text-sm font-medium">শুধু ESS Portal Access দিন (CRM ছাড়া)</label>
                 </div>
               )}
-
               {form.grant_crm_access && (
                 <div className="space-y-3 bg-blue-50 p-3 rounded-xl">
                   <div>
                     <label className="block text-sm font-medium mb-1.5">CRM Role *</label>
-                    <select className="input-field" value={form.crm_role_id}
-                      onChange={e => set('crm_role_id', e.target.value)}>
+                    <select className="input-field" value={form.crm_role_id} onChange={e => set('crm_role_id', e.target.value)}>
                       <option value="">-- Select --</option>
                       {roles.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1.5">Manager (optional)</label>
-                    <select className="input-field" value={form.crm_manager_id}
-                      onChange={e => set('crm_manager_id', e.target.value)}>
+                    <select className="input-field" value={form.crm_manager_id} onChange={e => set('crm_manager_id', e.target.value)}>
                       <option value="">-- None --</option>
-                      {allEmployees.filter(e => e.crm_phone).map(e => (
-                        <option key={e.user_id} value={e.user_id}>{e.full_name}</option>
-                      ))}
+                      {allEmployees.filter(e => e.crm_phone).map(e => <option key={e.user_id} value={e.user_id}>{e.full_name}</option>)}
                     </select>
                   </div>
-                  <p className="text-xs text-gray-500">ফোন নম্বর দিয়ে প্রথমবার লগইন করার সময় OTP যাচাই করে পাসওয়ার্ড সেট করতে হবে।</p>
                 </div>
               )}
             </div>
           )}
-
           <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? 'Saving...' : '✅ Save'}
           </button>
@@ -590,9 +535,9 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
     nid_number: employee.nid_number || '',
   });
   const [isLocked, setIsLocked] = useState(employee.is_locked || false);
-const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [positions, setPositions] = useState([]);
-  const [moduleAccess, setModuleAccess] = useState({}); // { [module_key]: role_key }
+  const [moduleAccess, setModuleAccess] = useState({});
   const [crmRoles, setCrmRoles] = useState([]);
 
   useEffect(() => {
@@ -608,11 +553,7 @@ const [loading, setLoading] = useState(false);
   const toggleModuleAccess = (moduleKey, defaultRole) => {
     setModuleAccess(prev => {
       const next = { ...prev };
-      if (next[moduleKey]) {
-        delete next[moduleKey];
-      } else {
-        next[moduleKey] = defaultRole;
-      }
+      if (next[moduleKey]) { delete next[moduleKey]; } else { next[moduleKey] = defaultRole; }
       return next;
     });
   };
@@ -637,12 +578,7 @@ const [loading, setLoading] = useState(false);
   const handlePositionChange = (e) => {
     const posId = e.target.value;
     const pos = positions.find(p => p.id === posId);
-    setForm(p => ({
-      ...p,
-      position_id: posId,
-      designation: pos ? pos.title : p.designation,
-      department: pos ? (pos.department || '') : p.department,
-    }));
+    setForm(p => ({ ...p, position_id: posId, designation: pos ? pos.title : p.designation, department: pos ? (pos.department || '') : p.department }));
   };
 
   const handleSubmit = async (e) => {
@@ -689,6 +625,7 @@ const [loading, setLoading] = useState(false);
     { key: 'personal', label: 'Personal Details' },
     { key: 'documents', label: 'Documents' },
     { key: 'hr', label: 'HR Settings' },
+    { key: 'salary', label: 'Salary' },
     { key: 'access', label: 'Module Access' },
   ];
 
@@ -722,18 +659,15 @@ const [loading, setLoading] = useState(false);
             <>
               <div>
                 <label className="block text-sm font-medium mb-1.5">নাম</label>
-                <input type="text" className="input-field" value={form.full_name}
-                  onChange={e => set('full_name', e.target.value)} />
+                <input type="text" className="input-field" value={form.full_name} onChange={e => set('full_name', e.target.value)} />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1.5">ফোন</label>
-                <input type="text" className="input-field" value={form.phone}
-                  onChange={e => set('phone', e.target.value)} />
+                <input type="text" className="input-field" value={form.phone} onChange={e => set('phone', e.target.value)} />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1.5">Email</label>
-                <input type="email" className="input-field" value={form.email}
-                  onChange={e => set('email', e.target.value)} />
+                <input type="email" className="input-field" value={form.email} onChange={e => set('email', e.target.value)} />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1.5">Position</label>
@@ -743,14 +677,12 @@ const [loading, setLoading] = useState(false);
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1.5">Designation (editable)</label>
-                <input type="text" className="input-field" value={form.designation}
-                  onChange={e => set('designation', e.target.value)} />
+                <label className="block text-sm font-medium mb-1.5">Designation</label>
+                <input type="text" className="input-field" value={form.designation} onChange={e => set('designation', e.target.value)} />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1.5">Department (editable)</label>
-                <input type="text" className="input-field" value={form.department}
-                  onChange={e => set('department', e.target.value)} />
+                <label className="block text-sm font-medium mb-1.5">Department</label>
+                <input type="text" className="input-field" value={form.department} onChange={e => set('department', e.target.value)} />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1.5">Reports To</label>
@@ -767,20 +699,17 @@ const [loading, setLoading] = useState(false);
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium mb-1.5">পিতার নাম</label>
-                  <input type="text" className="input-field" value={form.father_name}
-                    onChange={e => set('father_name', e.target.value)} />
+                  <input type="text" className="input-field" value={form.father_name} onChange={e => set('father_name', e.target.value)} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1.5">মাতার নাম</label>
-                  <input type="text" className="input-field" value={form.mother_name}
-                    onChange={e => set('mother_name', e.target.value)} />
+                  <input type="text" className="input-field" value={form.mother_name} onChange={e => set('mother_name', e.target.value)} />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium mb-1.5">জন্ম তারিখ</label>
-                  <input type="date" className="input-field" value={form.date_of_birth}
-                    onChange={e => set('date_of_birth', e.target.value)} />
+                  <input type="date" className="input-field" value={form.date_of_birth} onChange={e => set('date_of_birth', e.target.value)} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1.5">Blood Group</label>
@@ -802,34 +731,28 @@ const [loading, setLoading] = useState(false);
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium mb-1.5">Guardian Mobile</label>
-                  <input type="text" className="input-field" value={form.guardian_mobile}
-                    onChange={e => set('guardian_mobile', e.target.value)} />
+                  <input type="text" className="input-field" value={form.guardian_mobile} onChange={e => set('guardian_mobile', e.target.value)} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1.5">Guardian Relation</label>
-                  <input type="text" className="input-field" value={form.guardian_relation}
-                    onChange={e => set('guardian_relation', e.target.value)} />
+                  <input type="text" className="input-field" value={form.guardian_relation} onChange={e => set('guardian_relation', e.target.value)} />
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1.5">বর্তমান ঠিকানা</label>
-                <textarea className="input-field resize-none" rows={2} value={form.present_address}
-                  onChange={e => set('present_address', e.target.value)} />
+                <textarea className="input-field resize-none" rows={2} value={form.present_address} onChange={e => set('present_address', e.target.value)} />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1.5">স্থায়ী ঠিকানা</label>
-                <textarea className="input-field resize-none" rows={2} value={form.permanent_address}
-                  onChange={e => set('permanent_address', e.target.value)} />
+                <textarea className="input-field resize-none" rows={2} value={form.permanent_address} onChange={e => set('permanent_address', e.target.value)} />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1.5">শিক্ষাগত যোগ্যতা</label>
-                <input type="text" className="input-field" value={form.education_level}
-                  onChange={e => set('education_level', e.target.value)} placeholder="e.g. Honours" />
+                <input type="text" className="input-field" value={form.education_level} onChange={e => set('education_level', e.target.value)} />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1.5">শিক্ষাগত বিস্তারিত</label>
-                <textarea className="input-field resize-none" rows={2} value={form.education_details}
-                  onChange={e => set('education_details', e.target.value)} />
+                <textarea className="input-field resize-none" rows={2} value={form.education_details} onChange={e => set('education_details', e.target.value)} />
               </div>
             </>
           )}
@@ -838,18 +761,11 @@ const [loading, setLoading] = useState(false);
             <>
               <div>
                 <label className="block text-sm font-medium mb-1.5">NID Number</label>
-                <input type="text" className="input-field" value={form.nid_number}
-                  onChange={e => set('nid_number', e.target.value)} />
+                <input type="text" className="input-field" value={form.nid_number} onChange={e => set('nid_number', e.target.value)} />
               </div>
-
-              <FileUploadBox label="ছবি (Photo)" currentUrl={employee.photo_url}
-                onUpload={file => handleFileUpload('photo', file)} />
-
-              <FileUploadBox label="NID Image" currentUrl={employee.nid_image_url}
-                onUpload={file => handleFileUpload('nid', file)} />
-
-              <FileUploadBox label="Signature" currentUrl={employee.signature_url}
-                onUpload={file => handleFileUpload('signature', file)} />
+              <FileUploadBox label="ছবি (Photo)" currentUrl={employee.photo_url} onUpload={file => handleFileUpload('photo', file)} />
+              <FileUploadBox label="NID Image" currentUrl={employee.nid_image_url} onUpload={file => handleFileUpload('nid', file)} />
+              <FileUploadBox label="Signature" currentUrl={employee.signature_url} onUpload={file => handleFileUpload('signature', file)} />
             </>
           )}
 
@@ -872,13 +788,11 @@ const [loading, setLoading] = useState(false);
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium mb-1.5">Office Start</label>
-                    <input type="time" className="input-field" value={form.office_start_time}
-                      onChange={e => set('office_start_time', e.target.value)} />
+                    <input type="time" className="input-field" value={form.office_start_time} onChange={e => set('office_start_time', e.target.value)} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1.5">Office End</label>
-                    <input type="time" className="input-field" value={form.office_end_time}
-                      onChange={e => set('office_end_time', e.target.value)} />
+                    <input type="time" className="input-field" value={form.office_end_time} onChange={e => set('office_end_time', e.target.value)} />
                   </div>
                 </div>
               )}
@@ -897,8 +811,7 @@ const [loading, setLoading] = useState(false);
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1.5">Basic Salary</label>
-                <input type="number" className="input-field" value={form.basic_salary}
-                  onChange={e => set('basic_salary', e.target.value)} />
+                <input type="number" className="input-field" value={form.basic_salary} onChange={e => set('basic_salary', e.target.value)} />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1.5">Status</label>
@@ -912,28 +825,27 @@ const [loading, setLoading] = useState(false);
             </>
           )}
 
+          {tab === 'salary' && (
+            <SalaryTab employeeId={employee.id} />
+          )}
+
           {tab === 'access' && (
             <div className="space-y-3">
               <p className="text-xs text-gray-500 mb-2">কোন মডিউলে এই কর্মীর প্রবেশের অনুমতি আছে এবং সেখানে তার role কী, তা নির্বাচন করুন।</p>
               {MODULES.map(m => {
                 const hasAccess = !!moduleAccess[m.key];
-                const roleOptions = m.key === 'crm'
-                  ? crmRoles.map(r => ({ key: r.name, label: r.label }))
-                  : (m.roles || []);
-
+                const roleOptions = m.key === 'crm' ? crmRoles.map(r => ({ key: r.name, label: r.label })) : (m.roles || []);
                 return (
                   <div key={m.key} className="border border-gray-100 rounded-xl p-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <input type="checkbox" checked={hasAccess}
-                          onChange={() => toggleModuleAccess(m.key, roleOptions[0]?.key || '')} />
+                        <input type="checkbox" checked={hasAccess} onChange={() => toggleModuleAccess(m.key, roleOptions[0]?.key || '')} />
                         <label className="text-sm font-medium">{m.label}</label>
                       </div>
                     </div>
                     {hasAccess && (
                       <div className="mt-2 pl-6">
-                        <select className="input-field" value={moduleAccess[m.key] || ''}
-                          onChange={e => setModuleRole(m.key, e.target.value)}>
+                        <select className="input-field" value={moduleAccess[m.key] || ''} onChange={e => setModuleRole(m.key, e.target.value)}>
                           <option value="">-- Role বেছে নিন --</option>
                           {roleOptions.map(r => <option key={r.key} value={r.key}>{r.label}</option>)}
                         </select>
@@ -948,11 +860,130 @@ const [loading, setLoading] = useState(false);
             </div>
           )}
 
-          {tab !== 'access' && (
+          {tab !== 'access' && tab !== 'salary' && (
             <button type="submit" className="btn-primary" disabled={loading}>
               {loading ? 'Saving...' : '✅ Save'}
             </button>
           )}
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function SalaryTab({ employeeId }) {
+  const [components, setComponents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [addForm, setAddForm] = useState({ type: 'allowance', name: '', amount: '' });
+  const [adding, setAdding] = useState(false);
+
+  const fetchComponents = () => {
+    payrollApi.getEmployeeComponents(employeeId).then(r => {
+      setComponents(r.data || []);
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  };
+
+  useEffect(() => { fetchComponents(); }, [employeeId]);
+
+  const handleAdd = async (e) => {
+    e.preventDefault();
+    if (!addForm.name || !addForm.amount) return toast.error('নাম ও পরিমাণ দিন');
+    setAdding(true);
+    try {
+      await payrollApi.addComponent(employeeId, addForm);
+      toast.success('যুক্ত হয়েছে ✅');
+      setAddForm({ type: 'allowance', name: '', amount: '' });
+      fetchComponents();
+    } catch (err) {
+      toast.error(err.message || 'সমস্যা হয়েছে');
+    } finally { setAdding(false); }
+  };
+
+  const handleRemove = async (id) => {
+    if (!confirm('এই component মুছে ফেলতে চান?')) return;
+    try {
+      await payrollApi.removeComponent(id);
+      toast.success('মুছে ফেলা হয়েছে');
+      fetchComponents();
+    } catch (err) {
+      toast.error(err.message || 'সমস্যা হয়েছে');
+    }
+  };
+
+  if (loading) return <div className="flex justify-center py-8"><div className="spinner w-6 h-6" /></div>;
+
+  const allowances = components.filter(c => c.type === 'allowance');
+  const deductions = components.filter(c => c.type === 'deduction');
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h4 className="text-sm font-semibold text-green-700 mb-2">Allowances (ভাতা)</h4>
+        {allowances.length === 0 ? (
+          <p className="text-xs text-gray-400">কোনো allowance নেই</p>
+        ) : (
+          <div className="space-y-1.5">
+            {allowances.map(c => (
+              <div key={c.id} className="flex items-center justify-between bg-green-50 rounded-xl px-3 py-2">
+                <span className="text-sm">{c.name}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-green-600">+৳{Number(c.amount).toLocaleString()}</span>
+                  <button onClick={() => handleRemove(c.id)} className="p-1 bg-red-50 text-red-500 rounded-lg text-xs">🗑️</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div>
+        <h4 className="text-sm font-semibold text-red-700 mb-2">Deductions (কর্তন)</h4>
+        {deductions.length === 0 ? (
+          <p className="text-xs text-gray-400">কোনো deduction নেই</p>
+        ) : (
+          <div className="space-y-1.5">
+            {deductions.map(c => (
+              <div key={c.id} className="flex items-center justify-between bg-red-50 rounded-xl px-3 py-2">
+                <span className="text-sm">{c.name}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-red-600">-৳{Number(c.amount).toLocaleString()}</span>
+                  <button onClick={() => handleRemove(c.id)} className="p-1 bg-red-50 text-red-500 rounded-lg text-xs">🗑️</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="border-t border-gray-100 pt-3">
+        <h4 className="text-sm font-semibold text-gray-700 mb-2">নতুন যুক্ত করুন</h4>
+        <form onSubmit={handleAdd} className="space-y-2">
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="block text-xs font-medium mb-1">ধরন</label>
+              <select className="input-field text-sm" value={addForm.type}
+                onChange={e => setAddForm(p => ({ ...p, type: e.target.value }))}>
+                <option value="allowance">Allowance (ভাতা)</option>
+                <option value="deduction">Deduction (কর্তন)</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1">পরিমাণ (৳)</label>
+              <input type="number" className="input-field text-sm" value={addForm.amount}
+                onChange={e => setAddForm(p => ({ ...p, amount: e.target.value }))} placeholder="0" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1">নাম</label>
+            <input type="text" className="input-field text-sm" value={addForm.name}
+              onChange={e => setAddForm(p => ({ ...p, name: e.target.value }))}
+              placeholder="যেমন: House Rent, Provident Fund" />
+          </div>
+          <button type="submit" disabled={adding}
+            className="w-full bg-primary-500 text-white py-2 rounded-xl text-sm font-medium disabled:opacity-50">
+            {adding ? 'যুক্ত হচ্ছে...' : '✅ যুক্ত করুন'}
+          </button>
         </form>
       </div>
     </div>
