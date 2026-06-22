@@ -72,16 +72,18 @@ const handleRecalculate = async (id) => {
 
   const handlePdfDownload = () => {
     const period = `${monthNames[month - 1]} ${year}`;
-    const rows = runs.map(r => `
+   const rows = runs.map(r => `
       <tr>
         <td>${r.full_name}</td>
-        <td>${r.working_days || 0}</td>
+        <td>${r.attendance_days || 0}</td>
+        <td>${r.weekly_off_days || 0}</td>
+        <td>${r.holiday_days || 0}</td>
+        <td>${r.paid_leave_days || 0}</td>
         <td>${r.extra_working_days || 0}</td>
+        <td><strong>${r.working_days || 0}</strong></td>
         <td>৳${Number(r.basic_salary).toLocaleString()}</td>
         <td>৳${Number(r.total_allowances).toLocaleString()}</td>
         <td>৳${Number(r.total_deductions).toLocaleString()}</td>
-        <td>৳${Number(r.unpaid_leave_deduction).toLocaleString()}</td>
-        <td>৳${Number(r.attendance_deduction || 0).toLocaleString()}</td>
         <td>৳${Number(r.previous_due).toLocaleString()}</td>
         <td>৳${Number(r.net_payable).toLocaleString()}</td>
         <td>৳${Number(r.total_paid).toLocaleString()}</td>
@@ -93,8 +95,9 @@ const handleRecalculate = async (id) => {
       <table>
         <thead>
           <tr>
-          <th>কর্মী</th><th>কর্মদিবস</th><th>অতিরিক্ত</th><th>Basic</th>
-            <th>Allowance</th><th>Deduction</th><th>Unpaid Leave</th><th>Att. Penalty</th>
+         <th>কর্মী</th><th>উপস্থিতি</th><th>সাপ্তাহিক</th><th>অফিস ছুটি</th>
+            <th>পেইড লিভ</th><th>অতিরিক্ত</th><th>মোট</th>
+            <th>Basic</th><th>Allowance</th><th>Deduction</th>
             <th>পূর্ববর্তী</th><th>নেট পেয়েবল</th><th>পরিশোধিত</th><th>বাকি</th><th>Status</th>
           </tr>
         </thead>
@@ -134,16 +137,19 @@ const handleRecalculate = async (id) => {
   };
 
   const handleExcelDownload = () => {
-    const data = runs.map(r => ({
+   const data = runs.map(r => ({
       'কর্মী': r.full_name,
       'বিভাগ': r.department || '',
-      'কর্মদিবস': r.working_days || 0,
+      'উপস্থিতি দিন': r.attendance_days || 0,
+      'সাপ্তাহিক ছুটি': r.weekly_off_days || 0,
+      'অফিস ছুটি': r.holiday_days || 0,
+      'পেইড লিভ': r.paid_leave_days || 0,
       'অতিরিক্ত দিন': r.extra_working_days || 0,
+      'মোট কর্মদিবস': r.working_days || 0,
       'Basic Salary': Number(r.basic_salary),
       'Allowances': Number(r.total_allowances),
       'Deductions': Number(r.total_deductions),
       'Attendance Deduction': Number(r.attendance_deduction || 0),
-      'Unpaid Leave': Number(r.unpaid_leave_deduction),
       'Previous Due': Number(r.previous_due),
       'Net Payable': Number(r.net_payable),
       'Total Paid': Number(r.total_paid),
@@ -224,7 +230,8 @@ const handleRecalculate = async (id) => {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
-                 {['কর্মী', 'কর্মদিবস', 'অতিরিক্ত', 'Basic', 'Allowance', 'Deduction', 'Unpaid Leave', 'Att. Penalty', 'পূর্ববর্তী', 'নেট পেয়েবল', 'পরিশোধিত', 'বাকি', 'Status', 'Action'].map(h => (
+                {['কর্মী', 'উপস্থিতি', 'সাপ্তাহিক ছুটি', 'অফিস ছুটি', 'পেইড লিভ', 'অতিরিক্ত', 'মোট কর্মদিবস', 'Basic', 'Allowance', 'Deduction', 'পূর্ববর্তী', 'নেট পেয়েবল', 'পরিশোধিত', 'বাকি', 'Status', 'Action'].map(h => (
+(
 
                     <th key={h} className="text-left px-3 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
                   ))}
@@ -236,13 +243,15 @@ const handleRecalculate = async (id) => {
                 ) : runs.map(run => (
                   <tr key={run.id} className="hover:bg-gray-50">
                     <td className="px-3 py-3 font-medium whitespace-nowrap">{run.full_name}</td>
-                    <td className="px-3 py-3 text-center">{run.working_days || 0}</td>
+                   <td className="px-3 py-3 text-center">{run.attendance_days || 0}</td>
+                    <td className="px-3 py-3 text-center">{run.weekly_off_days || 0}</td>
+                    <td className="px-3 py-3 text-center">{run.holiday_days || 0}</td>
+                    <td className="px-3 py-3 text-center">{run.paid_leave_days || 0}</td>
                     <td className="px-3 py-3 text-center">{run.extra_working_days || 0}</td>
+                    <td className="px-3 py-3 text-center font-semibold">{run.working_days || 0}</td>
                     <td className="px-3 py-3 whitespace-nowrap">৳{Number(run.basic_salary).toLocaleString()}</td>
                     <td className="px-3 py-3 whitespace-nowrap text-green-600">+৳{Number(run.total_allowances).toLocaleString()}</td>
                     <td className="px-3 py-3 whitespace-nowrap text-red-500">-৳{Number(run.total_deductions).toLocaleString()}</td>
-                    <td className="px-3 py-3 whitespace-nowrap text-red-500">-৳{Number(run.unpaid_leave_deduction).toLocaleString()}</td>
-                    <td className="px-3 py-3 whitespace-nowrap text-red-500">-৳{Number(run.attendance_deduction || 0).toLocaleString()}</td>
                     <td className="px-3 py-3 whitespace-nowrap">৳{Number(run.previous_due).toLocaleString()}</td>
 
                     <td className="px-3 py-3 whitespace-nowrap font-semibold">৳{Number(run.net_payable).toLocaleString()}</td>
