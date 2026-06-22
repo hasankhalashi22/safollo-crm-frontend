@@ -80,6 +80,8 @@ const handleRecalculate = async (id) => {
         <td>৳${Number(r.basic_salary).toLocaleString()}</td>
         <td>৳${Number(r.total_allowances).toLocaleString()}</td>
         <td>৳${Number(r.total_deductions).toLocaleString()}</td>
+        <td>৳${Number(r.unpaid_leave_deduction).toLocaleString()}</td>
+        <td>৳${Number(r.attendance_deduction || 0).toLocaleString()}</td>
         <td>৳${Number(r.previous_due).toLocaleString()}</td>
         <td>৳${Number(r.net_payable).toLocaleString()}</td>
         <td>৳${Number(r.total_paid).toLocaleString()}</td>
@@ -91,9 +93,9 @@ const handleRecalculate = async (id) => {
       <table>
         <thead>
           <tr>
-            <th>কর্মী</th><th>কর্মদিবস</th><th>অতিরিক্ত</th><th>Basic</th>
-            <th>Allowance</th><th>Deduction</th><th>পূর্ববর্তী</th>
-            <th>নেট পেয়েবল</th><th>পরিশোধিত</th><th>বাকি</th><th>Status</th>
+          <th>কর্মী</th><th>কর্মদিবস</th><th>অতিরিক্ত</th><th>Basic</th>
+            <th>Allowance</th><th>Deduction</th><th>Unpaid Leave</th><th>Att. Penalty</th>
+            <th>পূর্ববর্তী</th><th>নেট পেয়েবল</th><th>পরিশোধিত</th><th>বাকি</th><th>Status</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
@@ -222,7 +224,8 @@ const handleRecalculate = async (id) => {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
-                  {['কর্মী', 'কর্মদিবস', 'অতিরিক্ত', 'Basic', 'Allowance', 'Deduction', 'পূর্ববর্তী', 'নেট পেয়েবল', 'পরিশোধিত', 'বাকি', 'Status', 'Action'].map(h => (
+                 {['কর্মী', 'কর্মদিবস', 'অতিরিক্ত', 'Basic', 'Allowance', 'Deduction', 'Unpaid Leave', 'Att. Penalty', 'পূর্ববর্তী', 'নেট পেয়েবল', 'পরিশোধিত', 'বাকি', 'Status', 'Action'].map(h => (
+
                     <th key={h} className="text-left px-3 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
@@ -238,7 +241,10 @@ const handleRecalculate = async (id) => {
                     <td className="px-3 py-3 whitespace-nowrap">৳{Number(run.basic_salary).toLocaleString()}</td>
                     <td className="px-3 py-3 whitespace-nowrap text-green-600">+৳{Number(run.total_allowances).toLocaleString()}</td>
                     <td className="px-3 py-3 whitespace-nowrap text-red-500">-৳{Number(run.total_deductions).toLocaleString()}</td>
+                    <td className="px-3 py-3 whitespace-nowrap text-red-500">-৳{Number(run.unpaid_leave_deduction).toLocaleString()}</td>
+                    <td className="px-3 py-3 whitespace-nowrap text-red-500">-৳{Number(run.attendance_deduction || 0).toLocaleString()}</td>
                     <td className="px-3 py-3 whitespace-nowrap">৳{Number(run.previous_due).toLocaleString()}</td>
+
                     <td className="px-3 py-3 whitespace-nowrap font-semibold">৳{Number(run.net_payable).toLocaleString()}</td>
                     <td className="px-3 py-3 whitespace-nowrap text-green-600">৳{Number(run.total_paid).toLocaleString()}</td>
                     <td className="px-3 py-3 whitespace-nowrap font-semibold text-amber-600">৳{Number(run.due_amount).toLocaleString()}</td>
