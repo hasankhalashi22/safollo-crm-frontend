@@ -230,7 +230,7 @@ const handleRecalculate = async (id) => {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
-               {['কর্মী', 'উপস্থিতি', 'সাপ্তাহিক ছুটি', 'অফিস ছুটি', 'পেইড লিভ', 'অতিরিক্ত', 'মোট কর্মদিবস', 'Basic', 'Allowance', 'Deduction', 'পূর্ববর্তী', 'নেট পেয়েবল', 'পরিশোধিত', 'বাকি', 'Status', 'Action'].map(h => (
+              {['কর্মী', 'উপস্থিতি', 'সাপ্তাহিক ছুটি', 'অফিস ছুটি', 'পেইড লিভ', 'অতিরিক্ত', 'মোট কর্মদিবস', 'Basic', 'Allowance', 'Deduction', 'Att. Penalty', 'পূর্ববর্তী', 'নেট পেয়েবল', 'পরিশোধিত', 'বাকি', 'Status', 'Action'].map(h => (
 
                     <th key={h} className="text-left px-3 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
                   ))}
@@ -250,7 +250,8 @@ const handleRecalculate = async (id) => {
                     <td className="px-3 py-3 text-center font-semibold">{run.working_days || 0}</td>
                     <td className="px-3 py-3 whitespace-nowrap">৳{Number(run.basic_salary).toLocaleString()}</td>
                     <td className="px-3 py-3 whitespace-nowrap text-green-600">+৳{Number(run.total_allowances).toLocaleString()}</td>
-                    <td className="px-3 py-3 whitespace-nowrap text-red-500">-৳{Number(run.total_deductions).toLocaleString()}</td>
+                   <td className="px-3 py-3 whitespace-nowrap text-red-500">-৳{Number(run.total_deductions).toLocaleString()}</td>
+                    <td className="px-3 py-3 whitespace-nowrap text-red-500">-৳{Number(run.attendance_deduction || 0).toLocaleString()}</td>
                     <td className="px-3 py-3 whitespace-nowrap">৳{Number(run.previous_due).toLocaleString()}</td>
 
                     <td className="px-3 py-3 whitespace-nowrap font-semibold">৳{Number(run.net_payable).toLocaleString()}</td>
