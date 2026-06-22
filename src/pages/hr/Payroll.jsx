@@ -374,10 +374,13 @@ function PaymentModal({ run, onClose, onSuccess }) {
   const [proofFile, setProofFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [editingPayment, setEditingPayment] = useState(null);
 
-  useEffect(() => {
+  const fetchPayments = () => {
     payrollApi.getPayments(run.id).then(r => setPayments(r.data || []));
-  }, [run.id]);
+  };
+
+  useEffect(() => { fetchPayments(); }, [run.id]);
 
   const uploadToCloudinary = async (file) => {
     const formData = new FormData();
@@ -404,14 +407,42 @@ function PaymentModal({ run, onClose, onSuccess }) {
       setAmount('');
       setNote('');
       setProofFile(null);
-      const res = await payrollApi.getPayments(run.id);
-      setPayments(res.data || []);
+      fetchPayments();
       onSuccess();
     } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
     finally { setLoading(false); setUploading(false); }
   };
 
-  const currentDue = parseFloat(run.net_payable) - payments.reduce((s, p) => s + parseFloat(p.amount), 0);
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    if (!editingPayment.amount || parseFloat(editingPayment.amount) <= 0) return toast.error('সঠিক পরিমাণ দিন');
+    setLoading(true);
+    try {
+      await payrollApi.updatePayment(editingPayment.id, {
+        amount: editingPayment.amount,
+        payment_date: editingPayment.payment_date,
+        note: editingPayment.note,
+      });
+      toast.success('Payment আপডেট হয়েছে ✅');
+      setEditingPayment(null);
+      fetchPayments();
+      onSuccess();
+    } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
+    finally { setLoading(false); }
+  };
+
+  const handleDelete = async (paymentId) => {
+    if (!confirm('এই payment মুছে ফেলতে চান? Accounting-এ সেই transaction-ও মুছে যাবে।')) return;
+    try {
+      await payrollApi.deletePayment(paymentId);
+      toast.success('Payment মুছে ফেলা হয়েছে ✅');
+      fetchPayments();
+      onSuccess();
+    } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
+  };
+
+  const totalPaid = payments.reduce((s, p) => s + parseFloat(p.amount), 0);
+  const currentDue = parseFloat(run.net_payable) - totalPaid;
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -423,23 +454,64 @@ function PaymentModal({ run, onClose, onSuccess }) {
 
         <div className="bg-amber-50 rounded-xl p-3 mb-4 text-sm space-y-1">
           <p>নেট পেয়েবল: <strong>৳{Number(run.net_payable).toLocaleString()}</strong></p>
-          <p>মোট পরিশোধিত: <strong className="text-green-600">৳{payments.reduce((s, p) => s + parseFloat(p.amount), 0).toLocaleString()}</strong></p>
+          <p>মোট পরিশোধিত: <strong className="text-green-600">৳{totalPaid.toLocaleString()}</strong></p>
           <p>বর্তমান বাকি: <strong className="text-red-600">৳{Math.max(0, currentDue).toLocaleString()}</strong></p>
         </div>
 
         {payments.length > 0 && (
           <div className="mb-4">
             <p className="text-xs font-semibold text-gray-500 mb-2">পেমেন্ট ইতিহাস</p>
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {payments.map(p => (
-                <div key={p.id} className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2 text-xs">
-                  <div>
-                    <p className="font-medium">৳{Number(p.amount).toLocaleString()}</p>
-                    <p className="text-gray-400">{format(new Date(p.payment_date), 'dd/MM/yyyy')} {p.note ? `— ${p.note}` : ''}</p>
-                  </div>
-                  {p.proof_url && (
-                    <a href={p.proof_url} target="_blank" rel="noreferrer"
-                      className="text-primary-600 underline">Proof</a>
+                <div key={p.id}>
+                  {editingPayment?.id === p.id ? (
+                    <form onSubmit={handleUpdate} className="bg-blue-50 rounded-xl p-3 space-y-2">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-xs font-medium mb-1">পরিমাণ</label>
+                          <input type="number" className="input-field text-sm" value={editingPayment.amount}
+                            onChange={e => setEditingPayment(p => ({ ...p, amount: e.target.value }))} />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium mb-1">তারিখ</label>
+                          <input type="date" className="input-field text-sm"
+                            value={editingPayment.payment_date?.split('T')[0] || ''}
+                            onChange={e => setEditingPayment(p => ({ ...p, payment_date: e.target.value }))} />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium mb-1">নোট</label>
+                        <input type="text" className="input-field text-sm" value={editingPayment.note || ''}
+                          onChange={e => setEditingPayment(p => ({ ...p, note: e.target.value }))} />
+                      </div>
+                      <div className="flex gap-2">
+                        <button type="submit" disabled={loading}
+                          className="flex-1 bg-primary-500 text-white py-1.5 rounded-lg text-xs font-medium disabled:opacity-50">
+                          {loading ? 'Saving...' : '✅ Save'}
+                        </button>
+                        <button type="button" onClick={() => setEditingPayment(null)}
+                          className="flex-1 bg-gray-100 text-gray-600 py-1.5 rounded-lg text-xs font-medium">
+                          বাতিল
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2 text-xs">
+                      <div>
+                        <p className="font-medium">৳{Number(p.amount).toLocaleString()}</p>
+                        <p className="text-gray-400">{format(new Date(p.payment_date), 'dd/MM/yyyy')} {p.note ? `— ${p.note}` : ''}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {p.proof_url && (
+                          <a href={p.proof_url} target="_blank" rel="noreferrer"
+                            className="text-primary-600 underline">Proof</a>
+                        )}
+                        <button onClick={() => setEditingPayment({ ...p })}
+                          className="p-1 bg-blue-50 text-blue-600 rounded-lg">✏️</button>
+                        <button onClick={() => handleDelete(p.id)}
+                          className="p-1 bg-red-50 text-red-500 rounded-lg">🗑️</button>
+                      </div>
+                    </div>
                   )}
                 </div>
               ))}
@@ -447,7 +519,8 @@ function PaymentModal({ run, onClose, onSuccess }) {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-3 border-t border-gray-100 pt-3">
+          <p className="text-xs font-semibold text-gray-500">নতুন পেমেন্ট যুক্ত করুন</p>
           <div>
             <label className="block text-sm font-medium mb-1.5">পরিমাণ *</label>
             <input type="number" className="input-field" value={amount} onChange={e => setAmount(e.target.value)}
@@ -467,7 +540,7 @@ function PaymentModal({ run, onClose, onSuccess }) {
               onChange={e => setProofFile(e.target.files[0])} />
           </div>
           <button type="submit" className="btn-primary" disabled={loading || uploading}>
-            {uploading ? 'Uploading...' : loading ? 'প্রক্রিয়া হচ্ছে...' : '✅ পেমেন্ট নিশ্চিত করুন'}
+            {uploading ? 'Uploading...' : loading ? 'প্রক্রিয়া হচ্ছে...' : '✅ পেমেন্ট যুক্ত করুন'}
           </button>
         </form>
       </div>

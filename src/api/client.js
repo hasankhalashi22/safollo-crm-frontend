@@ -253,6 +253,9 @@ export const payrollApi = {
   closeMonth: (month, year) => api.post('/api/payroll/close', { month, year }),
   getPayrollRuns: (month, year) => api.get(`/api/payroll/runs?month=${month}&year=${year}`),
 recalculateRun: (id) => api.patch(`/api/payroll/runs/${id}/recalculate`),
+updatePayment: (paymentId, data) => api.patch(`/api/payroll/payments/${paymentId}`, data),
+deletePayment: (paymentId) => api.delete(`/api/payroll/payments/${paymentId}`),
+
 };
 
 export default api;
