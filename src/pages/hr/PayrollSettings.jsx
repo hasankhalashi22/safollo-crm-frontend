@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { payrollApi } from '../../api/client';
+import { payrollApi, accountingApi } from '../../api/client';
 import toast from 'react-hot-toast';
 
 export default function PayrollSettings() {
@@ -12,7 +12,7 @@ export default function PayrollSettings() {
   useEffect(() => {
     Promise.all([
       payrollApi.getSettings(),
-      fetch('/api/accounting/accounts/all', { headers: { Authorization: `Bearer ${localStorage.getItem('crm_token')}` } }).then(r => r.json()),
+     accountingApi.getAllAccounts(),
     ]).then(([settingsRes, accountsRes]) => {
       setSettings(settingsRes.data || null);
       setForm(settingsRes.data || {});
