@@ -230,8 +230,7 @@ const handleRecalculate = async (id) => {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
-                {['কর্মী', 'উপস্থিতি', 'সাপ্তাহিক ছুটি', 'অফিস ছুটি', 'পেইড লিভ', 'অতিরিক্ত', 'মোট কর্মদিবস', 'Basic', 'Allowance', 'Deduction', 'পূর্ববর্তী', 'নেট পেয়েবল', 'পরিশোধিত', 'বাকি', 'Status', 'Action'].map(h => (
-(
+               {['কর্মী', 'উপস্থিতি', 'সাপ্তাহিক ছুটি', 'অফিস ছুটি', 'পেইড লিভ', 'অতিরিক্ত', 'মোট কর্মদিবস', 'Basic', 'Allowance', 'Deduction', 'পূর্ববর্তী', 'নেট পেয়েবল', 'পরিশোধিত', 'বাকি', 'Status', 'Action'].map(h => (
 
                     <th key={h} className="text-left px-3 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
                   ))}
