@@ -4,6 +4,7 @@ import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { Edit2, DollarSign, Lock, Download, RotateCcw } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import Modal from '../../components/Modal';
 
 const today = new Date();
 const monthNames = ['জানুয়ারি', 'ফেব্রুয়ারি', 'মার্চ', 'এপ্রিল', 'মে', 'জুন', 'জুলাই', 'আগস্ট', 'সেপ্টেম্বর', 'অক্টোবর', 'নভেম্বর', 'ডিসেম্বর'];
@@ -447,7 +448,7 @@ function PayslipModal({ run, onClose }) {
   const deductions = components.filter(c => c.type === 'deduction');
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <Modal>
       <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="bg-primary-600 text-white p-4 rounded-t-2xl flex justify-between items-center">
           <div>
@@ -556,8 +557,8 @@ function PayslipModal({ run, onClose }) {
             {due <= 0 ? '✅ সম্পূর্ণ পরিশোধিত' : `⏳ বাকি: ৳${Number(due).toLocaleString()}`}
           </div>
         </div>
-      </div>
     </div>
+    </Modal>
   );
 }
 
@@ -590,7 +591,7 @@ function EditDraftModal({ run, onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <Modal>
       <div className="bg-white rounded-2xl w-full max-w-sm p-5 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between mb-4">
           <h3 className="font-bold text-lg">{run.full_name}-এর Payroll Edit</h3>
@@ -623,9 +624,8 @@ function EditDraftModal({ run, onClose, onSuccess }) {
           <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? 'Saving...' : '✅ সংরক্ষণ করুন'}
           </button>
-        </form>
       </div>
-    </div>
+    </Modal>
   );
 }
 
@@ -694,10 +694,9 @@ function PaymentModal({ run, onClose, onSuccess }) {
   const totalPaid = payments.reduce((s, p) => s + parseFloat(p.amount), 0);
   const currentDue = parseFloat(run.net_payable) - totalPaid;
 
-  return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md p-5 max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between mb-4">
+return (
+    <Modal>
+      <div className="bg-white rounded-2xl w-full max-w-md p-5 max-h-[90vh] overflow-y-auto">        <div className="flex justify-between mb-4">
           <h3 className="font-bold text-lg">{run.full_name}-এর পেমেন্ট</h3>
           <button onClick={onClose} className="p-1.5 bg-gray-100 rounded-full">✕</button>
         </div>
@@ -788,6 +787,6 @@ function PaymentModal({ run, onClose, onSuccess }) {
           </button>
         </form>
       </div>
-    </div>
+    </Modal>
   );
 }
