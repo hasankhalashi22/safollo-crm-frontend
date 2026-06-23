@@ -621,9 +621,10 @@ function EditDraftModal({ run, onClose, onSuccess }) {
             <p className="text-sm text-gray-500">Net Payable (প্রিভিউ)</p>
             <p className="text-xl font-bold text-primary-600">৳{netPreview.toLocaleString()}</p>
           </div>
-          <button type="submit" className="btn-primary" disabled={loading}>
+         <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? 'Saving...' : '✅ সংরক্ষণ করুন'}
           </button>
+        </form>
       </div>
     </Modal>
   );
