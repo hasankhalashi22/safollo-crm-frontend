@@ -230,7 +230,7 @@ const handleRecalculate = async (id) => {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
-              {['কর্মী', 'উপস্থিতি', 'সাপ্তাহিক ছুটি', 'অফিস ছুটি', 'পেইড লিভ', 'অতিরিক্ত', 'মোট কর্মদিবস', 'Basic', 'Allowance', 'Deduction', 'Att. Penalty', 'পূর্ববর্তী', 'নেট পেয়েবল', 'পরিশোধিত', 'বাকি', 'Status', 'Action'].map(h => (
+              {['কর্মী', 'কর্মদিবস', 'Basic', 'Allowance', 'Deduction', 'Att. Penalty', 'পূর্ববর্তী', 'নেট পেয়েবল', 'পরিশোধিত', 'বাকি', 'Status', 'Action'].map(h => (
 
                     <th key={h} className="text-left px-3 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
                   ))}
@@ -242,12 +242,22 @@ const handleRecalculate = async (id) => {
                 ) : runs.map(run => (
                   <tr key={run.id} className="hover:bg-gray-50">
                     <td className="px-3 py-3 font-medium whitespace-nowrap">{run.full_name}</td>
-                   <td className="px-3 py-3 text-center">{run.attendance_days || 0}</td>
-                    <td className="px-3 py-3 text-center">{run.weekly_off_days || 0}</td>
-                    <td className="px-3 py-3 text-center">{run.holiday_days || 0}</td>
-                    <td className="px-3 py-3 text-center">{run.paid_leave_days || 0}</td>
-                    <td className="px-3 py-3 text-center">{run.extra_working_days || 0}</td>
-                    <td className="px-3 py-3 text-center font-semibold">{run.working_days || 0}</td>
+                   <td className="px-3 py-3 text-center">
+                      <div className="relative group cursor-help">
+                        <span className="font-semibold">{run.working_days || 0}</span>
+                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block z-50 bg-gray-800 text-white text-xs rounded-xl p-3 w-48 shadow-xl">
+                          <p className="font-semibold mb-1 text-gray-300">কর্মদিবস বিস্তারিত</p>
+                          <div className="space-y-0.5">
+                            <p>উপস্থিতি: {run.attendance_days || 0}</p>
+                            <p>সাপ্তাহিক ছুটি: {run.weekly_off_days || 0}</p>
+                            <p>অফিস ছুটি: {run.holiday_days || 0}</p>
+                            <p>পেইড লিভ: {run.paid_leave_days || 0}</p>
+                            <p>অতিরিক্ত: {run.extra_working_days || 0}</p>
+                            <p className="border-t border-gray-600 pt-1 font-semibold">মোট: {run.working_days || 0}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
                     <td className="px-3 py-3 whitespace-nowrap">৳{Number(run.basic_salary).toLocaleString()}</td>
                     <td className="px-3 py-3 whitespace-nowrap text-green-600">+৳{Number(run.total_allowances).toLocaleString()}</td>
                    <td className="px-3 py-3 whitespace-nowrap text-red-500">-৳{Number(run.total_deductions).toLocaleString()}</td>
