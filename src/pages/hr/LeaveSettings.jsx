@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { leaveApi, hrApi } from '../../api/client';
+import { Trash2, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Plus, Edit2 } from 'lucide-react';
 
@@ -7,20 +8,25 @@ export default function LeaveSettings() {
   const [types, setTypes] = useState([]);
   const [policy, setPolicy] = useState(null);
   const [positions, setPositions] = useState([]);
+  const [holidays, setHolidays] = useState([]);
+  const [holidayForm, setHolidayForm] = useState({ date: '', name: '', name_bn: '' });
+  const [addingHoliday, setAddingHoliday] = useState(false);
   const [loading, setLoading] = useState(true);
   const [editType, setEditType] = useState(null);
   const [addTypeModal, setAddTypeModal] = useState(false);
 
-  const fetchAll = () => {
+ const fetchAll = () => {
     setLoading(true);
     Promise.all([
       leaveApi.getTypes(),
       leaveApi.getPolicy(),
       hrApi.getPositions(),
-    ]).then(([typesRes, policyRes, posRes]) => {
+      hrApi.getHolidays(),
+    ]).then(([typesRes, policyRes, posRes, holidaysRes]) => {
       setTypes(typesRes.data || []);
       setPolicy(policyRes.data || null);
       setPositions(posRes.data || []);
+      setHolidays(holidaysRes.data || []);
       setLoading(false);
     }).catch(() => setLoading(false));
   };
@@ -80,6 +86,90 @@ export default function LeaveSettings() {
       {addTypeModal && (
         <LeaveTypeModal onClose={() => setAddTypeModal(false)} onSuccess={() => { setAddTypeModal(false); fetchAll(); }} />
       )}
+
+{/* Office & Govt Holidays */}
+      <div className="card">
+        <h3 className="font-semibold text-gray-700 mb-4">অফিস ও সরকারি ছুটি</h3>
+
+        {/* Add holiday form */}
+        <div className="bg-gray-50 rounded-xl p-4 mb-4">
+          <p className="text-sm font-medium text-gray-600 mb-3">নতুন ছুটি যুক্ত করুন</p>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div>
+              <label className="block text-xs font-medium mb-1.5">তারিখ *</label>
+              <input type="date" className="input-field" value={holidayForm.date}
+                onChange={e => setHolidayForm(p => ({ ...p, date: e.target.value }))} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1.5">নাম (বাংলা) *</label>
+              <input type="text" className="input-field" value={holidayForm.name_bn}
+                onChange={e => setHolidayForm(p => ({ ...p, name_bn: e.target.value }))}
+                placeholder="যেমন: ঈদুল ফিতর" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium mb-1.5">Name (English)</label>
+              <input type="text" className="input-field" value={holidayForm.name}
+                onChange={e => setHolidayForm(p => ({ ...p, name: e.target.value }))}
+                placeholder="Eid ul-Fitr" />
+            </div>
+            <div className="flex items-end">
+              <button onClick={async () => {
+                if (!holidayForm.date || !holidayForm.name_bn) return toast.error('তারিখ ও নাম দিন');
+                setAddingHoliday(true);
+                try {
+                  await hrApi.createHoliday({ ...holidayForm, name: holidayForm.name || holidayForm.name_bn });
+                  toast.success('ছুটি যুক্ত হয়েছে ✅');
+                  setHolidayForm({ date: '', name: '', name_bn: '' });
+                  fetchAll();
+                } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
+                finally { setAddingHoliday(false); }
+              }} disabled={addingHoliday}
+                className="flex items-center gap-1.5 bg-primary-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium w-full justify-center disabled:opacity-50">
+                <Plus size={14} /> {addingHoliday ? 'যুক্ত হচ্ছে...' : 'যুক্ত করুন'}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Holiday list */}
+        {holidays.length === 0 ? (
+          <p className="text-center py-6 text-gray-400 text-sm">কোনো ছুটি নেই</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 border-b border-gray-100">
+                <tr>
+                  {['তারিখ', 'নাম (বাংলা)', 'Name (English)', 'Action'].map(h => (
+                    <th key={h} className="text-left px-3 py-2 text-xs font-semibold text-gray-500 uppercase">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {holidays.map(h => (
+                  <tr key={h.id} className="hover:bg-gray-50">
+                    <td className="px-3 py-2 whitespace-nowrap">{new Date(h.date).toLocaleDateString('bn-BD')}</td>
+                    <td className="px-3 py-2">{h.name_bn || h.name}</td>
+                    <td className="px-3 py-2 text-gray-500">{h.name}</td>
+                    <td className="px-3 py-2">
+                      <button onClick={async () => {
+                        if (!confirm('এই ছুটি মুছে ফেলতে চান?')) return;
+                        try {
+                          await hrApi.deleteHoliday(h.id);
+                          toast.success('মুছে ফেলা হয়েছে');
+                          fetchAll();
+                        } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
+                      }} className="p-1.5 bg-red-50 text-red-500 rounded-lg">
+                        <Trash2 size={14} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
       {editType && (
         <LeaveTypeModal leaveType={editType} onClose={() => setEditType(null)} onSuccess={() => { setEditType(null); fetchAll(); }} />
       )}
