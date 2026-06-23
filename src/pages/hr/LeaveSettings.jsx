@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { leaveApi, hrApi } from '../../api/client';
 import { Trash2, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { Plus, Edit2 } from 'lucide-react';
 
 export default function LeaveSettings() {
   const [types, setTypes] = useState([]);
