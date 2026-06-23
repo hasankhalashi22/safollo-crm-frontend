@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { leaveApi, hrApi } from '../../api/client';
-import { Trash2, Plus } from 'lucide-react';
+import { Trash2, Plus, Edit2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function LeaveSettings() {
