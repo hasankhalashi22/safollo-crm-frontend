@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { Home, Plus, Clock, User, BarChart2, Users, BookOpen, Settings, LogOut, TrendingUp, Shield, Menu, X, Activity, CheckSquare, Wallet, FileText, BookText, Landmark, CreditCard } from 'lucide-react';
+import { Home, Plus, Clock, User, BarChart2, Users, BookOpen, Settings, LogOut, TrendingUp, Shield, Menu, X, Activity, CheckSquare, Wallet, FileText, BookText, Landmark, CreditCard, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { MODULES, getModuleForPath, getVisibleModules } from '../../config/modules';
@@ -12,7 +12,7 @@ function TopModuleBar() {
   const navigate = useNavigate();
   const location = useLocation();
 
- const visibleModules = getVisibleModules(user);
+  const visibleModules = getVisibleModules(user);
   if (visibleModules.length <= 1) return null;
 
   const currentModule = getModuleForPath(location.pathname);
@@ -28,7 +28,6 @@ function TopModuleBar() {
     </div>
   );
 }
-
 
 export function ExecutiveLayout({ children }) {
   const { user, logout } = useAuth();
@@ -58,7 +57,6 @@ export function ExecutiveLayout({ children }) {
             <Home size={20} />
             <span className="text-xs">হোম</span>
           </NavLink>
-
           <NavLink to="/executive/new-sale" className={({ isActive }) =>
             `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`}>
             <div className="bg-primary-500 text-white rounded-full p-2.5 -mt-6 shadow-lg">
@@ -66,25 +64,21 @@ export function ExecutiveLayout({ children }) {
             </div>
             <span className="text-xs text-gray-400 mt-0.5">নতুন সেল</span>
           </NavLink>
-
           <NavLink to="/executive/approvals" className={({ isActive }) =>
             `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`}>
             <CheckSquare size={20} />
             <span className="text-xs">Pending</span>
           </NavLink>
-
           <NavLink to="/executive/performance" className={({ isActive }) =>
             `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`}>
             <TrendingUp size={20} />
             <span className="text-xs">পারফরম্যান্স</span>
           </NavLink>
-
           <NavLink to="/executive/due" className={({ isActive }) =>
             `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`}>
             <Clock size={20} />
             <span className="text-xs">বকেয়া</span>
           </NavLink>
-
           <NavLink to="/executive/profile" className={({ isActive }) =>
             `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`}>
             <User size={20} />
@@ -100,6 +94,7 @@ export function AdminLayout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -138,102 +133,18 @@ export function AdminLayout({ children }) {
 
   const SidebarContent = () => (
     <>
-      <div className="p-4 border-b border-gray-100">
-        <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-10 mb-1" />
-        <p className="text-xs text-gray-400">{user?.role_label}</p>
-      </div>
-
-      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-        {navItems.map(({ to, icon: Icon, label, end }) => (
-          <NavLink key={to} to={to} end={end}
-            onClick={() => setSidebarOpen(false)}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
-               ${isActive ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'}`
-            }>
-            <Icon size={18} />
-            {label}
-          </NavLink>
-        ))}
-      </nav>
-
-      <div className="p-3 border-t border-gray-100">
-        <div className="flex items-center gap-3 px-3 py-2.5 mb-2">
-          <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
-            <span className="text-primary-600 font-bold text-sm">
-              {(user?.full_name || user?.phone)?.[0]}
-            </span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{user?.full_name || user?.phone}</p>
+      <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+        {!collapsed && (
+          <div>
+            <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-10 mb-1" />
             <p className="text-xs text-gray-400">{user?.role_label}</p>
           </div>
-        </div>
-        <button onClick={handleLogout} className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl transition-all">
-          <LogOut size={16} />
-          লগআউট
+        )}
+        <button onClick={() => setCollapsed(!collapsed)}
+          className="p-1.5 bg-gray-100 rounded-lg text-gray-500 hover:bg-gray-200 hidden lg:flex items-center justify-center ml-auto">
+          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </button>
       </div>
-    </>
-  );
-
- return (
-    <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
-      <TopModuleBar />
-      <div className="flex flex-1 overflow-hidden">
-      <aside className="hidden lg:flex w-64 bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0">
-        <SidebarContent />
-      </aside>
-
-      {sidebarOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 flex">
-          <div className="fixed inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
-          <aside className="relative w-72 bg-white flex flex-col shadow-xl">
-            <button onClick={() => setSidebarOpen(false)}
-              className="absolute top-3 right-3 p-1.5 bg-gray-100 rounded-full z-10">
-              <X size={18} />
-            </button>
-            <SidebarContent />
-          </aside>
-        </div>
-      )}
-
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="lg:hidden bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3 shadow-sm">
-          <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl bg-gray-100">
-            <Menu size={20} className="text-gray-600" />
-          </button>
-          <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-8" />
-        </div>
-
-       <main className="flex-1 overflow-y-auto page-enter">
-          {children}
-        </main>
-      </div>
-      </div>
-    </div>
-  );
-}
-
-export function AccountingLayout({ children }) {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
-    toast.success('লগআউট হয়েছে');
-  };
-
- const navItems = MODULES.find(m => m.key === 'accounting').sidebar;
-
-  const SidebarContent = () => (
-    <>
-      <div className="p-4 border-b border-gray-100">
-        <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-10 mb-1" />
-      <p className="text-xs text-gray-400">Accounting Module</p>
-      </div>
 
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {navItems.map(({ to, icon: Icon, label, end }) => (
@@ -243,27 +154,28 @@ export function AccountingLayout({ children }) {
               `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
                ${isActive ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'}`
             }>
-            <Icon size={18} />
-            {label}
+            <Icon size={18} className="flex-shrink-0" />
+            {!collapsed && <span>{label}</span>}
           </NavLink>
         ))}
       </nav>
 
       <div className="p-3 border-t border-gray-100">
-        <div className="flex items-center gap-3 px-3 py-2.5 mb-2">
-          <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
-            <span className="text-primary-600 font-bold text-sm">
-              {(user?.full_name || user?.phone)?.[0]}
-            </span>
+        {!collapsed && (
+          <div className="flex items-center gap-3 px-3 py-2.5 mb-2">
+            <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+              <span className="text-primary-600 font-bold text-sm">{(user?.full_name || user?.phone)?.[0]}</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{user?.full_name || user?.phone}</p>
+              <p className="text-xs text-gray-400">{user?.role_label}</p>
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{user?.full_name || user?.phone}</p>
-            <p className="text-xs text-gray-400">{user?.role_label}</p>
-          </div>
-        </div>
-        <button onClick={handleLogout} className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl transition-all">
+        )}
+        <button onClick={handleLogout}
+          className={`flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl transition-all ${collapsed ? 'justify-center' : ''}`}>
           <LogOut size={16} />
-          লগআউট
+          {!collapsed && 'লগআউট'}
         </button>
       </div>
     </>
@@ -273,7 +185,7 @@ export function AccountingLayout({ children }) {
     <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
       <TopModuleBar />
       <div className="flex flex-1 overflow-hidden">
-        <aside className="hidden lg:flex w-64 bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0">
+        <aside className={`hidden lg:flex bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0 transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'}`}>
           <SidebarContent />
         </aside>
 
@@ -297,10 +209,106 @@ export function AccountingLayout({ children }) {
             </button>
             <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-8" />
           </div>
+          <main className="flex-1 overflow-y-auto page-enter">{children}</main>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-          <main className="flex-1 overflow-y-auto page-enter">
-            {children}
-          </main>
+export function AccountingLayout({ children }) {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+    toast.success('লগআউট হয়েছে');
+  };
+
+  const navItems = MODULES.find(m => m.key === 'accounting').sidebar;
+
+  const SidebarContent = () => (
+    <>
+      <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+        {!collapsed && (
+          <div>
+            <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-10 mb-1" />
+            <p className="text-xs text-gray-400">Accounting Module</p>
+          </div>
+        )}
+        <button onClick={() => setCollapsed(!collapsed)}
+          className="p-1.5 bg-gray-100 rounded-lg text-gray-500 hover:bg-gray-200 hidden lg:flex items-center justify-center ml-auto">
+          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        </button>
+      </div>
+
+      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+        {navItems.map(({ to, icon: Icon, label, end }) => (
+          <NavLink key={to} to={to} end={end}
+            onClick={() => setSidebarOpen(false)}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
+               ${isActive ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'}`
+            }>
+            <Icon size={18} className="flex-shrink-0" />
+            {!collapsed && <span>{label}</span>}
+          </NavLink>
+        ))}
+      </nav>
+
+      <div className="p-3 border-t border-gray-100">
+        {!collapsed && (
+          <div className="flex items-center gap-3 px-3 py-2.5 mb-2">
+            <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+              <span className="text-primary-600 font-bold text-sm">{(user?.full_name || user?.phone)?.[0]}</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{user?.full_name || user?.phone}</p>
+              <p className="text-xs text-gray-400">{user?.role_label}</p>
+            </div>
+          </div>
+        )}
+        <button onClick={handleLogout}
+          className={`flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl transition-all ${collapsed ? 'justify-center' : ''}`}>
+          <LogOut size={16} />
+          {!collapsed && 'লগআউট'}
+        </button>
+      </div>
+    </>
+  );
+
+  return (
+    <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
+      <TopModuleBar />
+      <div className="flex flex-1 overflow-hidden">
+        <aside className={`hidden lg:flex bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0 transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'}`}>
+          <SidebarContent />
+        </aside>
+
+        {sidebarOpen && (
+          <div className="lg:hidden fixed inset-0 z-50 flex">
+            <div className="fixed inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
+            <aside className="relative w-72 bg-white flex flex-col shadow-xl">
+              <button onClick={() => setSidebarOpen(false)}
+                className="absolute top-3 right-3 p-1.5 bg-gray-100 rounded-full z-10">
+                <X size={18} />
+              </button>
+              <SidebarContent />
+            </aside>
+          </div>
+        )}
+
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="lg:hidden bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3 shadow-sm">
+            <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl bg-gray-100">
+              <Menu size={20} className="text-gray-600" />
+            </button>
+            <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-8" />
+          </div>
+          <main className="flex-1 overflow-y-auto page-enter">{children}</main>
         </div>
       </div>
     </div>
@@ -311,6 +319,7 @@ export function HrLayout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [pendingLeaveCount, setPendingLeaveCount] = useState(0);
 
   useEffect(() => {
@@ -323,13 +332,21 @@ export function HrLayout({ children }) {
     toast.success('লগআউট হয়েছে');
   };
 
-const navItems = MODULES.find(m => m.key === 'hr').sidebar;
+  const navItems = MODULES.find(m => m.key === 'hr').sidebar;
 
   const SidebarContent = () => (
     <>
-      <div className="p-4 border-b border-gray-100">
-        <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-10 mb-1" />
-        <p className="text-xs text-gray-400">HR Module</p>
+      <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+        {!collapsed && (
+          <div>
+            <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-10 mb-1" />
+            <p className="text-xs text-gray-400">HR Module</p>
+          </div>
+        )}
+        <button onClick={() => setCollapsed(!collapsed)}
+          className="p-1.5 bg-gray-100 rounded-lg text-gray-500 hover:bg-gray-200 hidden lg:flex items-center justify-center ml-auto">
+          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        </button>
       </div>
 
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
@@ -340,9 +357,9 @@ const navItems = MODULES.find(m => m.key === 'hr').sidebar;
               `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
                ${isActive ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'}`
             }>
-           <Icon size={18} />
-            <span className="flex-1">{label}</span>
-            {to === '/hr/leave-applications' && pendingLeaveCount > 0 && (
+            <Icon size={18} className="flex-shrink-0" />
+            {!collapsed && <span className="flex-1">{label}</span>}
+            {!collapsed && to === '/hr/leave-applications' && pendingLeaveCount > 0 && (
               <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
                 {pendingLeaveCount}
               </span>
@@ -352,20 +369,21 @@ const navItems = MODULES.find(m => m.key === 'hr').sidebar;
       </nav>
 
       <div className="p-3 border-t border-gray-100">
-        <div className="flex items-center gap-3 px-3 py-2.5 mb-2">
-          <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
-            <span className="text-primary-600 font-bold text-sm">
-              {(user?.full_name || user?.phone)?.[0]}
-            </span>
+        {!collapsed && (
+          <div className="flex items-center gap-3 px-3 py-2.5 mb-2">
+            <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+              <span className="text-primary-600 font-bold text-sm">{(user?.full_name || user?.phone)?.[0]}</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{user?.full_name || user?.phone}</p>
+              <p className="text-xs text-gray-400">{user?.role_label}</p>
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{user?.full_name || user?.phone}</p>
-            <p className="text-xs text-gray-400">{user?.role_label}</p>
-          </div>
-        </div>
-        <button onClick={handleLogout} className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl transition-all">
+        )}
+        <button onClick={handleLogout}
+          className={`flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl transition-all ${collapsed ? 'justify-center' : ''}`}>
           <LogOut size={16} />
-          লগআউট
+          {!collapsed && 'লগআউট'}
         </button>
       </div>
     </>
@@ -375,7 +393,7 @@ const navItems = MODULES.find(m => m.key === 'hr').sidebar;
     <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
       <TopModuleBar />
       <div className="flex flex-1 overflow-hidden">
-        <aside className="hidden lg:flex w-64 bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0">
+        <aside className={`hidden lg:flex bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0 transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'}`}>
           <SidebarContent />
         </aside>
 
@@ -399,10 +417,7 @@ const navItems = MODULES.find(m => m.key === 'hr').sidebar;
             </button>
             <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-8" />
           </div>
-
-          <main className="flex-1 overflow-y-auto page-enter">
-            {children}
-          </main>
+          <main className="flex-1 overflow-y-auto page-enter">{children}</main>
         </div>
       </div>
     </div>
