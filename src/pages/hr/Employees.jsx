@@ -886,8 +886,7 @@ function SalaryTab({ employeeId }) {
 
   useEffect(() => { fetchComponents(); }, [employeeId]);
 
-  const handleAdd = async (e) => {
-    e.preventDefault();
+  const handleAdd = async () => {
     if (!addForm.name || !addForm.amount) return toast.error('নাম ও পরিমাণ দিন');
     setAdding(true);
     try {
@@ -958,7 +957,7 @@ function SalaryTab({ employeeId }) {
 
       <div className="border-t border-gray-100 pt-3">
         <h4 className="text-sm font-semibold text-gray-700 mb-2">নতুন যুক্ত করুন</h4>
-        <form onSubmit={handleAdd} className="space-y-2">
+       <div className="space-y-2">
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="block text-xs font-medium mb-1">ধরন</label>
@@ -980,11 +979,11 @@ function SalaryTab({ employeeId }) {
               onChange={e => setAddForm(p => ({ ...p, name: e.target.value }))}
               placeholder="যেমন: House Rent, Provident Fund" />
           </div>
-          <button type="submit" disabled={adding}
+         <button type="button" onClick={handleAdd} disabled={adding}
             className="w-full bg-primary-500 text-white py-2 rounded-xl text-sm font-medium disabled:opacity-50">
             {adding ? 'যুক্ত হচ্ছে...' : '✅ যুক্ত করুন'}
           </button>
-        </form>
+        </div>
       </div>
     </div>
   );
