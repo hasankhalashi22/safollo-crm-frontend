@@ -251,7 +251,15 @@ export const payrollApi = {
   recordPayment: (id, data) => api.post(`/api/payroll/runs/${id}/payments`, data),
   getPayments: (id) => api.get(`/api/payroll/runs/${id}/payments`),
   closeMonth: (month, year) => api.post('/api/payroll/close', { month, year }),
-  getPayrollRuns: (month, year) => api.get(`/api/payroll/runs?month=${month}&year=${year}`),
+ getPayrollRuns: (params = {}) => {
+    const q = new URLSearchParams();
+    if (params.month) q.append('month', params.month);
+    if (params.year) q.append('year', params.year);
+    if (params.employeeId) q.append('employeeId', params.employeeId);
+    if (params.dateFrom) q.append('dateFrom', params.dateFrom);
+    if (params.dateTo) q.append('dateTo', params.dateTo);
+    return api.get(`/api/payroll/runs?${q.toString()}`);
+  },
 recalculateRun: (id) => api.patch(`/api/payroll/runs/${id}/recalculate`),
 updatePayment: (paymentId, data) => api.patch(`/api/payroll/payments/${paymentId}`, data),
 deletePayment: (paymentId) => api.delete(`/api/payroll/payments/${paymentId}`),
