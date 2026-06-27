@@ -9,6 +9,7 @@ const portalNavItems = [
   { to: '/portal', icon: Home, label: 'Home', end: true },
   { to: '/portal/attendance', icon: Clock, label: 'Attendance' },
   { to: '/portal/leave', icon: Calendar, label: 'Leave' },
+  { to: '/portal/approvals', icon: CheckSquare, label: 'Approvals' },
   { to: '/portal/profile', icon: User, label: 'Profile' },
 ];
 
