@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { Home, Plus, Clock, User, BarChart2, Users, BookOpen, Settings, LogOut, TrendingUp, Shield, Menu, X, Activity, CheckSquare, Wallet, FileText, BookText, Landmark, CreditCard, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Home, Plus, Clock, User, BarChart2, Users, BookOpen, Settings, LogOut, TrendingUp, Shield, Menu, X, Activity, CheckSquare, Wallet, FileText, BookText, Landmark, CreditCard, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { MODULES, getModuleForPath, getVisibleModules } from '../../config/modules';
@@ -321,6 +321,10 @@ export function HrLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [pendingLeaveCount, setPendingLeaveCount] = useState(0);
+  const [openGroups, setOpenGroups] = useState({ leave: true, attendance: true, payroll: true });
+  const location = useLocation();
+
+  const toggleGroup = (key) => setOpenGroups(prev => ({ ...prev, [key]: !prev[key] }));
 
   useEffect(() => {
     leaveApi.getMyApprovalQueue().then(r => setPendingLeaveCount((r.data || []).length)).catch(() => setPendingLeaveCount(0));
@@ -350,22 +354,56 @@ export function HrLayout({ children }) {
       </div>
 
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-        {navItems.map(({ to, icon: Icon, label, end }) => (
-          <NavLink key={to} to={to} end={end}
-            onClick={() => setSidebarOpen(false)}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
-               ${isActive ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'}`
-            }>
-            <Icon size={18} className="flex-shrink-0" />
-            {!collapsed && <span className="flex-1">{label}</span>}
-            {!collapsed && to === '/hr/leave-applications' && pendingLeaveCount > 0 && (
-              <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
-                {pendingLeaveCount}
-              </span>
-            )}
-          </NavLink>
-        ))}
+        {navItems.map((item) => {
+          if (item.group) {
+            const isOpen = openGroups[item.group];
+            const Icon = item.icon;
+            const anyActive = item.children.some(c => location.pathname === c.to || location.pathname.startsWith(c.to + '/'));
+            return (
+              <div key={item.group}>
+                <button
+                  onClick={() => toggleGroup(item.group)}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
+                    ${anyActive ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'}`}>
+                  <Icon size={18} className="flex-shrink-0" />
+                  {!collapsed && <><span className="flex-1 text-left">{item.label}</span>
+                    <ChevronDown size={14} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} /></>}
+                </button>
+                {isOpen && !collapsed && (
+                  <div className="ml-4 mt-1 space-y-1 border-l-2 border-gray-100 pl-3">
+                    {item.children.map(({ to, icon: CIcon, label }) => (
+                      <NavLink key={to} to={to}
+                        onClick={() => setSidebarOpen(false)}
+                        className={({ isActive }) =>
+                          `flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all
+                           ${isActive ? 'bg-primary-50 text-primary-600' : 'text-gray-500 hover:bg-gray-50'}`}>
+                        <CIcon size={16} className="flex-shrink-0" />
+                        <span className="flex-1">{label}</span>
+                        {to === '/hr/leave-applications' && pendingLeaveCount > 0 && (
+                          <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                            {pendingLeaveCount}
+                          </span>
+                        )}
+                      </NavLink>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          }
+          const { to, icon: Icon, label, end } = item;
+          return (
+            <NavLink key={to} to={to} end={end}
+              onClick={() => setSidebarOpen(false)}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
+                 ${isActive ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'}`
+              }>
+              <Icon size={18} className="flex-shrink-0" />
+              {!collapsed && <span className="flex-1">{label}</span>}
+            </NavLink>
+          );
+        })}
       </nav>
 
       <div className="p-3 border-t border-gray-100">
