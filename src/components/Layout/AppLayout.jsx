@@ -84,6 +84,13 @@ export function ExecutiveLayout({ children }) {
             <User size={20} />
             <span className="text-xs">প্রোফাইল</span>
           </NavLink>
+          {user?.has_ess && (
+            <button onClick={() => navigate('/portal')}
+              className="flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all text-primary-500">
+              <Home size={20} />
+              <span className="text-xs">Portal</span>
+            </button>
+          )}
         </div>
       </nav>
     </div>
@@ -171,6 +178,13 @@ export function AdminLayout({ children }) {
               <p className="text-xs text-gray-400">{user?.role_label}</p>
             </div>
           </div>
+        )}
+        {user?.has_ess && (
+          <button onClick={() => navigate('/portal')}
+            className={`flex items-center gap-2 w-full px-3 py-2 text-sm text-primary-600 hover:bg-primary-50 rounded-xl transition-all mb-1 ${collapsed ? 'justify-center' : ''}`}>
+            <Home size={16} />
+            {!collapsed && 'My Portal (ESS)'}
+          </button>
         )}
         <button onClick={handleLogout}
           className={`flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl transition-all ${collapsed ? 'justify-center' : ''}`}>
@@ -270,6 +284,13 @@ export function AccountingLayout({ children }) {
               <p className="text-xs text-gray-400">{user?.role_label}</p>
             </div>
           </div>
+        )}
+        {user?.has_ess && (
+          <button onClick={() => navigate('/portal')}
+            className={`flex items-center gap-2 w-full px-3 py-2 text-sm text-primary-600 hover:bg-primary-50 rounded-xl transition-all mb-1 ${collapsed ? 'justify-center' : ''}`}>
+            <Home size={16} />
+            {!collapsed && 'My Portal (ESS)'}
+          </button>
         )}
         <button onClick={handleLogout}
           className={`flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl transition-all ${collapsed ? 'justify-center' : ''}`}>
@@ -417,6 +438,13 @@ export function HrLayout({ children }) {
               <p className="text-xs text-gray-400">{user?.role_label}</p>
             </div>
           </div>
+        )}
+        {user?.has_ess && (
+          <button onClick={() => navigate('/portal')}
+            className={`flex items-center gap-2 w-full px-3 py-2 text-sm text-primary-600 hover:bg-primary-50 rounded-xl transition-all mb-1 ${collapsed ? 'justify-center' : ''}`}>
+            <Home size={16} />
+            {!collapsed && 'My Portal (ESS)'}
+          </button>
         )}
         <button onClick={handleLogout}
           className={`flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl transition-all ${collapsed ? 'justify-center' : ''}`}>

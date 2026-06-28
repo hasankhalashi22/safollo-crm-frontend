@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { hrApi, usersApi, leaveApi, payrollApi, authApi } from '../../api/client';
 import { MODULES } from '../../config/modules';
 import toast from 'react-hot-toast';
-import { Edit2, User, Plus, Eye, Download, Key } from 'lucide-react';
+import { Edit2, User, Plus, Eye, Download, Key, Link, Unlink, ShieldCheck } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function Employees() {
@@ -831,6 +831,8 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
 
           {tab === 'access' && (
             <div className="space-y-3">
+              <EssAccessTab employee={employee} onSuccess={onSuccess} />
+              <div className="border-t border-gray-100 pt-3">
               <p className="text-xs text-gray-500 mb-2">কোন মডিউলে এই কর্মীর প্রবেশের অনুমতি আছে এবং সেখানে তার role কী, তা নির্বাচন করুন।</p>
               {MODULES.map(m => {
                 const hasAccess = !!moduleAccess[m.key];
@@ -857,6 +859,7 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
               <button type="button" onClick={handleSaveModuleAccess} className="btn-primary" disabled={loading}>
                 {loading ? 'Saving...' : '✅ Module Access সংরক্ষণ করুন'}
               </button>
+              </div>
             </div>
           )}
 
@@ -867,6 +870,123 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
           )}
         </form>
       </div>
+    </div>
+  );
+}
+
+function EssAccessTab({ employee, onSuccess }) {
+  const [unlinkedUsers, setUnlinkedUsers] = useState([]);
+  const [selectedUserId, setSelectedUserId] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [hasEss, setHasEss] = useState(!!employee.user_id);
+  const [userId, setUserId] = useState(employee.user_id || null);
+
+  useEffect(() => {
+    if (!hasEss) {
+      hrApi.getUnlinkedCrmUsers().then(r => setUnlinkedUsers(r.data || []));
+    }
+  }, [hasEss]);
+
+  const handleLink = async () => {
+    if (!selectedUserId) return toast.error('একটি CRM User বেছে নিন');
+    setLoading(true);
+    try {
+      const r = await hrApi.linkEssUser(employee.id, selectedUserId);
+      setHasEss(true);
+      setUserId(r.data?.user_id);
+      toast.success('ESS Access লিঙ্ক হয়েছে ✅');
+      onSuccess();
+    } catch (err) {
+      toast.error(err.message || 'সমস্যা হয়েছে');
+    } finally { setLoading(false); }
+  };
+
+  const handleCreateLogin = async () => {
+    if (!employee.phone) return toast.error('কর্মীর ফোন নম্বর নেই। আগে Basic Info-তে ফোন নম্বর দিন।');
+    if (!confirm(`${employee.phone} নম্বরে নতুন ESS Login তৈরি করবেন?`)) return;
+    setLoading(true);
+    try {
+      const r = await hrApi.createEssLogin(employee.id);
+      setHasEss(true);
+      setUserId(r.data?.user_id);
+      toast.success('ESS Login তৈরি হয়েছে ✅');
+      onSuccess();
+    } catch (err) {
+      toast.error(err.message || 'সমস্যা হয়েছে');
+    } finally { setLoading(false); }
+  };
+
+  const handleUnlink = async () => {
+    if (!confirm('ESS Access সরিয়ে দেবেন? CRM Account মুছবে না, শুধু লিঙ্ক ভাঙবে।')) return;
+    setLoading(true);
+    try {
+      await hrApi.unlinkEssUser(employee.id);
+      setHasEss(false);
+      setUserId(null);
+      toast.success('ESS Access সরানো হয়েছে');
+      onSuccess();
+    } catch (err) {
+      toast.error(err.message || 'সমস্যা হয়েছে');
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <div className="space-y-4">
+      {hasEss ? (
+        <div className="bg-green-50 border border-green-200 rounded-xl p-4 space-y-3">
+          <div className="flex items-center gap-2 text-green-700">
+            <ShieldCheck size={20} />
+            <span className="font-semibold">ESS Access সক্রিয় আছে</span>
+          </div>
+          <p className="text-sm text-gray-600">
+            এই কর্মী <strong>{employee.phone || 'তাদের ফোন নম্বর'}</strong> দিয়ে Employee Portal (ESS)-এ লগইন করতে পারবেন।
+          </p>
+          {employee.crm_phone && (
+            <p className="text-xs text-gray-500 bg-white rounded-lg px-3 py-2">
+              CRM Account: {employee.crm_role_label || 'Employee'} ({employee.crm_phone || employee.phone})
+            </p>
+          )}
+          <button onClick={handleUnlink} disabled={loading}
+            className="flex items-center gap-2 px-3 py-2 bg-red-50 text-red-600 rounded-xl text-sm font-medium hover:bg-red-100 transition">
+            <Unlink size={15} /> ESS Access সরিয়ে দিন
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-sm text-amber-700">
+            এই কর্মীর কোনো ESS Access নেই। নিচ থেকে চালু করুন।
+          </div>
+
+          {/* Option 1: Link existing CRM user */}
+          <div className="border border-gray-100 rounded-xl p-4 space-y-3">
+            <h4 className="text-sm font-semibold flex items-center gap-2"><Link size={15} /> বিদ্যমান CRM User-এর সাথে লিঙ্ক করুন</h4>
+            <p className="text-xs text-gray-400">যদি এই কর্মীর ইতোমধ্যে CRM-এ একটি Account থাকে:</p>
+            <select className="input-field" value={selectedUserId} onChange={e => setSelectedUserId(e.target.value)}>
+              <option value="">-- CRM User বেছে নিন --</option>
+              {unlinkedUsers.map(u => (
+                <option key={u.id} value={u.id}>{u.full_name || u.phone} ({u.role_label})</option>
+              ))}
+            </select>
+            <button onClick={handleLink} disabled={loading || !selectedUserId}
+              className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-xl text-sm font-medium disabled:opacity-50">
+              {loading ? 'লিঙ্ক হচ্ছে...' : '✅ লিঙ্ক করুন'}
+            </button>
+          </div>
+
+          {/* Option 2: Create new ESS login */}
+          <div className="border border-gray-100 rounded-xl p-4 space-y-3">
+            <h4 className="text-sm font-semibold flex items-center gap-2"><ShieldCheck size={15} /> নতুন ESS Login তৈরি করুন</h4>
+            <p className="text-xs text-gray-400">
+              যদি এই কর্মীর কোনো CRM Account না থাকে, তাহলে তার ফোন নম্বরে একটি নতুন ESS-only login তৈরি করুন।
+            </p>
+            <p className="text-sm font-medium text-gray-700">ফোন: {employee.phone || <span className="text-red-500">নেই — আগে Basic Info-তে যোগ করুন</span>}</p>
+            <button onClick={handleCreateLogin} disabled={loading || !employee.phone}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-medium disabled:opacity-50">
+              {loading ? 'তৈরি হচ্ছে...' : '🔐 নতুন ESS Login তৈরি করুন'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

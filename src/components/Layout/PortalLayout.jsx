@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { getVisibleModules } from '../../config/modules';
 import { useState, useEffect } from 'react';
-import { Home, Calendar, Clock, User, LogOut, Bell, CheckSquare } from 'lucide-react';
+import { Home, Calendar, Clock, User, LogOut, Bell, CheckSquare, ArrowLeft } from 'lucide-react';
 import { leaveApi } from '../../api/client';
 
 const portalNavItems = [
@@ -39,8 +39,8 @@ export default function PortalLayout({ children }) {
         <div className="bg-white border-b border-gray-100 px-4 py-2 flex gap-2 overflow-x-auto">
           {visibleModules.map(m => (
             <button key={m.key} onClick={() => navigate(m.basePath)}
-              className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium whitespace-nowrap">
-              {m.label} মডিউলে যান →
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium whitespace-nowrap">
+              <ArrowLeft size={13} /> {m.label} মডিউলে যান
             </button>
           ))}
         </div>

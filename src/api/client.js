@@ -193,6 +193,9 @@ setEmployeeModuleAccess: (id, access) => api.put(`/api/hr/employees/${id}/module
 getHolidays: (year) => api.get(`/api/hr/holidays${year ? `?year=${year}` : ''}`),
 createHoliday: (data) => api.post('/api/hr/holidays', data),
 deleteHoliday: (id) => api.delete(`/api/hr/holidays/${id}`),
+linkEssUser: (employeeId, userId) => api.post(`/api/hr/employees/${employeeId}/link-ess`, { user_id: userId }),
+unlinkEssUser: (employeeId) => api.delete(`/api/hr/employees/${employeeId}/link-ess`),
+createEssLogin: (employeeId) => api.post(`/api/hr/employees/${employeeId}/create-ess-login`),
 };
 
 export const leaveApi = {
