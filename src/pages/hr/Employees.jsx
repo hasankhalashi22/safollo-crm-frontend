@@ -1,13 +1,31 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { hrApi, usersApi, leaveApi, payrollApi, authApi } from '../../api/client';
 import { MODULES } from '../../config/modules';
 import toast from 'react-hot-toast';
-import { Edit2, User, Plus, Eye, Download, Key, Link, Unlink, ShieldCheck } from 'lucide-react';
+import { Edit2, User, Plus, Eye, Download, Key, Link, Unlink, ShieldCheck, Search } from 'lucide-react';
 import { format } from 'date-fns';
 
 function Modal({ children }) {
   return createPortal(children, document.body);
+}
+
+const MODULE_BADGE = {
+  crm:        { bg: 'bg-blue-50',   text: 'text-blue-600' },
+  hr:         { bg: 'bg-purple-50', text: 'text-purple-600' },
+  accounting: { bg: 'bg-amber-50',  text: 'text-amber-600' },
+};
+
+function InitialsAvatar({ name, size = 'md' }) {
+  const initials = (name || '?').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  const colors = ['bg-primary-100 text-primary-700', 'bg-amber-100 text-amber-700', 'bg-purple-100 text-purple-700', 'bg-blue-100 text-blue-700'];
+  const color = colors[(name?.charCodeAt(0) || 0) % colors.length];
+  const sz = size === 'lg' ? 'w-12 h-12 text-base' : 'w-9 h-9 text-sm';
+  return (
+    <div className={`${sz} ${color} rounded-full flex items-center justify-center font-semibold flex-shrink-0`}>
+      {initials}
+    </div>
+  );
 }
 
 export default function Employees() {
@@ -16,6 +34,9 @@ export default function Employees() {
   const [editModal, setEditModal] = useState(null);
   const [addModal, setAddModal] = useState(false);
   const [viewModal, setViewModal] = useState(null);
+  const [search, setSearch] = useState('');
+  const [filterDept, setFilterDept] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
 
   const fetchEmployees = () => {
     setLoading(true);
@@ -37,93 +58,106 @@ export default function Employees() {
     }
   };
 
+  const departments = useMemo(() => [...new Set(employees.map(e => e.department).filter(Boolean))], [employees]);
+
+  const filtered = useMemo(() => employees.filter(emp => {
+    const q = search.toLowerCase();
+    const matchSearch = !q || (emp.full_name || '').toLowerCase().includes(q) || (emp.phone || '').includes(q) || (emp.designation || '').toLowerCase().includes(q);
+    const matchDept = !filterDept || emp.department === filterDept;
+    const matchStatus = !filterStatus || (emp.status || 'active') === filterStatus;
+    return matchSearch && matchDept && matchStatus;
+  }), [employees, search, filterDept, filterStatus]);
+
   if (loading) return <div className="flex justify-center py-12"><div className="spinner w-8 h-8" /></div>;
 
   return (
     <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-display font-bold text-dark">Employee Directory</h1>
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <h1 className="text-2xl font-display font-bold text-dark">Employee Directory</h1>
+          <p className="text-sm text-gray-400 mt-0.5">{employees.length} জন কর্মী</p>
+        </div>
         <button onClick={() => setAddModal(true)}
           className="flex items-center gap-2 bg-primary-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium active:scale-95">
           <Plus size={16} /> Add Employee
         </button>
       </div>
 
-      <div className="card overflow-hidden p-0">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-100">
-              <tr>
-                {['Name', 'Designation', 'Department', 'Reports To', 'Type', 'Module Access', 'Status', 'Action'].map(h => (
-                  <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {employees.length === 0 ? (
-                <tr><td colSpan={8} className="text-center py-12 text-gray-400">No employees found</td></tr>
-              ) : employees.map(emp => (
-                <tr key={emp.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center flex-shrink-0">
-                        <User size={16} />
-                      </div>
-                      <div>
-                        <p className="font-medium">{emp.full_name}</p>
-                        <p className="text-xs text-gray-400">{emp.phone || '—'}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-gray-600">{emp.designation || emp.position_title || '—'}</td>
-                  <td className="px-4 py-3 text-gray-600">{emp.department || '—'}</td>
-                  <td className="px-4 py-3 text-gray-500">{emp.reports_to_name || '—'}</td>
-                  <td className="px-4 py-3 text-gray-500">
-                    {emp.is_remote ? 'Remote' : 'On-site'} {emp.employment_type ? `(${emp.employment_type})` : ''}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-1">
-                      {emp.crm_phone && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">CRM: {emp.crm_role_label || 'User'}</span>
-                      )}
-                      {(emp.module_access || []).filter(a => a.module_key !== 'crm').map(a => (
-                        <span key={a.module_key} className="text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-600">
-                          {MODULES.find(m => m.key === a.module_key)?.label || a.module_key}: {a.role_key}
-                        </span>
-                      ))}
-                      {!emp.crm_phone && (emp.module_access || []).length === 0 && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-400">কোনো access নেই</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${emp.status === 'active' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
-                      {emp.status || 'active'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-1">
-                      <button onClick={() => setViewModal(emp)}
-                        className="px-2 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium">
-                        <Eye size={14} />
-                      </button>
-                      {emp.user_id && (
-                        <button onClick={() => handleResetPassword(emp)}
-                          className="px-2 py-1 bg-amber-50 text-amber-600 rounded-lg text-xs font-medium">
-                          <Key size={14} />
-                        </button>
-                      )}
-                      <button onClick={() => setEditModal(emp)}
-                        className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium">
-                        <Edit2 size={14} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* Filters */}
+      <div className="flex gap-3 mb-4">
+        <div className="relative flex-1">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text" placeholder="নাম, ফোন বা পদবি দিয়ে খুঁজুন..."
+            className="input-field pl-9 text-sm" value={search}
+            onChange={e => setSearch(e.target.value)} />
         </div>
+        <select className="input-field text-sm w-44" value={filterDept} onChange={e => setFilterDept(e.target.value)}>
+          <option value="">সব বিভাগ</option>
+          {departments.map(d => <option key={d} value={d}>{d}</option>)}
+        </select>
+        <select className="input-field text-sm w-36" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
+          <option value="">সব Status</option>
+          <option value="active">Active</option>
+          <option value="on_leave">On Leave</option>
+          <option value="resigned">Resigned</option>
+          <option value="terminated">Terminated</option>
+        </select>
+      </div>
+
+      {/* Card list */}
+      <div className="card p-0 overflow-hidden divide-y divide-gray-50">
+        {filtered.length === 0 ? (
+          <div className="py-16 text-center text-gray-400 text-sm">কোনো কর্মী পাওয়া যায়নি</div>
+        ) : filtered.map(emp => {
+          const allBadges = [
+            emp.user_id && { key: 'ess', label: 'ESS', cls: 'bg-green-50 text-green-700' },
+            emp.crm_phone && { key: 'crm', label: `CRM: ${emp.crm_role_label || 'User'}`, cls: 'bg-blue-50 text-blue-600' },
+            ...(emp.module_access || []).filter(a => a.module_key !== 'crm').map(a => ({
+              key: a.module_key,
+              label: MODULES.find(m => m.key === a.module_key)?.label || a.module_key,
+              cls: MODULE_BADGE[a.module_key] ? `${MODULE_BADGE[a.module_key].bg} ${MODULE_BADGE[a.module_key].text}` : 'bg-gray-100 text-gray-500',
+            })),
+          ].filter(Boolean);
+
+          return (
+            <div key={emp.id} className="flex items-center gap-4 px-4 py-3.5 hover:bg-gray-50 transition-colors">
+              <InitialsAvatar name={emp.full_name} />
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <span className="font-semibold text-sm text-gray-900">{emp.full_name}</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${emp.status === 'active' || !emp.status ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                    {emp.status || 'active'}
+                  </span>
+                  {allBadges.map(b => (
+                    <span key={b.key} className={`text-xs px-2 py-0.5 rounded-full font-medium ${b.cls}`}>{b.label}</span>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-400 truncate">
+                  {[emp.designation || emp.position_title, emp.department, emp.reports_to_name ? `রিপোর্ট: ${emp.reports_to_name}` : null, emp.is_remote ? 'Remote' : null].filter(Boolean).join(' · ') || '—'}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button onClick={() => setViewModal(emp)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-200 transition-colors">
+                  <Eye size={13} /> দেখুন
+                </button>
+                {emp.user_id && (
+                  <button onClick={() => handleResetPassword(emp)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-600 rounded-lg text-xs font-medium hover:bg-amber-100 transition-colors">
+                    <Key size={13} /> Reset
+                  </button>
+                )}
+                <button onClick={() => setEditModal(emp)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium hover:bg-primary-100 transition-colors">
+                  <Edit2 size={13} /> এডিট
+                </button>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {editModal && (
@@ -514,7 +548,7 @@ function FileUploadBox({ label, currentUrl, onUpload }) {
 }
 
 function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
-  const [tab, setTab] = useState('basic');
+  const [tab, setTab] = useState('info');
   const [form, setForm] = useState({
     full_name: employee.full_name || '',
     phone: employee.phone || '',
@@ -629,256 +663,279 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
     } finally { setLoading(false); }
   };
 
-  const tabs = [
-    { key: 'basic', label: 'Basic Info' },
-    { key: 'personal', label: 'Personal Details' },
-    { key: 'documents', label: 'Documents' },
-    { key: 'hr', label: 'HR Settings' },
-    { key: 'salary', label: 'Salary' },
-    { key: 'access', label: 'Module Access' },
-  ];
-
   return (
     <Modal>
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-lg p-5 max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between mb-3">
-          <h3 className="font-bold text-lg">{employee.full_name}</h3>
-          <button onClick={onClose} className="p-1.5 bg-gray-100 rounded-full">✕</button>
+      <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+
+        {/* Header */}
+        <div className="bg-primary-50 px-5 py-4 flex items-center gap-3 border-b border-primary-100 flex-shrink-0">
+          <InitialsAvatar name={employee.full_name} size="lg" />
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-gray-900 truncate">{employee.full_name}</p>
+            <p className="text-xs text-gray-500 truncate">
+              {[employee.designation || employee.position_title, employee.department].filter(Boolean).join(' · ') || '—'}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button type="button" onClick={handleToggleLock} disabled={loading}
+              className={`px-2.5 py-1 rounded-lg text-xs font-medium ${isLocked ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'}`}>
+              {isLocked ? '🔒 Locked' : '🔓 Lock'}
+            </button>
+            <button onClick={onClose} className="p-1.5 bg-white rounded-full border border-gray-200 text-gray-400 hover:text-gray-600">✕</button>
+          </div>
         </div>
 
-        <div className="flex items-center justify-between mb-4 p-2.5 bg-gray-50 rounded-xl">
-          <span className="text-sm font-medium">{isLocked ? '🔒 প্রোফাইল লক করা আছে' : '🔓 প্রোফাইল আনলক করা আছে'}</span>
-          <button type="button" onClick={handleToggleLock} disabled={loading}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium ${isLocked ? 'bg-amber-100 text-amber-700' : 'bg-red-50 text-red-600'}`}>
-            {isLocked ? 'Unlock' : 'Lock'}
-          </button>
-        </div>
-
-        <div className="flex gap-1 mb-4 overflow-x-auto border-b border-gray-100">
-          {tabs.map(t => (
+        {/* 2 Tabs */}
+        <div className="flex border-b border-gray-100 flex-shrink-0">
+          {[{ key: 'info', label: 'তথ্য ও নথি' }, { key: 'access', label: 'Access ও বেতন' }].map(t => (
             <button key={t.key} type="button" onClick={() => setTab(t.key)}
-              className={`px-3 py-2 text-sm font-medium whitespace-nowrap border-b-2 ${tab === t.key ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-400'}`}>
+              className={`flex-1 py-2.5 text-sm font-medium border-b-2 transition-colors ${tab === t.key ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-400 hover:text-gray-600'}`}>
               {t.label}
             </button>
           ))}
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-3">
-          {tab === 'basic' && (
-            <>
-              <div>
-                <label className="block text-sm font-medium mb-1.5">নাম</label>
-                <input type="text" className="input-field" value={form.full_name} onChange={e => set('full_name', e.target.value)} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1.5">ফোন</label>
-                <input type="text" className="input-field" value={form.phone} onChange={e => set('phone', e.target.value)} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1.5">Email</label>
-                <input type="email" className="input-field" value={form.email} onChange={e => set('email', e.target.value)} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1.5">Position</label>
-                <select className="input-field" value={form.position_id} onChange={handlePositionChange}>
-                  <option value="">-- None --</option>
-                  {positions.map(p => <option key={p.id} value={p.id}>{p.title}{p.department ? ` (${p.department})` : ''}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1.5">Designation</label>
-                <input type="text" className="input-field" value={form.designation} onChange={e => set('designation', e.target.value)} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1.5">Department</label>
-                <input type="text" className="input-field" value={form.department} onChange={e => set('department', e.target.value)} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1.5">Reports To</label>
-                <select className="input-field" value={form.reports_to} onChange={e => set('reports_to', e.target.value)}>
-                  <option value="">-- None --</option>
-                  {allEmployees.filter(e => e.id !== employee.id).map(e => <option key={e.id} value={e.id}>{e.full_name}</option>)}
-                </select>
-              </div>
-            </>
-          )}
-
-          {tab === 'personal' && (
-            <>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium mb-1.5">পিতার নাম</label>
-                  <input type="text" className="input-field" value={form.father_name} onChange={e => set('father_name', e.target.value)} />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1.5">মাতার নাম</label>
-                  <input type="text" className="input-field" value={form.mother_name} onChange={e => set('mother_name', e.target.value)} />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium mb-1.5">জন্ম তারিখ</label>
-                  <input type="date" className="input-field" value={form.date_of_birth} onChange={e => set('date_of_birth', e.target.value)} />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1.5">Blood Group</label>
-                  <select className="input-field" value={form.blood_group} onChange={e => set('blood_group', e.target.value)}>
-                    <option value="">-- Select --</option>
-                    {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(b => <option key={b} value={b}>{b}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1.5">Gender</label>
-                <select className="input-field" value={form.gender} onChange={e => set('gender', e.target.value)}>
-                  <option value="">-- Select --</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium mb-1.5">Guardian Mobile</label>
-                  <input type="text" className="input-field" value={form.guardian_mobile} onChange={e => set('guardian_mobile', e.target.value)} />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1.5">Guardian Relation</label>
-                  <input type="text" className="input-field" value={form.guardian_relation} onChange={e => set('guardian_relation', e.target.value)} />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1.5">বর্তমান ঠিকানা</label>
-                <textarea className="input-field resize-none" rows={2} value={form.present_address} onChange={e => set('present_address', e.target.value)} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1.5">স্থায়ী ঠিকানা</label>
-                <textarea className="input-field resize-none" rows={2} value={form.permanent_address} onChange={e => set('permanent_address', e.target.value)} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1.5">শিক্ষাগত যোগ্যতা</label>
-                <input type="text" className="input-field" value={form.education_level} onChange={e => set('education_level', e.target.value)} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1.5">শিক্ষাগত বিস্তারিত</label>
-                <textarea className="input-field resize-none" rows={2} value={form.education_details} onChange={e => set('education_details', e.target.value)} />
-              </div>
-            </>
-          )}
-
-          {tab === 'documents' && (
-            <>
-              <div>
-                <label className="block text-sm font-medium mb-1.5">NID Number</label>
-                <input type="text" className="input-field" value={form.nid_number} onChange={e => set('nid_number', e.target.value)} />
-              </div>
-              <FileUploadBox label="ছবি (Photo)" currentUrl={employee.photo_url} onUpload={file => handleFileUpload('photo', file)} />
-              <FileUploadBox label="NID Image" currentUrl={employee.nid_image_url} onUpload={file => handleFileUpload('nid', file)} />
-              <FileUploadBox label="Signature" currentUrl={employee.signature_url} onUpload={file => handleFileUpload('signature', file)} />
-            </>
-          )}
-
-          {tab === 'hr' && (
-            <>
-              <div>
-                <label className="block text-sm font-medium mb-1.5">Employment Type</label>
-                <select className="input-field" value={form.employment_type} onChange={e => set('employment_type', e.target.value)}>
-                  <option value="full_time">Full Time</option>
-                  <option value="part_time">Part Time</option>
-                  <option value="contractual">Contractual</option>
-                  <option value="intern">Intern</option>
-                </select>
-              </div>
-              <div className="flex items-center gap-2">
-                <input type="checkbox" checked={form.is_remote} onChange={e => set('is_remote', e.target.checked)} />
-                <label className="text-sm">Remote Employee</label>
-              </div>
-              {!form.is_remote && (
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm font-medium mb-1.5">Office Start</label>
-                    <input type="time" className="input-field" value={form.office_start_time} onChange={e => set('office_start_time', e.target.value)} />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1.5">Office End</label>
-                    <input type="time" className="input-field" value={form.office_end_time} onChange={e => set('office_end_time', e.target.value)} />
-                  </div>
-                </div>
-              )}
-              <div>
-                <label className="block text-sm font-medium mb-1.5">Weekly Off Day</label>
-                <select className="input-field" value={form.weekly_off_day} onChange={e => set('weekly_off_day', e.target.value)}>
-                  <option value="">-- কোনো সাপ্তাহিক ছুটি নেই --</option>
-                  <option value="saturday">শনিবার</option>
-                  <option value="sunday">রবিবার</option>
-                  <option value="monday">সোমবার</option>
-                  <option value="tuesday">মঙ্গলবার</option>
-                  <option value="wednesday">বুধবার</option>
-                  <option value="thursday">বৃহস্পতিবার</option>
-                  <option value="friday">শুক্রবার</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1.5">Basic Salary</label>
-                <input type="number" className="input-field" value={form.basic_salary} onChange={e => set('basic_salary', e.target.value)} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1.5">Status</label>
-                <select className="input-field" value={form.status} onChange={e => set('status', e.target.value)}>
-                  <option value="active">Active</option>
-                  <option value="on_leave">On Leave</option>
-                  <option value="resigned">Resigned</option>
-                  <option value="terminated">Terminated</option>
-                </select>
-              </div>
-            </>
-          )}
-
-          {tab === 'salary' && (
-            <SalaryTab employeeId={employee.id} />
-          )}
-
-          {tab === 'access' && (
-            <div className="space-y-3">
-              <EssAccessTab employee={employee} onSuccess={onSuccess} />
-              <div className="border-t border-gray-100 pt-3">
-              <p className="text-xs text-gray-500 mb-2">কোন মডিউলে এই কর্মীর প্রবেশের অনুমতি আছে এবং সেখানে তার role কী, তা নির্বাচন করুন।</p>
-              {MODULES.map(m => {
-                const hasAccess = !!moduleAccess[m.key];
-                const roleOptions = m.key === 'crm' ? crmRoles.map(r => ({ key: r.name, label: r.label })) : (m.roles || []);
-                return (
-                  <div key={m.key} className="border border-gray-100 rounded-xl p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <input type="checkbox" checked={hasAccess} onChange={() => toggleModuleAccess(m.key, roleOptions[0]?.key || '')} />
-                        <label className="text-sm font-medium">{m.label}</label>
+        {/* Scrollable content */}
+        <div className="overflow-y-auto flex-1 p-5">
+          <form onSubmit={handleSubmit}>
+            {tab === 'info' && (
+              <div className="space-y-5">
+                {/* মূল তথ্য */}
+                <section>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">মূল তথ্য</p>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">নাম</label>
+                        <input type="text" className="input-field" value={form.full_name} onChange={e => set('full_name', e.target.value)} />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">ফোন</label>
+                        <input type="text" className="input-field" value={form.phone} onChange={e => set('phone', e.target.value)} />
                       </div>
                     </div>
-                    {hasAccess && (
-                      <div className="mt-2 pl-6">
-                        <select className="input-field" value={moduleAccess[m.key] || ''} onChange={e => setModuleRole(m.key, e.target.value)}>
-                          <option value="">-- Role বেছে নিন --</option>
-                          {roleOptions.map(r => <option key={r.key} value={r.key}>{r.label}</option>)}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
+                      <input type="email" className="input-field" value={form.email} onChange={e => set('email', e.target.value)} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Position</label>
+                        <select className="input-field" value={form.position_id} onChange={handlePositionChange}>
+                          <option value="">-- None --</option>
+                          {positions.map(p => <option key={p.id} value={p.id}>{p.title}{p.department ? ` (${p.department})` : ''}</option>)}
                         </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Designation</label>
+                        <input type="text" className="input-field" value={form.designation} onChange={e => set('designation', e.target.value)} />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Department</label>
+                        <input type="text" className="input-field" value={form.department} onChange={e => set('department', e.target.value)} />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Reports To</label>
+                        <select className="input-field" value={form.reports_to} onChange={e => set('reports_to', e.target.value)}>
+                          <option value="">-- None --</option>
+                          {allEmployees.filter(e => e.id !== employee.id).map(e => <option key={e.id} value={e.id}>{e.full_name}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Employment Type</label>
+                        <select className="input-field" value={form.employment_type} onChange={e => set('employment_type', e.target.value)}>
+                          <option value="full_time">Full Time</option>
+                          <option value="part_time">Part Time</option>
+                          <option value="contractual">Contractual</option>
+                          <option value="intern">Intern</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
+                        <select className="input-field" value={form.status} onChange={e => set('status', e.target.value)}>
+                          <option value="active">Active</option>
+                          <option value="on_leave">On Leave</option>
+                          <option value="resigned">Resigned</option>
+                          <option value="terminated">Terminated</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input type="checkbox" id="is_remote" checked={form.is_remote} onChange={e => set('is_remote', e.target.checked)} />
+                      <label htmlFor="is_remote" className="text-sm text-gray-600">Remote Employee</label>
+                    </div>
+                    {!form.is_remote && (
+                      <div className="grid grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Office Start</label>
+                          <input type="time" className="input-field" value={form.office_start_time} onChange={e => set('office_start_time', e.target.value)} />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Office End</label>
+                          <input type="time" className="input-field" value={form.office_end_time} onChange={e => set('office_end_time', e.target.value)} />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">সাপ্তাহিক ছুটি</label>
+                          <select className="input-field" value={form.weekly_off_day} onChange={e => set('weekly_off_day', e.target.value)}>
+                            <option value="">নেই</option>
+                            <option value="saturday">শনিবার</option>
+                            <option value="sunday">রবিবার</option>
+                            <option value="monday">সোমবার</option>
+                            <option value="tuesday">মঙ্গলবার</option>
+                            <option value="wednesday">বুধবার</option>
+                            <option value="thursday">বৃহস্পতিবার</option>
+                            <option value="friday">শুক্রবার</option>
+                          </select>
+                        </div>
                       </div>
                     )}
                   </div>
-                );
-              })}
-              <button type="button" onClick={handleSaveModuleAccess} className="btn-primary" disabled={loading}>
-                {loading ? 'Saving...' : '✅ Module Access সংরক্ষণ করুন'}
-              </button>
-              </div>
-            </div>
-          )}
+                </section>
 
-          {tab !== 'access' && tab !== 'salary' && (
-            <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? 'Saving...' : '✅ Save'}
-            </button>
-          )}
-        </form>
+                {/* ব্যক্তিগত তথ্য */}
+                <section>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">ব্যক্তিগত তথ্য</p>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">পিতার নাম</label>
+                        <input type="text" className="input-field" value={form.father_name} onChange={e => set('father_name', e.target.value)} />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">মাতার নাম</label>
+                        <input type="text" className="input-field" value={form.mother_name} onChange={e => set('mother_name', e.target.value)} />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">জন্ম তারিখ</label>
+                        <input type="date" className="input-field" value={form.date_of_birth} onChange={e => set('date_of_birth', e.target.value)} />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Blood Group</label>
+                        <select className="input-field" value={form.blood_group} onChange={e => set('blood_group', e.target.value)}>
+                          <option value="">—</option>
+                          {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(b => <option key={b} value={b}>{b}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Gender</label>
+                        <select className="input-field" value={form.gender} onChange={e => set('gender', e.target.value)}>
+                          <option value="">—</option>
+                          <option value="male">Male</option>
+                          <option value="female">Female</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Guardian Mobile</label>
+                        <input type="text" className="input-field" value={form.guardian_mobile} onChange={e => set('guardian_mobile', e.target.value)} />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Guardian Relation</label>
+                        <input type="text" className="input-field" value={form.guardian_relation} onChange={e => set('guardian_relation', e.target.value)} />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">বর্তমান ঠিকানা</label>
+                      <textarea className="input-field resize-none" rows={2} value={form.present_address} onChange={e => set('present_address', e.target.value)} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">স্থায়ী ঠিকানা</label>
+                      <textarea className="input-field resize-none" rows={2} value={form.permanent_address} onChange={e => set('permanent_address', e.target.value)} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">শিক্ষাগত যোগ্যতা</label>
+                        <input type="text" className="input-field" value={form.education_level} onChange={e => set('education_level', e.target.value)} />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">NID Number</label>
+                        <input type="text" className="input-field" value={form.nid_number} onChange={e => set('nid_number', e.target.value)} />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">শিক্ষাগত বিস্তারিত</label>
+                      <textarea className="input-field resize-none" rows={2} value={form.education_details} onChange={e => set('education_details', e.target.value)} />
+                    </div>
+                  </div>
+                </section>
+
+                {/* নথি */}
+                <section>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">নথি ও ছবি</p>
+                  <div className="space-y-3">
+                    <FileUploadBox label="ছবি (Photo)" currentUrl={employee.photo_url} onUpload={file => handleFileUpload('photo', file)} />
+                    <FileUploadBox label="NID Image" currentUrl={employee.nid_image_url} onUpload={file => handleFileUpload('nid', file)} />
+                    <FileUploadBox label="Signature" currentUrl={employee.signature_url} onUpload={file => handleFileUpload('signature', file)} />
+                  </div>
+                </section>
+
+                <button type="submit" className="btn-primary w-full" disabled={loading}>
+                  {loading ? 'সংরক্ষণ হচ্ছে...' : '✅ সংরক্ষণ করুন'}
+                </button>
+              </div>
+            )}
+
+            {tab === 'access' && (
+              <div className="space-y-5">
+                {/* ESS Access */}
+                <section>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">ESS Portal Access</p>
+                  <EssAccessTab employee={employee} onSuccess={onSuccess} />
+                </section>
+
+                {/* Module Access */}
+                <section>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Module Access</p>
+                  <div className="space-y-2">
+                    {MODULES.map(m => {
+                      const hasAccess = !!moduleAccess[m.key];
+                      const roleOptions = m.key === 'crm' ? crmRoles.map(r => ({ key: r.name, label: r.label })) : (m.roles || []);
+                      return (
+                        <div key={m.key} className="border border-gray-100 rounded-xl p-3">
+                          <div className="flex items-center gap-2">
+                            <input type="checkbox" checked={hasAccess} onChange={() => toggleModuleAccess(m.key, roleOptions[0]?.key || '')} />
+                            <span className="text-sm font-medium flex-1">{m.label}</span>
+                            {hasAccess && (
+                              <select className="input-field text-xs py-1 w-44" value={moduleAccess[m.key] || ''} onChange={e => setModuleRole(m.key, e.target.value)}>
+                                <option value="">-- Role --</option>
+                                {roleOptions.map(r => <option key={r.key} value={r.key}>{r.label}</option>)}
+                              </select>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <button type="button" onClick={handleSaveModuleAccess} className="btn-primary w-full mt-3" disabled={loading}>
+                    {loading ? 'Saving...' : '✅ Module Access সংরক্ষণ করুন'}
+                  </button>
+                </section>
+
+                {/* Salary */}
+                <section>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">বেতন কাঠামো</p>
+                  <div className="mb-3">
+                    <label className="block text-xs font-medium text-gray-600 mb-1">Basic Salary (৳)</label>
+                    <input type="number" className="input-field" value={form.basic_salary} onChange={e => set('basic_salary', e.target.value)} placeholder="0" />
+                  </div>
+                  <SalaryTab employeeId={employee.id} />
+                  <button type="submit" className="btn-primary w-full mt-3" disabled={loading}>
+                    {loading ? 'সংরক্ষণ হচ্ছে...' : '✅ Salary সংরক্ষণ করুন'}
+                  </button>
+                </section>
+              </div>
+            )}
+          </form>
+        </div>
       </div>
     </div>
     </Modal>
