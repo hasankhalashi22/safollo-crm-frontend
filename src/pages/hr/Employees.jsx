@@ -1,9 +1,14 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { hrApi, usersApi, leaveApi, payrollApi, authApi } from '../../api/client';
 import { MODULES } from '../../config/modules';
 import toast from 'react-hot-toast';
 import { Edit2, User, Plus, Eye, Download, Key, Link, Unlink, ShieldCheck } from 'lucide-react';
 import { format } from 'date-fns';
+
+function Modal({ children }) {
+  return createPortal(children, document.body);
+}
 
 export default function Employees() {
   const [employees, setEmployees] = useState([]);
@@ -165,6 +170,7 @@ function EmployeeViewModal({ employee, onClose }) {
   };
 
   return (
+    <Modal>
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="bg-primary-500 text-white p-5 rounded-t-2xl">
@@ -231,6 +237,7 @@ function EmployeeViewModal({ employee, onClose }) {
         </div>
       </div>
     </div>
+    </Modal>
   );
 }
 
@@ -388,6 +395,7 @@ function AddEmployeeModal({ allEmployees, onClose, onSuccess }) {
   };
 
   return (
+    <Modal>
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl w-full max-w-md p-5 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between mb-4">
@@ -486,6 +494,7 @@ function AddEmployeeModal({ allEmployees, onClose, onSuccess }) {
         </form>
       </div>
     </div>
+    </Modal>
   );
 }
 
@@ -630,6 +639,7 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
   ];
 
   return (
+    <Modal>
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl w-full max-w-lg p-5 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between mb-3">
@@ -871,6 +881,7 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
         </form>
       </div>
     </div>
+    </Modal>
   );
 }
 
