@@ -131,10 +131,9 @@ useNotifications();
       <Route path="/admin/new-sale" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><NewSale /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/sales" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><AdminSales /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/due" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><AdminDueList /></AdminLayout></ProtectedRoute>} />
-      <Route path="/admin/staff" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><AdminStaff /></AdminLayout></ProtectedRoute>} />
-      <Route path="/admin/roles" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><RoleManagement /></AdminLayout></ProtectedRoute>} />
+      <Route path="/admin/roles" element={<ProtectedRoute allowedLevels={[1]}><AdminLayout><RoleManagement /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/courses" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><CourseManagement /></AdminLayout></ProtectedRoute>} />
-      <Route path="/admin/settings" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><AdminSettings /></AdminLayout></ProtectedRoute>} />
+      <Route path="/admin/settings" element={<ProtectedRoute allowedLevels={[1]}><AdminLayout><AdminSettings /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/audit" element={<ProtectedRoute allowedLevels={[1]}><AdminLayout><AuditLog /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/approvals" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><SaleApproval /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/profile" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><Profile /></AdminLayout></ProtectedRoute>} />
