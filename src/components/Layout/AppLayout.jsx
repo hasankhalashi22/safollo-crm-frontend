@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { Home, Plus, Clock, User, BarChart2, Users, BookOpen, Settings, LogOut, TrendingUp, Shield, Menu, X, Activity, CheckSquare, Wallet, FileText, BookText, Landmark, CreditCard, ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
+import { Home, Plus, Clock, User, BarChart2, Users, BookOpen, Settings, LogOut, TrendingUp, Shield, Menu, X, Activity, CheckSquare, Wallet, FileText, BookText, Landmark, CreditCard, ChevronLeft, ChevronRight, ChevronDown, Calendar, Briefcase } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { MODULES, getModuleForPath, getVisibleModules } from '../../config/modules';
@@ -485,6 +485,230 @@ export function HrLayout({ children }) {
           </div>
           <main className="flex-1 overflow-y-auto page-enter">{children}</main>
         </div>
+      </div>
+    </div>
+  );
+}
+// ── Unified sub-group renderer for nested nav items (HR: Leave, Attendance, Payroll) ──
+function UnifiedSubGroup({ item, onClose, pendingCount }) {
+  const location = useLocation();
+  const isAnyActive = item.children.some(c => location.pathname === c.to || location.pathname.startsWith(c.to + '/'));
+  const [open, setOpen] = useState(isAnyActive);
+  const Icon = item.icon;
+  return (
+    <div>
+      <button onClick={() => setOpen(v => !v)}
+        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all
+          ${isAnyActive ? 'text-primary-600 bg-primary-50' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'}`}>
+        <Icon size={13} className="flex-shrink-0" />
+        <span className="flex-1 text-left">{item.label}</span>
+        <ChevronDown size={11} className={`transition-transform flex-shrink-0 ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="mt-0.5 ml-3 pl-2 border-l border-gray-100 space-y-0.5">
+          {item.children.map(child => {
+            const CIcon = child.icon;
+            return (
+              <NavLink key={child.to} to={child.to} onClick={onClose}
+                className={({ isActive }) =>
+                  `flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-all
+                   ${isActive ? 'bg-primary-100 text-primary-700' : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'}`}>
+                <CIcon size={12} className="flex-shrink-0" />
+                <span className="flex-1">{child.label}</span>
+                {child.to === '/hr/leave-applications' && pendingCount > 0 && (
+                  <span className="bg-red-500 text-white text-[9px] font-bold px-1 py-0.5 rounded-full min-w-[16px] text-center">
+                    {pendingCount}
+                  </span>
+                )}
+              </NavLink>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function buildModuleList(user) {
+  const moduleAccess = (user.module_access || []).map(a => a.module_key);
+  const list = [];
+
+  if (user.role !== 'employee' && user.role !== 'super_admin') {
+    const base = user.role === 'manager' ? '/manager' : user.role_level <= 2 ? '/admin' : '/executive';
+    let items;
+    if (user.role_level >= 4) {
+      items = [
+        { to: base, icon: BarChart2, label: 'ড্যাশবোর্ড', end: true },
+        { to: `${base}/new-sale`, icon: Plus, label: 'নতুন সেল' },
+        { to: `${base}/approvals`, icon: CheckSquare, label: 'Pending' },
+        { to: `${base}/performance`, icon: TrendingUp, label: 'পারফরম্যান্স' },
+        { to: `${base}/due`, icon: Clock, label: 'বকেয়া' },
+        { to: `${base}/profile`, icon: User, label: 'প্রোফাইল' },
+      ];
+    } else if (user.role === 'manager') {
+      items = [
+        { to: base, icon: BarChart2, label: 'ড্যাশবোর্ড', end: true },
+        { to: `${base}/approvals`, icon: CheckSquare, label: 'সেল Approval' },
+        { to: `${base}/new-sale`, icon: Plus, label: 'নতুন সেল' },
+        { to: `${base}/sales`, icon: BarChart2, label: 'সেলস রিপোর্ট' },
+        { to: `${base}/due`, icon: Clock, label: 'বকেয়া তালিকা' },
+        { to: `${base}/performance`, icon: TrendingUp, label: 'পারফরম্যান্স' },
+        { to: `${base}/profile`, icon: User, label: 'আমার প্রোফাইল' },
+      ];
+    } else {
+      items = [
+        { to: base, icon: BarChart2, label: 'ড্যাশবোর্ড', end: true },
+        { to: `${base}/approvals`, icon: CheckSquare, label: 'সেল Approval' },
+        { to: `${base}/new-sale`, icon: Plus, label: 'নতুন সেল' },
+        { to: `${base}/sales`, icon: BarChart2, label: 'সেলস রিপোর্ট' },
+        { to: `${base}/due`, icon: Clock, label: 'বকেয়া তালিকা' },
+        { to: `${base}/profile`, icon: User, label: 'আমার প্রোফাইল' },
+      ];
+    }
+    list.push({ key: 'crm', label: 'CRM', icon: BarChart2, basePath: base, items });
+  }
+
+  if (moduleAccess.includes('hr')) {
+    list.push({ key: 'hr', label: 'HR', icon: Users, basePath: '/hr', items: MODULES.find(m => m.key === 'hr')?.sidebar || [] });
+  }
+
+  if (moduleAccess.includes('accounting')) {
+    list.push({ key: 'accounting', label: 'Accounting', icon: Wallet, basePath: '/accounting', items: MODULES.find(m => m.key === 'accounting')?.sidebar || [] });
+  }
+
+  if (user.has_ess) {
+    list.push({
+      key: 'ess', label: 'My Office', icon: Briefcase, basePath: '/portal',
+      items: [
+        { to: '/portal', icon: Home, label: 'Home', end: true },
+        { to: '/portal/attendance', icon: Clock, label: 'Attendance' },
+        { to: '/portal/leave', icon: Calendar, label: 'Leave' },
+        { to: '/portal/approvals', icon: CheckSquare, label: 'Approvals' },
+        { to: '/portal/profile', icon: User, label: 'Profile' },
+      ],
+    });
+  }
+
+  return list;
+}
+
+export function UnifiedLayout({ children }) {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [openModules, setOpenModules] = useState({});
+  const [pendingLeaveCount, setPendingLeaveCount] = useState(0);
+
+  const moduleList = useMemo(() => user && user.role !== 'super_admin' ? buildModuleList(user) : [], [user]);
+
+  const activeModuleKey = useMemo(() => {
+    return moduleList.find(m => location.pathname === m.basePath || location.pathname.startsWith(m.basePath + '/'))?.key;
+  }, [location.pathname, moduleList]);
+
+  useEffect(() => {
+    if (activeModuleKey) setOpenModules(prev => ({ ...prev, [activeModuleKey]: true }));
+  }, [activeModuleKey]);
+
+  useEffect(() => {
+    if (moduleList.some(m => m.key === 'hr')) {
+      leaveApi.getMyApprovalQueue().then(r => setPendingLeaveCount((r.data || []).length)).catch(() => {});
+    }
+  }, [moduleList]);
+
+  if (user?.role === 'super_admin') return <AdminLayout>{children}</AdminLayout>;
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+    toast.success('লগআউট হয়েছে');
+  };
+
+  const SidebarNav = ({ onClose }) => (
+    <>
+      <div className="p-4 border-b border-gray-100">
+        <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-9 mb-1" />
+        <p className="text-xs text-gray-400">{user?.role_label}</p>
+      </div>
+      <nav className="flex-1 p-2.5 overflow-y-auto space-y-0.5">
+        {moduleList.map(mod => {
+          const ModIcon = mod.icon;
+          const isOpen = !!openModules[mod.key];
+          const isActive = mod.key === activeModuleKey;
+          return (
+            <div key={mod.key}>
+              <button onClick={() => setOpenModules(prev => ({ ...prev, [mod.key]: !prev[mod.key] }))}
+                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all
+                  ${isActive ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'}`}>
+                <ModIcon size={17} className="flex-shrink-0" />
+                <span className="flex-1 text-left">{mod.label}</span>
+                <ChevronDown size={14} className={`flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {isOpen && (
+                <div className="mt-1 ml-3 pl-3 border-l-2 border-gray-100 space-y-0.5 mb-1">
+                  {mod.items.map(item => {
+                    if (item.group) {
+                      return <UnifiedSubGroup key={item.group} item={item} onClose={onClose} pendingCount={pendingLeaveCount} />;
+                    }
+                    const ItemIcon = item.icon;
+                    return (
+                      <NavLink key={item.to} to={item.to} end={item.end} onClick={onClose}
+                        className={({ isActive: ia }) =>
+                          `flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all
+                           ${ia ? 'bg-primary-100 text-primary-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'}`}>
+                        <ItemIcon size={14} className="flex-shrink-0" />
+                        {item.label}
+                      </NavLink>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </nav>
+      <div className="p-3 border-t border-gray-100">
+        <div className="flex items-center gap-2 px-2 py-2 mb-2">
+          <div className="w-7 h-7 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-xs font-bold flex-shrink-0">
+            {(user?.full_name || user?.phone)?.[0]?.toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-gray-700 truncate">{user?.full_name || user?.phone}</p>
+          </div>
+        </div>
+        <button onClick={handleLogout}
+          className="flex items-center gap-2 w-full px-3 py-2 text-xs text-red-500 hover:bg-red-50 rounded-xl transition-all">
+          <LogOut size={14} /> লগআউট
+        </button>
+      </div>
+    </>
+  );
+
+  return (
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
+      <aside className="hidden lg:flex w-56 bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0">
+        <SidebarNav onClose={() => {}} />
+      </aside>
+      {sidebarOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 flex">
+          <div className="fixed inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
+          <aside className="relative w-64 bg-white flex flex-col shadow-xl z-10">
+            <button onClick={() => setSidebarOpen(false)}
+              className="absolute top-3 right-3 p-1.5 bg-gray-100 rounded-full z-10">
+              <X size={16} />
+            </button>
+            <SidebarNav onClose={() => setSidebarOpen(false)} />
+          </aside>
+        </div>
+      )}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="lg:hidden bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3 shadow-sm">
+          <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl bg-gray-100">
+            <Menu size={20} className="text-gray-600" />
+          </button>
+          <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-7" />
+        </div>
+        <main className="flex-1 overflow-y-auto page-enter">{children}</main>
       </div>
     </div>
   );

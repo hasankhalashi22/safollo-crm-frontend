@@ -30,8 +30,7 @@ import PayrollSettings from './pages/hr/PayrollSettings';
 import Login from './pages/Login';
 import CompleteProfile from './pages/CompleteProfile';
 import ForceChangePassword from './pages/ForceChangePassword';
-import { ExecutiveLayout, AdminLayout, AccountingLayout, HrLayout } from './components/Layout/AppLayout';
-import PortalLayout from './components/Layout/PortalLayout';
+import { AdminLayout, UnifiedLayout } from './components/Layout/AppLayout';
 import PortalHome from './pages/portal/PortalHome';
 import PortalAttendance from './pages/portal/PortalAttendance';
 import PortalLeave from './pages/portal/PortalLeave';
@@ -104,29 +103,29 @@ useNotifications();
 
       <Route path="/complete-profile" element={<CompleteProfile />} />
 
-<Route path="/portal" element={<ProtectedRoute><PortalLayout><PortalHome /></PortalLayout></ProtectedRoute>} />
-      <Route path="/portal/attendance" element={<ProtectedRoute><PortalLayout><PortalAttendance /></PortalLayout></ProtectedRoute>} />
-      <Route path="/portal/leave" element={<ProtectedRoute><PortalLayout><PortalLeave /></PortalLayout></ProtectedRoute>} />
-      <Route path="/portal/approvals" element={<ProtectedRoute><PortalLayout><PortalApprovals /></PortalLayout></ProtectedRoute>} />
-      <Route path="/portal/profile" element={<ProtectedRoute><PortalLayout><PortalProfile /></PortalLayout></ProtectedRoute>} />
+<Route path="/portal" element={<ProtectedRoute><UnifiedLayout><PortalHome /></UnifiedLayout></ProtectedRoute>} />
+      <Route path="/portal/attendance" element={<ProtectedRoute><UnifiedLayout><PortalAttendance /></UnifiedLayout></ProtectedRoute>} />
+      <Route path="/portal/leave" element={<ProtectedRoute><UnifiedLayout><PortalLeave /></UnifiedLayout></ProtectedRoute>} />
+      <Route path="/portal/approvals" element={<ProtectedRoute><UnifiedLayout><PortalApprovals /></UnifiedLayout></ProtectedRoute>} />
+      <Route path="/portal/profile" element={<ProtectedRoute><UnifiedLayout><PortalProfile /></UnifiedLayout></ProtectedRoute>} />
 
 
 <Route path="/change-password" element={<ForceChangePassword />} />
 
-      <Route path="/executive" element={<ProtectedRoute allowedLevels={[4, 5]}><ExecutiveLayout><ExecutiveDashboard /></ExecutiveLayout></ProtectedRoute>} />
-      <Route path="/executive/new-sale" element={<ProtectedRoute allowedLevels={[4, 5]}><ExecutiveLayout><NewSale /></ExecutiveLayout></ProtectedRoute>} />
-      <Route path="/executive/due" element={<ProtectedRoute allowedLevels={[4, 5]}><ExecutiveLayout><DueList /></ExecutiveLayout></ProtectedRoute>} />
-      <Route path="/executive/performance" element={<ProtectedRoute allowedLevels={[4, 5]}><ExecutiveLayout><MyPerformance /></ExecutiveLayout></ProtectedRoute>} />
-      <Route path="/executive/profile" element={<ProtectedRoute allowedLevels={[4, 5]}><ExecutiveLayout><Profile /></ExecutiveLayout></ProtectedRoute>} />
-      <Route path="/executive/approvals" element={<ProtectedRoute allowedLevels={[4, 5]}><ExecutiveLayout><MyApprovals /></ExecutiveLayout></ProtectedRoute>} />
+      <Route path="/executive" element={<ProtectedRoute allowedLevels={[4, 5]}><UnifiedLayout><ExecutiveDashboard /></UnifiedLayout></ProtectedRoute>} />
+      <Route path="/executive/new-sale" element={<ProtectedRoute allowedLevels={[4, 5]}><UnifiedLayout><NewSale /></UnifiedLayout></ProtectedRoute>} />
+      <Route path="/executive/due" element={<ProtectedRoute allowedLevels={[4, 5]}><UnifiedLayout><DueList /></UnifiedLayout></ProtectedRoute>} />
+      <Route path="/executive/performance" element={<ProtectedRoute allowedLevels={[4, 5]}><UnifiedLayout><MyPerformance /></UnifiedLayout></ProtectedRoute>} />
+      <Route path="/executive/profile" element={<ProtectedRoute allowedLevels={[4, 5]}><UnifiedLayout><Profile /></UnifiedLayout></ProtectedRoute>} />
+      <Route path="/executive/approvals" element={<ProtectedRoute allowedLevels={[4, 5]}><UnifiedLayout><MyApprovals /></UnifiedLayout></ProtectedRoute>} />
 
-      <Route path="/manager" element={<ProtectedRoute allowedLevels={[3]}><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
-      <Route path="/manager/new-sale" element={<ProtectedRoute allowedLevels={[3]}><AdminLayout><NewSale /></AdminLayout></ProtectedRoute>} />
-      <Route path="/manager/sales" element={<ProtectedRoute allowedLevels={[3]}><AdminLayout><AdminSales /></AdminLayout></ProtectedRoute>} />
-      <Route path="/manager/due" element={<ProtectedRoute allowedLevels={[3]}><AdminLayout><AdminDueList /></AdminLayout></ProtectedRoute>} />
-      <Route path="/manager/performance" element={<ProtectedRoute allowedLevels={[3]}><AdminLayout><MyPerformance /></AdminLayout></ProtectedRoute>} />
-      <Route path="/manager/approvals" element={<ProtectedRoute allowedLevels={[3]}><AdminLayout><SaleApproval /></AdminLayout></ProtectedRoute>} />
-      <Route path="/manager/profile" element={<ProtectedRoute allowedLevels={[3]}><AdminLayout><Profile /></AdminLayout></ProtectedRoute>} />
+      <Route path="/manager" element={<ProtectedRoute allowedLevels={[3]}><UnifiedLayout><AdminDashboard /></UnifiedLayout></ProtectedRoute>} />
+      <Route path="/manager/new-sale" element={<ProtectedRoute allowedLevels={[3]}><UnifiedLayout><NewSale /></UnifiedLayout></ProtectedRoute>} />
+      <Route path="/manager/sales" element={<ProtectedRoute allowedLevels={[3]}><UnifiedLayout><AdminSales /></UnifiedLayout></ProtectedRoute>} />
+      <Route path="/manager/due" element={<ProtectedRoute allowedLevels={[3]}><UnifiedLayout><AdminDueList /></UnifiedLayout></ProtectedRoute>} />
+      <Route path="/manager/performance" element={<ProtectedRoute allowedLevels={[3]}><UnifiedLayout><MyPerformance /></UnifiedLayout></ProtectedRoute>} />
+      <Route path="/manager/approvals" element={<ProtectedRoute allowedLevels={[3]}><UnifiedLayout><SaleApproval /></UnifiedLayout></ProtectedRoute>} />
+      <Route path="/manager/profile" element={<ProtectedRoute allowedLevels={[3]}><UnifiedLayout><Profile /></UnifiedLayout></ProtectedRoute>} />
 
       <Route path="/admin" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/new-sale" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><NewSale /></AdminLayout></ProtectedRoute>} />
@@ -140,51 +139,51 @@ useNotifications();
       <Route path="/admin/approvals" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><SaleApproval /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/profile" element={<ProtectedRoute allowedLevels={[1, 2]}><AdminLayout><Profile /></AdminLayout></ProtectedRoute>} />
 
-<Route path="/accounting" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><AccountingLayout><AccountingDashboard /></AccountingLayout></ProtectedRoute>} />
+<Route path="/accounting" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><UnifiedLayout><AccountingDashboard /></UnifiedLayout></ProtectedRoute>} />
 
-      <Route path="/accounting/accounts" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><AccountingLayout><Accounts /></AccountingLayout></ProtectedRoute>} />
+      <Route path="/accounting/accounts" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><UnifiedLayout><Accounts /></UnifiedLayout></ProtectedRoute>} />
 
-<Route path="/accounting/transactions" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><AccountingLayout><Transactions /></AccountingLayout></ProtectedRoute>} />
+<Route path="/accounting/transactions" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><UnifiedLayout><Transactions /></UnifiedLayout></ProtectedRoute>} />
 
-<Route path="/accounting/ledger" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><AccountingLayout><Ledger /></AccountingLayout></ProtectedRoute>} />
+<Route path="/accounting/ledger" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><UnifiedLayout><Ledger /></UnifiedLayout></ProtectedRoute>} />
 
-<Route path="/accounting/trial-balance" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><AccountingLayout><TrialBalance /></AccountingLayout></ProtectedRoute>} />
+<Route path="/accounting/trial-balance" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><UnifiedLayout><TrialBalance /></UnifiedLayout></ProtectedRoute>} />
 
-<Route path="/accounting/income-statement" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><AccountingLayout><IncomeStatement /></AccountingLayout></ProtectedRoute>} />
+<Route path="/accounting/income-statement" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><UnifiedLayout><IncomeStatement /></UnifiedLayout></ProtectedRoute>} />
 
-<Route path="/accounting/balance-sheet" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><AccountingLayout><BalanceSheet /></AccountingLayout></ProtectedRoute>} />
+<Route path="/accounting/balance-sheet" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><UnifiedLayout><BalanceSheet /></UnifiedLayout></ProtectedRoute>} />
 
-<Route path="/accounting/cash-flow" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><AccountingLayout><CashFlow /></AccountingLayout></ProtectedRoute>} />
+<Route path="/accounting/cash-flow" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><UnifiedLayout><CashFlow /></UnifiedLayout></ProtectedRoute>} />
 
-<Route path="/accounting/equity-statement" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><AccountingLayout><EquityStatement /></AccountingLayout></ProtectedRoute>} />
+<Route path="/accounting/equity-statement" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><UnifiedLayout><EquityStatement /></UnifiedLayout></ProtectedRoute>} />
 
-<Route path="/accounting/credit-cards" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><AccountingLayout><CreditCards /></AccountingLayout></ProtectedRoute>} />
+<Route path="/accounting/credit-cards" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><UnifiedLayout><CreditCards /></UnifiedLayout></ProtectedRoute>} />
 
-<Route path="/accounting/investors" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><AccountingLayout><Investors /></AccountingLayout></ProtectedRoute>} />
+<Route path="/accounting/investors" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><UnifiedLayout><Investors /></UnifiedLayout></ProtectedRoute>} />
 
-<Route path="/accounting/shareholders" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><AccountingLayout><Shareholders /></AccountingLayout></ProtectedRoute>} />
+<Route path="/accounting/shareholders" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><UnifiedLayout><Shareholders /></UnifiedLayout></ProtectedRoute>} />
 
-<Route path="/accounting/journal" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><AccountingLayout><Journal /></AccountingLayout></ProtectedRoute>} />
+<Route path="/accounting/journal" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><UnifiedLayout><Journal /></UnifiedLayout></ProtectedRoute>} />
 
-<Route path="/hr" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><HrLayout><HrDashboard /></HrLayout></ProtectedRoute>} />
+<Route path="/hr" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><UnifiedLayout><HrDashboard /></UnifiedLayout></ProtectedRoute>} />
 
-<Route path="/hr/employees" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><HrLayout><Employees /></HrLayout></ProtectedRoute>} />
+<Route path="/hr/employees" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><UnifiedLayout><Employees /></UnifiedLayout></ProtectedRoute>} />
 
-<Route path="/hr/organogram" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><HrLayout><Organogram /></HrLayout></ProtectedRoute>} />
+<Route path="/hr/organogram" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><UnifiedLayout><Organogram /></UnifiedLayout></ProtectedRoute>} />
 
-<Route path="/hr/leave-settings" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><HrLayout><LeaveSettings /></HrLayout></ProtectedRoute>} />
+<Route path="/hr/leave-settings" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><UnifiedLayout><LeaveSettings /></UnifiedLayout></ProtectedRoute>} />
 
-<Route path="/hr/leave-applications" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><HrLayout><LeaveApplications /></HrLayout></ProtectedRoute>} />
+<Route path="/hr/leave-applications" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><UnifiedLayout><LeaveApplications /></UnifiedLayout></ProtectedRoute>} />
 
-<Route path="/hr/leave-register" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><HrLayout><LeaveRegister /></HrLayout></ProtectedRoute>} />
+<Route path="/hr/leave-register" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><UnifiedLayout><LeaveRegister /></UnifiedLayout></ProtectedRoute>} />
 
-<Route path="/hr/attendance" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><HrLayout><AttendanceOverview /></HrLayout></ProtectedRoute>} />
+<Route path="/hr/attendance" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><UnifiedLayout><AttendanceOverview /></UnifiedLayout></ProtectedRoute>} />
 
-<Route path="/hr/attendance-settings" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><HrLayout><AttendanceSettings /></HrLayout></ProtectedRoute>} />
+<Route path="/hr/attendance-settings" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><UnifiedLayout><AttendanceSettings /></UnifiedLayout></ProtectedRoute>} />
 
-<Route path="/hr/payroll" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><HrLayout><Payroll /></HrLayout></ProtectedRoute>} />
+<Route path="/hr/payroll" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><UnifiedLayout><Payroll /></UnifiedLayout></ProtectedRoute>} />
 
-<Route path="/hr/payroll-settings" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><HrLayout><PayrollSettings /></HrLayout></ProtectedRoute>} />
+<Route path="/hr/payroll-settings" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><UnifiedLayout><PayrollSettings /></UnifiedLayout></ProtectedRoute>} />
 
 
       <Route path="/" element={<Navigate to="/login" replace />} />
