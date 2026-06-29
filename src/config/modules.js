@@ -25,9 +25,14 @@ export const MODULES = [
       { to: '/accounting', icon: BarChart2, label: 'Dashboard', end: true },
       { to: '/accounting/transactions', icon: FileText, label: 'Transaction Entry' },
       { to: '/accounting/accounts', icon: Wallet, label: 'Chart of Accounts' },
-      { to: '/accounting/journal', icon: BookText, label: 'Journal' },
-      { to: '/accounting/ledger', icon: BookText, label: 'Ledger' },
-      { to: '/accounting/trial-balance', icon: Activity, label: 'Trial Balance' },
+      {
+        group: 'books', label: 'Journal, Ledger, Trial Balance', icon: BookText,
+        children: [
+          { to: '/accounting/journal', icon: BookText, label: 'Journal' },
+          { to: '/accounting/ledger', icon: BookText, label: 'Ledger' },
+          { to: '/accounting/trial-balance', icon: Activity, label: 'Trial Balance' },
+        ],
+      },
       {
         group: 'statements', label: 'Statement', icon: TrendingUp,
         children: [

@@ -7,12 +7,14 @@ import toast from 'react-hot-toast';
 import { MODULES, getModuleForPath, getVisibleModules } from '../../config/modules';
 import { leaveApi } from '../../api/client';
 
-function AdminGroupItem({ item, collapsed, anyActive, onClose, location }) {
-  const [open, setOpen] = useState(anyActive);
+function AdminGroupItem({ item, collapsed, anyActive, onClose, location, isOpen: controlledOpen, onToggle }) {
+  const [localOpen, setLocalOpen] = useState(anyActive);
+  const open = controlledOpen !== undefined ? controlledOpen : localOpen;
+  const toggle = onToggle || (() => setLocalOpen(v => !v));
   const Icon = item.icon;
   return (
     <div>
-      <button onClick={() => setOpen(v => !v)}
+      <button onClick={toggle}
         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
           ${anyActive ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'}`}>
         <Icon size={18} className="flex-shrink-0" />
@@ -288,6 +290,9 @@ export function AccountingLayout({ children }) {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [openAccGroup, setOpenAccGroup] = useState(null);
+
+  const toggleAccGroup = (key) => setOpenAccGroup(prev => prev === key ? null : key);
 
   const handleLogout = async () => {
     await logout();
@@ -318,7 +323,9 @@ export function AccountingLayout({ children }) {
             return (
               <AdminGroupItem key={item.group} item={item} collapsed={collapsed}
                 anyActive={item.children.some(c => location.pathname === c.to || location.pathname.startsWith(c.to + '/'))}
-                onClose={() => setSidebarOpen(false)} location={location} />
+                onClose={() => setSidebarOpen(false)} location={location}
+                isOpen={openAccGroup === item.group}
+                onToggle={() => toggleAccGroup(item.group)} />
             );
           }
           const { to, icon: Icon, label, end } = item;
