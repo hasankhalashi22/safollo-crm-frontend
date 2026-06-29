@@ -210,8 +210,10 @@ export function AdminLayout({ children }) {
             <NavLink key={to} to={to} end={end}
               onClick={() => setSidebarOpen(false)}
               className={({ isActive }) =>
-                              }>
-              <Icon size={18} className='flex-shrink-0' />
+                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
+                 ${isActive ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'}`
+              }>
+              <Icon size={18} className="flex-shrink-0" />
               {!collapsed && <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>}
             </NavLink>
           );
