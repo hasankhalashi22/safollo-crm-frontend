@@ -371,6 +371,7 @@ const fetchSales = (f = filters) => {
     });
     let rows = Object.values(map).sort((a, b) => b.gross - a.gross);
     if (execFilters.selected.length > 0) rows = rows.filter(r => execFilters.selected.includes(r.name));
+    const totalCount = rows.reduce((a, r) => a + r.count, 0);
     const totalGross = rows.reduce((a, r) => a + r.gross, 0);
     return rows.map(r => ({ ...r, pct: totalGross ? Math.round(r.gross / totalGross * 100) : 0, countPct: totalCount ? Math.round(r.count / totalCount * 100) : 0 }));
   }, [sales, execFilters]);
