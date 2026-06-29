@@ -144,6 +144,9 @@ export function ExecutiveLayout({ children }) {
 export function AdminLayout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+
+  // Advisor uses UnifiedLayout (module-wise collapsible sidebar)
+  if (user?.role === 'advisor') return <UnifiedLayout>{children}</UnifiedLayout>;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [pendingApprovalCount, setPendingApprovalCount] = useState(0);
@@ -651,6 +654,15 @@ function buildModuleList(user) {
         { to: `${base}/sales`, icon: BarChart2, label: 'সেলস রিপোর্ট' },
         { to: `${base}/due`, icon: Clock, label: 'বকেয়া তালিকা' },
         { to: `${base}/performance`, icon: TrendingUp, label: 'পারফরম্যান্স' },
+      ];
+    } else if (user.role === 'advisor') {
+      items = [
+        { to: base, icon: BarChart2, label: 'ড্যাশবোর্ড', end: true },
+        { to: `${base}/approvals`, icon: CheckSquare, label: 'সেল Approval' },
+        { to: `${base}/new-sale`, icon: Plus, label: 'নতুন সেল' },
+        { to: `${base}/sales`, icon: BarChart2, label: 'সেলস রিপোর্ট' },
+        { to: `${base}/due`, icon: Clock, label: 'বকেয়া তালিকা' },
+        { to: `${base}/courses`, icon: BookOpen, label: 'কোর্স ম্যানেজমেন্ট' },
       ];
     } else {
       items = [
