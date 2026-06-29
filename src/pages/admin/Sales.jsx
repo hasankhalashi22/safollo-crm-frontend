@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { salesApi, coursesApi, usersApi } from '../../api/client';
 import { format } from 'date-fns';
@@ -7,6 +7,73 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../../hooks/useAuth';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  PieChart, Pie, Cell, Tooltip as RTooltip
+} from 'recharts';
+
+const CHART_COLORS = ['#378ADD','#1D9E75','#BA7517','#D85A30','#7F77DD','#D4537E','#639922','#E24B4A'];
+
+function SummaryCards({ items }) {
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+      {items.map(({ label, value, color }) => (
+        <div key={label} className="bg-gray-50 rounded-xl p-3">
+          <p className="text-xs text-gray-400 mb-1">{label}</p>
+          <p className="text-lg font-medium" style={{ color: color || 'inherit' }}>{value}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PieChartCard({ title, data, nameKey, valueKey }) {
+  return (
+    <div className="card flex-1">
+      <p className="text-xs font-medium text-gray-500 mb-3">{title}</p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+        {data.map((d, i) => (
+          <span key={d[nameKey]} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--color-text-secondary, #666)' }}>
+            <span style={{ width: 8, height: 8, borderRadius: 2, background: CHART_COLORS[i % CHART_COLORS.length], display: 'inline-block' }} />
+            {d[nameKey]} {d.pct}%
+          </span>
+        ))}
+      </div>
+      <ResponsiveContainer width="100%" height={200}>
+        <PieChart>
+          <Pie data={data} dataKey={valueKey} nameKey={nameKey} cx="50%" cy="50%" outerRadius={80} innerRadius={40} paddingAngle={2}>
+            {data.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+          </Pie>
+          <Tooltip formatter={(v) => `৳${Number(v).toLocaleString()}`} />
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+function PieCountCard({ title, data, nameKey }) {
+  return (
+    <div className="card flex-1">
+      <p className="text-xs font-medium text-gray-500 mb-3">{title}</p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+        {data.map((d, i) => (
+          <span key={d[nameKey]} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'var(--color-text-secondary, #666)' }}>
+            <span style={{ width: 8, height: 8, borderRadius: 2, background: CHART_COLORS[i % CHART_COLORS.length], display: 'inline-block' }} />
+            {d[nameKey]} {d.pct}%
+          </span>
+        ))}
+      </div>
+      <ResponsiveContainer width="100%" height={200}>
+        <PieChart>
+          <Pie data={data} dataKey="count" nameKey={nameKey} cx="50%" cy="50%" outerRadius={80} innerRadius={40} paddingAngle={2}>
+            {data.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+          </Pie>
+          <Tooltip formatter={(v) => `${v}টি`} />
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
 
 
 const STATUS_LABELS = {
@@ -35,6 +102,8 @@ export default function AdminSales() {
   const [revenueFilters, setRevenueFilters] = useState(EMPTY_REVENUE_FILTERS);
   const [subTab, setSubTab] = useState('details');
   const [dailyFilters, setDailyFilters] = useState({ month: format(new Date(), 'yyyy-MM'), date_from: '', date_to: '', executive_id: '', course_id: '' });
+  const [courseFilters, setCourseFilters] = useState({ month: format(new Date(), 'yyyy-MM'), date_from: '', date_to: '', executive_id: '' });
+  const [execFilters, setExecFilters] = useState({ month: format(new Date(), 'yyyy-MM'), date_from: '', date_to: '', course_id: '' });
 
 const fetchSales = (f = filters) => {
     setLoading(true);
@@ -228,6 +297,72 @@ const fetchSales = (f = filters) => {
     return Object.values(map).sort((a, b) => b.date.localeCompare(a.date));
   })();
 
+  const courseRows = useMemo(() => {
+    let f = [...sales];
+    if (courseFilters.executive_id) f = f.filter(s => String(s.executive_id) === String(courseFilters.executive_id));
+    if (courseFilters.date_from) f = f.filter(s => s.created_at.split('T')[0] >= courseFilters.date_from);
+    if (courseFilters.date_to) f = f.filter(s => s.created_at.split('T')[0] <= courseFilters.date_to);
+    if (courseFilters.month && !courseFilters.date_from && !courseFilters.date_to) f = f.filter(s => s.created_at.startsWith(courseFilters.month));
+    const map = {};
+    f.forEach(s => {
+      const k = s.course_name || 'অন্যান্য';
+      if (!map[k]) map[k] = { name: k, count: 0, gross: 0, collected: 0, due: 0 };
+      map[k].count++; map[k].gross += Number(s.course_price) || 0;
+      map[k].collected += Number(s.total_collected) || 0; map[k].due += Number(s.due_amount) || 0;
+    });
+    const rows = Object.values(map).sort((a, b) => b.gross - a.gross);
+    const totalCount = rows.reduce((a, r) => a + r.count, 0);
+    const totalGross = rows.reduce((a, r) => a + r.gross, 0);
+    return rows.map(r => ({ ...r, pct: totalGross ? Math.round(r.gross / totalGross * 100) : 0, countPct: totalCount ? Math.round(r.count / totalCount * 100) : 0 }));
+  }, [sales, courseFilters]);
+
+  const execRows = useMemo(() => {
+    let f = [...sales];
+    if (execFilters.course_id) f = f.filter(s => String(s.course_id) === String(execFilters.course_id));
+    if (execFilters.date_from) f = f.filter(s => s.created_at.split('T')[0] >= execFilters.date_from);
+    if (execFilters.date_to) f = f.filter(s => s.created_at.split('T')[0] <= execFilters.date_to);
+    if (execFilters.month && !execFilters.date_from && !execFilters.date_to) f = f.filter(s => s.created_at.startsWith(execFilters.month));
+    const map = {};
+    f.forEach(s => {
+      const k = s.executive_name || 'অজানা';
+      if (!map[k]) map[k] = { name: k, count: 0, gross: 0, collected: 0, due: 0 };
+      map[k].count++; map[k].gross += Number(s.course_price) || 0;
+      map[k].collected += Number(s.total_collected) || 0; map[k].due += Number(s.due_amount) || 0;
+    });
+    const rows = Object.values(map).sort((a, b) => b.gross - a.gross);
+    const totalCount = rows.reduce((a, r) => a + r.count, 0);
+    const totalGross = rows.reduce((a, r) => a + r.gross, 0);
+    return rows.map(r => ({ ...r, pct: totalGross ? Math.round(r.gross / totalGross * 100) : 0, countPct: totalCount ? Math.round(r.count / totalCount * 100) : 0 }));
+  }, [sales, execFilters]);
+
+  const handleExportCourseWisePdf = () => {
+    if (courseRows.length === 0) return toast.error('কোনো ডেটা নেই');
+    const headers = ['কোর্স', 'এনরোলমেন্ট', 'গ্রস সেল (৳)', 'সংগৃহীত (৳)', 'বকেয়া (৳)', 'শেয়ার'];
+    const rows = courseRows.map(r => [r.name, r.count, Number(r.gross).toLocaleString(), Number(r.collected).toLocaleString(), Number(r.due).toLocaleString(), r.pct + '%']);
+    const t = courseRows.reduce((a, r) => ({ count: a.count + r.count, gross: a.gross + r.gross, collected: a.collected + r.collected, due: a.due + r.due }), { count: 0, gross: 0, collected: 0, due: 0 });
+    rows.push(['মোট', t.count, Number(t.gross).toLocaleString(), Number(t.collected).toLocaleString(), Number(t.due).toLocaleString(), '100%']);
+    const fi = [];
+    if (courseFilters.month && !courseFilters.date_from) fi.push(`মাস: ${courseFilters.month}`);
+    if (courseFilters.date_from) fi.push(`From: ${courseFilters.date_from}`);
+    if (courseFilters.date_to) fi.push(`To: ${courseFilters.date_to}`);
+    if (courseFilters.executive_id) fi.push(`Executive: ${executives.find(e => e.id == courseFilters.executive_id)?.full_name || ''}`);
+    exportPdf(headers, rows, `Course_Wise_${format(new Date(), 'dd-MM-yyyy')}.pdf`, 'Course Wise Sales Report - Safollo Academy', fi);
+  };
+
+  const handleExportExecWisePdf = () => {
+    if (execRows.length === 0) return toast.error('কোনো ডেটা নেই');
+    const headers = ['Executive', 'এনরোলমেন্ট', 'গ্রস সেল (৳)', 'সংগৃহীত (৳)', 'বকেয়া (৳)', 'শেয়ার'];
+    const rows = execRows.map(r => [r.name, r.count, Number(r.gross).toLocaleString(), Number(r.collected).toLocaleString(), Number(r.due).toLocaleString(), r.pct + '%']);
+    const t = execRows.reduce((a, r) => ({ count: a.count + r.count, gross: a.gross + r.gross, collected: a.collected + r.collected, due: a.due + r.due }), { count: 0, gross: 0, collected: 0, due: 0 });
+    rows.push(['মোট', t.count, Number(t.gross).toLocaleString(), Number(t.collected).toLocaleString(), Number(t.due).toLocaleString(), '100%']);
+    const fi = [];
+    if (execFilters.month && !execFilters.date_from) fi.push(`মাস: ${execFilters.month}`);
+    if (execFilters.date_from) fi.push(`From: ${execFilters.date_from}`);
+    if (execFilters.date_to) fi.push(`To: ${execFilters.date_to}`);
+    if (execFilters.course_id) fi.push(`Course: ${courses.find(c => c.id == execFilters.course_id)?.name || ''}`);
+    exportPdf(headers, rows, `Executive_Wise_${format(new Date(), 'dd-MM-yyyy')}.pdf`, 'Executive Wise Sales Report - Safollo Academy', fi);
+  };
+
   const handleExportDailySummaryPdf = () => {
     if (dailySummaryRows.length === 0) return toast.error('কোনো ডেটা নেই');
     const headers = ['তারিখ', 'এনরোলমেন্ট', 'গ্রস সেল (৳)', 'সংগৃহীত (৳)', 'বকেয়া (৳)'];
@@ -302,7 +437,11 @@ const fetchSales = (f = filters) => {
               <Download size={16} /> Excel
             </button>
           )}
-          <button onClick={activeTab === 'enrollment' && subTab === 'daily' ? handleExportDailySummaryPdf : activeTab === 'enrollment' ? handleExportEnrollmentPdf : handleExportRevenuePdf}
+          <button onClick={
+            activeTab === 'enrollment' && subTab === 'daily' ? handleExportDailySummaryPdf :
+            activeTab === 'enrollment' && subTab === 'course' ? handleExportCourseWisePdf :
+            activeTab === 'enrollment' && subTab === 'exec' ? handleExportExecWisePdf :
+            activeTab === 'enrollment' ? handleExportEnrollmentPdf : handleExportRevenuePdf}
             className="flex items-center gap-2 bg-red-500 text-white px-3 py-2 rounded-xl text-sm font-medium active:scale-95">
             <Download size={16} /> PDF
           </button>
@@ -326,15 +465,13 @@ const fetchSales = (f = filters) => {
 
       {/* Sub-tabs for enrollment */}
       {activeTab === 'enrollment' && (
-        <div className="flex bg-gray-100 rounded-xl p-1 mb-5 max-w-xs">
-          <button onClick={() => setSubTab('details')}
-            className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-all ${subTab === 'details' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-500'}`}>
-            Details Report
-          </button>
-          <button onClick={() => setSubTab('daily')}
-            className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-all ${subTab === 'daily' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-500'}`}>
-            Daily Summary
-          </button>
+        <div className="flex bg-gray-100 rounded-xl p-1 mb-5 max-w-xl">
+          {[['details','Details Report'],['daily','Daily Summary'],['course','Course Wise'],['exec','Executive Wise']].map(([k,l]) => (
+            <button key={k} onClick={() => setSubTab(k)}
+              className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-all ${subTab === k ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-500'}`}>
+              {l}
+            </button>
+          ))}
         </div>
       )}
 
@@ -378,6 +515,31 @@ const fetchSales = (f = filters) => {
             </div>
           </div>
 
+          {dailySummaryRows.length > 0 && (
+            <div className="card mb-4">
+              <p className="text-xs font-medium text-gray-500 mb-3">দৈনিক সেলস চার্ট</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 8, fontSize: 11, color: '#666' }}>
+                {[['গ্রস সেল','#378ADD'],['সংগৃহীত','#1D9E75'],['বকেয়া','#E24B4A']].map(([l,c]) => (
+                  <span key={l} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ width: 10, height: 10, borderRadius: 2, background: c, display: 'inline-block' }} />{l}
+                  </span>
+                ))}
+              </div>
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={dailySummaryRows.map(r => ({ date: format(new Date(r.date), 'dd/MM'), gross: r.gross, collected: r.collected, due: r.due }))}
+                  margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                  <YAxis tick={{ fontSize: 10 }} tickFormatter={v => `৳${(v/1000).toFixed(0)}k`} />
+                  <Tooltip formatter={(v) => `৳${Number(v).toLocaleString()}`} />
+                  <Bar dataKey="gross" name="গ্রস সেল" fill="#378ADD" radius={[3,3,0,0]} />
+                  <Bar dataKey="collected" name="সংগৃহীত" fill="#1D9E75" radius={[3,3,0,0]} />
+                  <Bar dataKey="due" name="বকেয়া" fill="#E24B4A" radius={[3,3,0,0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
           <div className="card overflow-hidden p-0">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -416,6 +578,168 @@ const fetchSales = (f = filters) => {
                         <td className="px-4 py-3 text-red-600 whitespace-nowrap">৳{Number(t.due).toLocaleString()}</td>
                       </tr>
                     );
+                  })()}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      ) : activeTab === 'enrollment' && subTab === 'course' ? (
+        <>
+          {/* Course Wise filters */}
+          <div className="card mb-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div><label className="block text-xs text-gray-500 mb-1">মাস</label>
+                <input type="month" className="input-field" value={courseFilters.month}
+                  onChange={e => setCourseFilters(p => ({ ...p, month: e.target.value, date_from: '', date_to: '' }))} /></div>
+              <div><label className="block text-xs text-gray-500 mb-1">তারিখ থেকে</label>
+                <input type="date" className="input-field" value={courseFilters.date_from}
+                  onChange={e => setCourseFilters(p => ({ ...p, date_from: e.target.value, month: '' }))} /></div>
+              <div><label className="block text-xs text-gray-500 mb-1">তারিখ পর্যন্ত</label>
+                <input type="date" className="input-field" value={courseFilters.date_to}
+                  onChange={e => setCourseFilters(p => ({ ...p, date_to: e.target.value, month: '' }))} /></div>
+              <div><label className="block text-xs text-gray-500 mb-1">Executive</label>
+                <select className="input-field" value={courseFilters.executive_id}
+                  onChange={e => setCourseFilters(p => ({ ...p, executive_id: e.target.value }))}>
+                  <option value="">সব</option>
+                  {executives.map(e => <option key={e.id} value={e.id}>{e.full_name || e.phone}</option>)}
+                </select></div>
+            </div>
+          </div>
+
+          {/* Summary cards */}
+          {(() => {
+            const t = courseRows.reduce((a, r) => ({ count: a.count + r.count, gross: a.gross + r.gross, collected: a.collected + r.collected, due: a.due + r.due }), { count: 0, gross: 0, collected: 0, due: 0 });
+            return <SummaryCards items={[
+              { label: 'মোট কোর্স', value: courseRows.length },
+              { label: 'মোট এনরোলমেন্ট', value: t.count },
+              { label: 'গ্রস সেল', value: `৳${Number(t.gross).toLocaleString()}`, color: '#185FA5' },
+              { label: 'সংগৃহীত', value: `৳${Number(t.collected).toLocaleString()}`, color: '#3B6D11' },
+            ]} />;
+          })()}
+
+          {/* Pie charts */}
+          <div className="flex gap-4 mb-4">
+            <PieCountCard title="এনরোলমেন্ট — কোর্স অনুযায়ী" data={courseRows} nameKey="name" />
+            <PieChartCard title="গ্রস সেল — কোর্স অনুযায়ী" data={courseRows} nameKey="name" valueKey="gross" />
+          </div>
+
+          {/* Table */}
+          <div className="card overflow-hidden p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>{['কোর্স','এনরোলমেন্ট','গ্রস সেল','সংগৃহীত','বকেয়া','শেয়ার'].map(h => (
+                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
+                  ))}</tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {courseRows.length === 0
+                    ? <tr><td colSpan={6} className="text-center py-12 text-gray-400">কোনো রেকর্ড নেই</td></tr>
+                    : courseRows.map((r, i) => (
+                    <tr key={r.name} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 font-medium">
+                        <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: CHART_COLORS[i % CHART_COLORS.length], marginRight: 8 }} />
+                        {r.name}
+                      </td>
+                      <td className="px-4 py-3 text-center">{r.count}</td>
+                      <td className="px-4 py-3 text-blue-600 font-semibold whitespace-nowrap">৳{Number(r.gross).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-green-600 whitespace-nowrap">৳{Number(r.collected).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-red-500 whitespace-nowrap">৳{Number(r.due).toLocaleString()}</td>
+                      <td className="px-4 py-3"><span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">{r.pct}%</span></td>
+                    </tr>
+                  ))}
+                  {courseRows.length > 0 && (() => {
+                    const t = courseRows.reduce((a, r) => ({ count: a.count + r.count, gross: a.gross + r.gross, collected: a.collected + r.collected, due: a.due + r.due }), { count: 0, gross: 0, collected: 0, due: 0 });
+                    return <tr className="bg-primary-50 font-bold border-t-2 border-primary-100">
+                      <td className="px-4 py-3 text-primary-700">মোট</td>
+                      <td className="px-4 py-3 text-center text-primary-700">{t.count}</td>
+                      <td className="px-4 py-3 text-blue-700 whitespace-nowrap">৳{Number(t.gross).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-green-700 whitespace-nowrap">৳{Number(t.collected).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-red-600 whitespace-nowrap">৳{Number(t.due).toLocaleString()}</td>
+                      <td className="px-4 py-3"></td>
+                    </tr>;
+                  })()}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      ) : activeTab === 'enrollment' && subTab === 'exec' ? (
+        <>
+          {/* Executive Wise filters */}
+          <div className="card mb-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div><label className="block text-xs text-gray-500 mb-1">মাস</label>
+                <input type="month" className="input-field" value={execFilters.month}
+                  onChange={e => setExecFilters(p => ({ ...p, month: e.target.value, date_from: '', date_to: '' }))} /></div>
+              <div><label className="block text-xs text-gray-500 mb-1">তারিখ থেকে</label>
+                <input type="date" className="input-field" value={execFilters.date_from}
+                  onChange={e => setExecFilters(p => ({ ...p, date_from: e.target.value, month: '' }))} /></div>
+              <div><label className="block text-xs text-gray-500 mb-1">তারিখ পর্যন্ত</label>
+                <input type="date" className="input-field" value={execFilters.date_to}
+                  onChange={e => setExecFilters(p => ({ ...p, date_to: e.target.value, month: '' }))} /></div>
+              <div><label className="block text-xs text-gray-500 mb-1">কোর্স</label>
+                <select className="input-field" value={execFilters.course_id}
+                  onChange={e => setExecFilters(p => ({ ...p, course_id: e.target.value }))}>
+                  <option value="">সব</option>
+                  {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select></div>
+            </div>
+          </div>
+
+          {/* Summary cards */}
+          {(() => {
+            const t = execRows.reduce((a, r) => ({ count: a.count + r.count, gross: a.gross + r.gross, collected: a.collected + r.collected, due: a.due + r.due }), { count: 0, gross: 0, collected: 0, due: 0 });
+            return <SummaryCards items={[
+              { label: 'মোট Executive', value: execRows.length },
+              { label: 'মোট এনরোলমেন্ট', value: t.count },
+              { label: 'গ্রস সেল', value: `৳${Number(t.gross).toLocaleString()}`, color: '#185FA5' },
+              { label: 'সংগৃহীত', value: `৳${Number(t.collected).toLocaleString()}`, color: '#3B6D11' },
+            ]} />;
+          })()}
+
+          {/* Pie charts */}
+          <div className="flex gap-4 mb-4">
+            <PieCountCard title="এনরোলমেন্ট — Executive অনুযায়ী" data={execRows} nameKey="name" />
+            <PieChartCard title="গ্রস সেল — Executive অনুযায়ী" data={execRows} nameKey="name" valueKey="gross" />
+          </div>
+
+          {/* Table */}
+          <div className="card overflow-hidden p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>{['Executive','এনরোলমেন্ট','গ্রস সেল','সংগৃহীত','বকেয়া','শেয়ার'].map(h => (
+                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
+                  ))}</tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {execRows.length === 0
+                    ? <tr><td colSpan={6} className="text-center py-12 text-gray-400">কোনো রেকর্ড নেই</td></tr>
+                    : execRows.map((r, i) => (
+                    <tr key={r.name} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 font-medium">
+                        <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: 2, background: CHART_COLORS[i % CHART_COLORS.length], marginRight: 8 }} />
+                        {r.name}
+                      </td>
+                      <td className="px-4 py-3 text-center">{r.count}</td>
+                      <td className="px-4 py-3 text-blue-600 font-semibold whitespace-nowrap">৳{Number(r.gross).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-green-600 whitespace-nowrap">৳{Number(r.collected).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-red-500 whitespace-nowrap">৳{Number(r.due).toLocaleString()}</td>
+                      <td className="px-4 py-3"><span className="text-xs px-2 py-0.5 rounded-full bg-purple-50 text-purple-600">{r.pct}%</span></td>
+                    </tr>
+                  ))}
+                  {execRows.length > 0 && (() => {
+                    const t = execRows.reduce((a, r) => ({ count: a.count + r.count, gross: a.gross + r.gross, collected: a.collected + r.collected, due: a.due + r.due }), { count: 0, gross: 0, collected: 0, due: 0 });
+                    return <tr className="bg-primary-50 font-bold border-t-2 border-primary-100">
+                      <td className="px-4 py-3 text-primary-700">মোট</td>
+                      <td className="px-4 py-3 text-center text-primary-700">{t.count}</td>
+                      <td className="px-4 py-3 text-blue-700 whitespace-nowrap">৳{Number(t.gross).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-green-700 whitespace-nowrap">৳{Number(t.collected).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-red-600 whitespace-nowrap">৳{Number(t.due).toLocaleString()}</td>
+                      <td className="px-4 py-3"></td>
+                    </tr>;
                   })()}
                 </tbody>
               </table>
