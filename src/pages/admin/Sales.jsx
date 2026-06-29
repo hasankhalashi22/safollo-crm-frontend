@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { salesApi, coursesApi, usersApi } from '../../api/client';
 import { format } from 'date-fns';
-import { Search, Filter, Download } from 'lucide-react';
+import { Search, Filter, Download, ChevronDown, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../hooks/useAuth';
 import jsPDF from 'jspdf';
@@ -13,6 +13,45 @@ import {
 } from 'recharts';
 
 const CHART_COLORS = ['#378ADD','#1D9E75','#BA7517','#D85A30','#7F77DD','#D4537E','#639922','#E24B4A'];
+
+function MultiSelect({ options, selected, onChange, placeholder }) {
+  const [open, setOpen] = useState(false);
+  const allSelected = selected.length === 0;
+  return (
+    <div style={{ position: 'relative' }}>
+      <button type="button" onClick={() => setOpen(v => !v)}
+        className="input-field flex items-center justify-between gap-2 cursor-pointer text-left w-full"
+        style={{ minHeight: 38 }}>
+        <span className="truncate text-sm" style={{ color: allSelected ? '#9ca3af' : 'inherit' }}>
+          {allSelected ? placeholder : `${selected.length}টি নির্বাচিত`}
+        </span>
+        <ChevronDown size={14} className={`flex-shrink-0 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {!allSelected && (
+        <button type="button" onClick={() => onChange([])}
+          className="absolute right-7 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+          <X size={12} />
+        </button>
+      )}
+      {open && (
+        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50, background: 'var(--color-background-primary, #fff)', border: '0.5px solid var(--color-border-tertiary, #e5e7eb)', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,0.08)', maxHeight: 220, overflowY: 'auto', marginTop: 2 }}>
+          <label className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 text-sm font-medium">
+            <input type="checkbox" checked={allSelected} onChange={() => onChange([])} className="rounded" />
+            সব নির্বাচন করুন
+          </label>
+          {options.map(opt => (
+            <label key={opt} className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer text-sm">
+              <input type="checkbox" checked={selected.includes(opt)}
+                onChange={() => onChange(selected.includes(opt) ? selected.filter(s => s !== opt) : [...selected, opt])}
+                className="rounded" />
+              <span className="truncate">{opt}</span>
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function SummaryCards({ items }) {
   return (
@@ -102,8 +141,8 @@ export default function AdminSales() {
   const [revenueFilters, setRevenueFilters] = useState(EMPTY_REVENUE_FILTERS);
   const [subTab, setSubTab] = useState('details');
   const [dailyFilters, setDailyFilters] = useState({ month: format(new Date(), 'yyyy-MM'), date_from: '', date_to: '', executive_id: '', course_id: '' });
-  const [courseFilters, setCourseFilters] = useState({ month: format(new Date(), 'yyyy-MM'), date_from: '', date_to: '', executive_id: '' });
-  const [execFilters, setExecFilters] = useState({ month: format(new Date(), 'yyyy-MM'), date_from: '', date_to: '', course_id: '' });
+  const [courseFilters, setCourseFilters] = useState({ month: format(new Date(), 'yyyy-MM'), date_from: '', date_to: '', executive_id: '', selected: [] });
+  const [execFilters, setExecFilters] = useState({ month: format(new Date(), 'yyyy-MM'), date_from: '', date_to: '', course_id: '', selected: [] });
 
 const fetchSales = (f = filters) => {
     setLoading(true);
@@ -310,7 +349,8 @@ const fetchSales = (f = filters) => {
       map[k].count++; map[k].gross += Number(s.course_price) || 0;
       map[k].collected += Number(s.total_collected) || 0; map[k].due += Number(s.due_amount) || 0;
     });
-    const rows = Object.values(map).sort((a, b) => b.gross - a.gross);
+    let rows = Object.values(map).sort((a, b) => b.gross - a.gross);
+    if (courseFilters.selected.length > 0) rows = rows.filter(r => courseFilters.selected.includes(r.name));
     const totalCount = rows.reduce((a, r) => a + r.count, 0);
     const totalGross = rows.reduce((a, r) => a + r.gross, 0);
     return rows.map(r => ({ ...r, pct: totalGross ? Math.round(r.gross / totalGross * 100) : 0, countPct: totalCount ? Math.round(r.count / totalCount * 100) : 0 }));
@@ -329,8 +369,8 @@ const fetchSales = (f = filters) => {
       map[k].count++; map[k].gross += Number(s.course_price) || 0;
       map[k].collected += Number(s.total_collected) || 0; map[k].due += Number(s.due_amount) || 0;
     });
-    const rows = Object.values(map).sort((a, b) => b.gross - a.gross);
-    const totalCount = rows.reduce((a, r) => a + r.count, 0);
+    let rows = Object.values(map).sort((a, b) => b.gross - a.gross);
+    if (execFilters.selected.length > 0) rows = rows.filter(r => execFilters.selected.includes(r.name));
     const totalGross = rows.reduce((a, r) => a + r.gross, 0);
     return rows.map(r => ({ ...r, pct: totalGross ? Math.round(r.gross / totalGross * 100) : 0, countPct: totalCount ? Math.round(r.count / totalCount * 100) : 0 }));
   }, [sales, execFilters]);
@@ -588,7 +628,11 @@ const fetchSales = (f = filters) => {
         <>
           {/* Course Wise filters */}
           <div className="card mb-4">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+              <div><label className="block text-xs text-gray-500 mb-1">কোর্স নির্বাচন</label>
+                <MultiSelect options={courses.map(c => c.name)} selected={courseFilters.selected}
+                  onChange={v => setCourseFilters(p => ({ ...p, selected: v }))} placeholder="সব কোর্স" />
+              </div>
               <div><label className="block text-xs text-gray-500 mb-1">মাস</label>
                 <input type="month" className="input-field" value={courseFilters.month}
                   onChange={e => setCourseFilters(p => ({ ...p, month: e.target.value, date_from: '', date_to: '' }))} /></div>
@@ -669,7 +713,11 @@ const fetchSales = (f = filters) => {
         <>
           {/* Executive Wise filters */}
           <div className="card mb-4">
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+              <div><label className="block text-xs text-gray-500 mb-1">Executive নির্বাচন</label>
+                <MultiSelect options={executives.map(e => e.full_name || e.phone)} selected={execFilters.selected}
+                  onChange={v => setExecFilters(p => ({ ...p, selected: v }))} placeholder="সব Executive" />
+              </div>
               <div><label className="block text-xs text-gray-500 mb-1">মাস</label>
                 <input type="month" className="input-field" value={execFilters.month}
                   onChange={e => setExecFilters(p => ({ ...p, month: e.target.value, date_from: '', date_to: '' }))} /></div>
