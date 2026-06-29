@@ -5,7 +5,7 @@ import { Home, Plus, Clock, User, BarChart2, Users, BookOpen, Settings, LogOut, 
 import { useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { MODULES, getModuleForPath, getVisibleModules } from '../../config/modules';
-import { leaveApi } from '../../api/client';
+import { leaveApi, approvalsApi } from '../../api/client';
 
 function AdminGroupItem({ item, collapsed, anyActive, onClose, location, isOpen: controlledOpen, onToggle }) {
   const [localOpen, setLocalOpen] = useState(anyActive);
@@ -63,6 +63,13 @@ function TopModuleBar() {
 export function ExecutiveLayout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [pendingApprovalCount, setPendingApprovalCount] = useState(0);
+  const [pendingDueCount, setPendingDueCount] = useState(0);
+
+  useEffect(() => {
+    approvalsApi.getPending().then(r => setPendingApprovalCount((r.data || []).length)).catch(() => {});
+    approvalsApi.getPendingDue().then(r => setPendingDueCount((r.data || []).length)).catch(() => {});
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -97,7 +104,10 @@ export function ExecutiveLayout({ children }) {
           </NavLink>
           <NavLink to="/executive/approvals" className={({ isActive }) =>
             `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`}>
-            <CheckSquare size={20} />
+            <div className="relative">
+              <CheckSquare size={20} />
+              {pendingApprovalCount > 0 && <span className="absolute -top-1.5 -right-2 bg-red-500 text-white text-[9px] font-bold px-1 py-0.5 rounded-full min-w-[16px] text-center leading-none">{pendingApprovalCount}</span>}
+            </div>
             <span className="text-xs">Pending</span>
           </NavLink>
           <NavLink to="/executive/performance" className={({ isActive }) =>
@@ -107,7 +117,10 @@ export function ExecutiveLayout({ children }) {
           </NavLink>
           <NavLink to="/executive/due" className={({ isActive }) =>
             `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`}>
-            <Clock size={20} />
+            <div className="relative">
+              <Clock size={20} />
+              {pendingDueCount > 0 && <span className="absolute -top-1.5 -right-2 bg-red-500 text-white text-[9px] font-bold px-1 py-0.5 rounded-full min-w-[16px] text-center leading-none">{pendingDueCount}</span>}
+            </div>
             <span className="text-xs">বকেয়া</span>
           </NavLink>
           <NavLink to="/executive/profile" className={({ isActive }) =>
@@ -133,6 +146,13 @@ export function AdminLayout({ children }) {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [pendingApprovalCount, setPendingApprovalCount] = useState(0);
+  const [pendingDueCount, setPendingDueCount] = useState(0);
+
+  useEffect(() => {
+    approvalsApi.getPending().then(r => setPendingApprovalCount((r.data || []).length)).catch(() => {});
+    approvalsApi.getPendingDue().then(r => setPendingDueCount((r.data || []).length)).catch(() => {});
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -206,6 +226,7 @@ export function AdminLayout({ children }) {
             );
           }
           const { to, icon: Icon, label, end } = item;
+          const badgeCount = to.includes('/approvals') ? pendingApprovalCount : to.includes('/due') ? pendingDueCount : 0;
           return (
             <NavLink key={to} to={to} end={end}
               onClick={() => setSidebarOpen(false)}
@@ -214,7 +235,8 @@ export function AdminLayout({ children }) {
                  ${isActive ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'}`
               }>
               <Icon size={18} className="flex-shrink-0" />
-              {!collapsed && <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>}
+              {!collapsed && <span className="flex-1" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>}
+              {!collapsed && badgeCount > 0 && (<span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center flex-shrink-0">{badgeCount}</span>)}
             </NavLink>
           );
         })}
@@ -669,6 +691,8 @@ export function UnifiedLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [openModules, setOpenModules] = useState({});
   const [pendingLeaveCount, setPendingLeaveCount] = useState(0);
+  const [pendingApprovalCount, setPendingApprovalCount] = useState(0);
+  const [pendingDueCount, setPendingDueCount] = useState(0);
 
   const moduleList = useMemo(() => user && user.role !== 'super_admin' ? buildModuleList(user) : [], [user]);
 
@@ -684,6 +708,8 @@ export function UnifiedLayout({ children }) {
     if (moduleList.some(m => m.key === 'hr')) {
       leaveApi.getMyApprovalQueue().then(r => setPendingLeaveCount((r.data || []).length)).catch(() => {});
     }
+    approvalsApi.getPending().then(r => setPendingApprovalCount((r.data || []).length)).catch(() => {});
+    approvalsApi.getPendingDue().then(r => setPendingDueCount((r.data || []).length)).catch(() => {});
   }, [moduleList]);
 
   if (user?.role === 'super_admin') return <AdminLayout>{children}</AdminLayout>;
@@ -721,13 +747,15 @@ export function UnifiedLayout({ children }) {
                       return <UnifiedSubGroup key={item.group} item={item} onClose={onClose} pendingCount={pendingLeaveCount} />;
                     }
                     const ItemIcon = item.icon;
+                    const badge = item.to.includes('/approvals') ? pendingApprovalCount : item.to.includes('/due') ? pendingDueCount : 0;
                     return (
                       <NavLink key={item.to} to={item.to} end={item.end} onClick={onClose}
                         className={({ isActive: ia }) =>
                           `flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all
                            ${ia ? 'bg-primary-100 text-primary-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'}`}>
                         <ItemIcon size={14} className="flex-shrink-0" />
-                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>
+                        <span className="flex-1" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>
+                        {badge > 0 && <span className="bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] text-center flex-shrink-0">{badge}</span>}
                       </NavLink>
                     );
                   })}
