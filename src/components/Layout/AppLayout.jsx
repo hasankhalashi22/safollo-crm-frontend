@@ -285,6 +285,7 @@ export function AdminLayout({ children }) {
 export function AccountingLayout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
@@ -312,17 +313,27 @@ export function AccountingLayout({ children }) {
       </div>
 
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-        {navItems.map(({ to, icon: Icon, label, end }) => (
-          <NavLink key={to} to={to} end={end}
-            onClick={() => setSidebarOpen(false)}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
-               ${isActive ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'}`
-            }>
-            <Icon size={18} className="flex-shrink-0" />
-            {!collapsed && <span>{label}</span>}
-          </NavLink>
-        ))}
+        {navItems.map((item) => {
+          if (item.group) {
+            return (
+              <AdminGroupItem key={item.group} item={item} collapsed={collapsed}
+                anyActive={item.children.some(c => location.pathname === c.to || location.pathname.startsWith(c.to + '/'))}
+                onClose={() => setSidebarOpen(false)} location={location} />
+            );
+          }
+          const { to, icon: Icon, label, end } = item;
+          return (
+            <NavLink key={to} to={to} end={end}
+              onClick={() => setSidebarOpen(false)}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
+                 ${isActive ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'}`
+              }>
+              <Icon size={18} className="flex-shrink-0" />
+              {!collapsed && <span>{label}</span>}
+            </NavLink>
+          );
+        })}
       </nav>
 
       <div className="p-3 border-t border-gray-100">
