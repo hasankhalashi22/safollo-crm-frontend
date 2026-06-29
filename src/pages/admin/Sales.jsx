@@ -33,6 +33,8 @@ export default function AdminSales() {
   const [editModal, setEditModal] = useState(null);
   const [filters, setFilters] = useState(EMPTY_ENROLLMENT_FILTERS);
   const [revenueFilters, setRevenueFilters] = useState(EMPTY_REVENUE_FILTERS);
+  const [subTab, setSubTab] = useState('details');
+  const [dailyFilters, setDailyFilters] = useState({ month: format(new Date(), 'yyyy-MM'), date_from: '', date_to: '', executive_id: '', course_id: '' });
 
 const fetchSales = (f = filters) => {
     setLoading(true);
@@ -205,6 +207,51 @@ const fetchSales = (f = filters) => {
     exportPdf(headers, rows, `Enrollment_Report_${format(new Date(), 'dd-MM-yyyy')}.pdf`, 'Enrollment Report - Safollo Academy', filterInfo);
   };
 
+  // Daily Summary computed from existing sales data
+  const dailySummaryRows = (() => {
+    let filtered = [...sales];
+    if (dailyFilters.course_id) filtered = filtered.filter(s => String(s.course_id) === String(dailyFilters.course_id));
+    if (dailyFilters.executive_id) filtered = filtered.filter(s => String(s.executive_id) === String(dailyFilters.executive_id));
+    if (dailyFilters.date_from) filtered = filtered.filter(s => s.created_at.split('T')[0] >= dailyFilters.date_from);
+    if (dailyFilters.date_to) filtered = filtered.filter(s => s.created_at.split('T')[0] <= dailyFilters.date_to);
+    if (dailyFilters.month && !dailyFilters.date_from && !dailyFilters.date_to)
+      filtered = filtered.filter(s => s.created_at.startsWith(dailyFilters.month));
+    const map = {};
+    filtered.forEach(s => {
+      const d = s.created_at.split('T')[0];
+      if (!map[d]) map[d] = { date: d, count: 0, gross: 0, collected: 0, due: 0 };
+      map[d].count++;
+      map[d].gross += Number(s.course_price) || 0;
+      map[d].collected += Number(s.total_collected) || 0;
+      map[d].due += Number(s.due_amount) || 0;
+    });
+    return Object.values(map).sort((a, b) => b.date.localeCompare(a.date));
+  })();
+
+  const handleExportDailySummaryPdf = () => {
+    if (dailySummaryRows.length === 0) return toast.error('কোনো ডেটা নেই');
+    const headers = ['তারিখ', 'এনরোলমেন্ট', 'গ্রস সেল (৳)', 'সংগৃহীত (৳)', 'বকেয়া (৳)'];
+    const rows = dailySummaryRows.map(r => [
+      format(new Date(r.date), 'dd/MM/yyyy'),
+      r.count,
+      Number(r.gross).toLocaleString(),
+      Number(r.collected).toLocaleString(),
+      Number(r.due).toLocaleString(),
+    ]);
+    const totals = dailySummaryRows.reduce((acc, r) => ({
+      count: acc.count + r.count, gross: acc.gross + r.gross,
+      collected: acc.collected + r.collected, due: acc.due + r.due
+    }), { count: 0, gross: 0, collected: 0, due: 0 });
+    rows.push(['মোট', totals.count, Number(totals.gross).toLocaleString(), Number(totals.collected).toLocaleString(), Number(totals.due).toLocaleString()]);
+    const filterInfo = [];
+    if (dailyFilters.month && !dailyFilters.date_from) filterInfo.push(`মাস: ${dailyFilters.month}`);
+    if (dailyFilters.date_from) filterInfo.push(`From: ${dailyFilters.date_from}`);
+    if (dailyFilters.date_to) filterInfo.push(`To: ${dailyFilters.date_to}`);
+    if (dailyFilters.course_id) filterInfo.push(`Course: ${courses.find(c => c.id == dailyFilters.course_id)?.name || ''}`);
+    if (dailyFilters.executive_id) filterInfo.push(`Executive: ${executives.find(e => e.id == dailyFilters.executive_id)?.full_name || ''}`);
+    exportPdf(headers, rows, `Daily_Summary_${format(new Date(), 'dd-MM-yyyy')}.pdf`, 'Daily Sales Summary - Safollo Academy', filterInfo);
+  };
+
   const handleExportRevenueCsv = () => {
     if (revenue.length === 0) return toast.error('কোনো ডেটা নেই');
     const headers = ['পেমেন্ট তারিখ', 'স্টুডেন্ট', 'ফোন', 'কোর্স', 'পরিমাণ', 'পেমেন্ট পদ্ধতি', 'পেমেন্ট নম্বর', 'ট্রানজেকশন', 'Executive', 'ধরন'];
@@ -249,11 +296,13 @@ const fetchSales = (f = filters) => {
           </p>
         </div>
         <div className="flex gap-2">
-          <button onClick={activeTab === 'enrollment' ? handleExportEnrollmentCsv : handleExportRevenueCsv}
-            className="flex items-center gap-2 bg-green-500 text-white px-3 py-2 rounded-xl text-sm font-medium active:scale-95">
-            <Download size={16} /> Excel
-          </button>
-          <button onClick={activeTab === 'enrollment' ? handleExportEnrollmentPdf : handleExportRevenuePdf}
+          {!(activeTab === 'enrollment' && subTab === 'daily') && (
+            <button onClick={activeTab === 'enrollment' ? handleExportEnrollmentCsv : handleExportRevenueCsv}
+              className="flex items-center gap-2 bg-green-500 text-white px-3 py-2 rounded-xl text-sm font-medium active:scale-95">
+              <Download size={16} /> Excel
+            </button>
+          )}
+          <button onClick={activeTab === 'enrollment' && subTab === 'daily' ? handleExportDailySummaryPdf : activeTab === 'enrollment' ? handleExportEnrollmentPdf : handleExportRevenuePdf}
             className="flex items-center gap-2 bg-red-500 text-white px-3 py-2 rounded-xl text-sm font-medium active:scale-95">
             <Download size={16} /> PDF
           </button>
@@ -275,7 +324,105 @@ const fetchSales = (f = filters) => {
         </div>
       )}
 
-      {activeTab === 'enrollment' ? (
+      {/* Sub-tabs for enrollment */}
+      {activeTab === 'enrollment' && (
+        <div className="flex bg-gray-100 rounded-xl p-1 mb-5 max-w-xs">
+          <button onClick={() => setSubTab('details')}
+            className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-all ${subTab === 'details' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-500'}`}>
+            Details Report
+          </button>
+          <button onClick={() => setSubTab('daily')}
+            className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-all ${subTab === 'daily' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-500'}`}>
+            Daily Summary
+          </button>
+        </div>
+      )}
+
+      {activeTab === 'enrollment' && subTab === 'daily' ? (
+        <>
+          <div className="card mb-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <Filter size={16} className="text-gray-400" />
+              <span className="text-sm font-medium text-gray-600">ফিল্টার</span>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">মাস</label>
+                <input type="month" className="input-field" value={dailyFilters.month}
+                  onChange={e => setDailyFilters(p => ({ ...p, month: e.target.value, date_from: '', date_to: '' }))} />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">তারিখ থেকে</label>
+                <input type="date" className="input-field" value={dailyFilters.date_from}
+                  onChange={e => setDailyFilters(p => ({ ...p, date_from: e.target.value, month: '' }))} />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">তারিখ পর্যন্ত</label>
+                <input type="date" className="input-field" value={dailyFilters.date_to}
+                  onChange={e => setDailyFilters(p => ({ ...p, date_to: e.target.value, month: '' }))} />
+              </div>
+              <select className="input-field" value={dailyFilters.executive_id}
+                onChange={e => setDailyFilters(p => ({ ...p, executive_id: e.target.value }))}>
+                <option value="">সব Executive</option>
+                {executives.map(e => <option key={e.id} value={e.id}>{e.full_name || e.phone}</option>)}
+              </select>
+              <select className="input-field" value={dailyFilters.course_id}
+                onChange={e => setDailyFilters(p => ({ ...p, course_id: e.target.value }))}>
+                <option value="">সব কোর্স</option>
+                {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+              <button onClick={() => setDailyFilters({ month: format(new Date(), 'yyyy-MM'), date_from: '', date_to: '', executive_id: '', course_id: '' })}
+                className="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl text-sm font-medium self-end">
+                রিসেট
+              </button>
+            </div>
+          </div>
+
+          <div className="card overflow-hidden p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    {['তারিখ', 'এনরোলমেন্ট', 'গ্রস সেল', 'সংগৃহীত', 'বকেয়া'].map(h => (
+                      <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {loading ? (
+                    <tr><td colSpan={5} className="text-center py-12 text-gray-400">লোড হচ্ছে...</td></tr>
+                  ) : dailySummaryRows.length === 0 ? (
+                    <tr><td colSpan={5} className="text-center py-12 text-gray-400">কোনো রেকর্ড নেই</td></tr>
+                  ) : dailySummaryRows.map(r => (
+                    <tr key={r.date} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 font-medium whitespace-nowrap">{format(new Date(r.date), 'dd/MM/yyyy')}</td>
+                      <td className="px-4 py-3 text-center font-medium">{r.count}</td>
+                      <td className="px-4 py-3 text-blue-600 font-semibold whitespace-nowrap">৳{Number(r.gross).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-green-600 font-semibold whitespace-nowrap">৳{Number(r.collected).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-red-500 whitespace-nowrap">৳{Number(r.due).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                  {dailySummaryRows.length > 0 && (() => {
+                    const t = dailySummaryRows.reduce((acc, r) => ({
+                      count: acc.count + r.count, gross: acc.gross + r.gross,
+                      collected: acc.collected + r.collected, due: acc.due + r.due
+                    }), { count: 0, gross: 0, collected: 0, due: 0 });
+                    return (
+                      <tr className="bg-primary-50 font-bold border-t-2 border-primary-100">
+                        <td className="px-4 py-3 text-primary-700">মোট</td>
+                        <td className="px-4 py-3 text-center text-primary-700">{t.count}</td>
+                        <td className="px-4 py-3 text-blue-700 whitespace-nowrap">৳{Number(t.gross).toLocaleString()}</td>
+                        <td className="px-4 py-3 text-green-700 whitespace-nowrap">৳{Number(t.collected).toLocaleString()}</td>
+                        <td className="px-4 py-3 text-red-600 whitespace-nowrap">৳{Number(t.due).toLocaleString()}</td>
+                      </tr>
+                    );
+                  })()}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      ) : activeTab === 'enrollment' ? (
         <>
           <div className="card mb-4 space-y-3">
             <div className="flex items-center gap-2">
@@ -382,7 +529,8 @@ const fetchSales = (f = filters) => {
               <div className="relative">
                 <Search size={16} className="absolute left-3 top-3.5 text-gray-400" />
                 <input className="input-field pl-9" placeholder="ফোন বা নাম" value={revenueFilters.search}
-                  onChange={e => setRevenueFilter('search', e.target.value)} />
+                  onChange={e => setRevenueFilter('search', e.target.value)}
+                />
               </div>
               <select className="input-field" value={revenueFilters.course_id} onChange={e => setRevenueFilter('course_id', e.target.value)}>
                 <option value="">সব কোর্স</option>
