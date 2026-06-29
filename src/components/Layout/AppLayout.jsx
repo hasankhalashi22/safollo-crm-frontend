@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+﻿import { useState, useEffect, useMemo } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { Home, Plus, Clock, User, BarChart2, Users, BookOpen, Settings, LogOut, TrendingUp, Shield, Menu, X, Activity, CheckSquare, Wallet, FileText, BookText, Landmark, CreditCard, ChevronLeft, ChevronRight, ChevronDown, Calendar, Briefcase } from 'lucide-react';
@@ -6,6 +6,35 @@ import { useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { MODULES, getModuleForPath, getVisibleModules } from '../../config/modules';
 import { leaveApi } from '../../api/client';
+
+function AdminGroupItem({ item, collapsed, anyActive, onClose, location }) {
+  const [open, setOpen] = useState(anyActive);
+  const Icon = item.icon;
+  return (
+    <div>
+      <button onClick={() => setOpen(v => !v)}
+        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
+          ${anyActive ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'}`}>
+        <Icon size={18} className="flex-shrink-0" />
+        {!collapsed && <><span className="flex-1 text-left">{item.label}</span>
+          <ChevronDown size={14} className={`transition-transform ${open ? 'rotate-180' : ''}`} /></>}
+      </button>
+      {open && !collapsed && (
+        <div className="ml-4 mt-1 space-y-1 border-l-2 border-gray-100 pl-3">
+          {item.children.map(({ to, icon: CIcon, label }) => (
+            <NavLink key={to} to={to} onClick={onClose}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all
+                 ${isActive ? 'bg-primary-50 text-primary-600' : 'text-gray-500 hover:bg-gray-50'}`}>
+              <CIcon size={16} className="flex-shrink-0" />
+              <span>{label}</span>
+            </NavLink>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function TopModuleBar() {
   const { user } = useAuth();
@@ -36,13 +65,13 @@ export function ExecutiveLayout({ children }) {
   const handleLogout = async () => {
     await logout();
     navigate('/login');
-    toast.success('লগআউট হয়েছে');
+    toast.success('à¦²à¦—à¦†à¦‰à¦Ÿ à¦¹à¦¯à¦¼à§‡à¦›à§‡');
   };
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       <div className="bg-primary-500 text-white px-4 py-3 flex items-center justify-between sticky top-0 z-10 shadow-md">
-        <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-8 brightness-0 invert" />
+        <img src="/logo.png" alt="à¦¸à¦¾à¦«à¦²à§à¦¯ à¦à¦•à¦¾à¦¡à§‡à¦®à¦¿" className="h-8 brightness-0 invert" />
         <button onClick={handleLogout} className="p-2 rounded-xl bg-primary-600 active:scale-95">
           <LogOut size={18} />
         </button>
@@ -55,14 +84,14 @@ export function ExecutiveLayout({ children }) {
           <NavLink to="/executive" end className={({ isActive }) =>
             `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`}>
             <Home size={20} />
-            <span className="text-xs">হোম</span>
+            <span className="text-xs">à¦¹à§‹à¦®</span>
           </NavLink>
           <NavLink to="/executive/new-sale" className={({ isActive }) =>
             `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`}>
             <div className="bg-primary-500 text-white rounded-full p-2.5 -mt-6 shadow-lg">
               <Plus size={22} />
             </div>
-            <span className="text-xs text-gray-400 mt-0.5">নতুন সেল</span>
+            <span className="text-xs text-gray-400 mt-0.5">à¦¨à¦¤à§à¦¨ à¦¸à§‡à¦²</span>
           </NavLink>
           <NavLink to="/executive/approvals" className={({ isActive }) =>
             `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`}>
@@ -72,17 +101,17 @@ export function ExecutiveLayout({ children }) {
           <NavLink to="/executive/performance" className={({ isActive }) =>
             `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`}>
             <TrendingUp size={20} />
-            <span className="text-xs">পারফরম্যান্স</span>
+            <span className="text-xs">à¦ªà¦¾à¦°à¦«à¦°à¦®à§à¦¯à¦¾à¦¨à§à¦¸</span>
           </NavLink>
           <NavLink to="/executive/due" className={({ isActive }) =>
             `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`}>
             <Clock size={20} />
-            <span className="text-xs">বকেয়া</span>
+            <span className="text-xs">à¦¬à¦•à§‡à¦¯à¦¼à¦¾</span>
           </NavLink>
           <NavLink to="/executive/profile" className={({ isActive }) =>
             `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`}>
             <User size={20} />
-            <span className="text-xs">প্রোফাইল</span>
+            <span className="text-xs">à¦ªà§à¦°à§‹à¦«à¦¾à¦‡à¦²</span>
           </NavLink>
           {user?.has_ess && (
             <button onClick={() => navigate('/portal')}
@@ -106,45 +135,58 @@ export function AdminLayout({ children }) {
   const handleLogout = async () => {
     await logout();
     navigate('/login');
-    toast.success('লগআউট হয়েছে');
+    toast.success('à¦²à¦—à¦†à¦‰à¦Ÿ à¦¹à¦¯à¦¼à§‡à¦›à§‡');
   };
 
+  const location = useLocation();
   const isManager = user?.role === 'manager';
   const isSuperAdmin = user?.role === 'super_admin';
 
   const managerNav = [
-    { to: '/manager', icon: BarChart2, label: 'ড্যাশবোর্ড', end: true },
-    { to: '/manager/approvals', icon: CheckSquare, label: 'সেল Approval' },
-    { to: '/manager/new-sale', icon: Plus, label: 'নতুন সেল' },
-    { to: '/manager/sales', icon: BarChart2, label: 'সেলস রিপোর্ট' },
-    { to: '/manager/due', icon: Clock, label: 'বকেয়া তালিকা' },
-    { to: '/manager/performance', icon: TrendingUp, label: 'পারফরম্যান্স' },
-    { to: '/manager/profile', icon: User, label: 'আমার প্রোফাইল' },
+    { to: '/manager', icon: BarChart2, label: 'à¦¡à§à¦¯à¦¾à¦¶à¦¬à§‹à¦°à§à¦¡', end: true },
+    { to: '/manager/approvals', icon: CheckSquare, label: 'à¦¸à§‡à¦² Approval' },
+    { to: '/manager/new-sale', icon: Plus, label: 'à¦¨à¦¤à§à¦¨ à¦¸à§‡à¦²' },
+    { to: '/manager/sales', icon: BarChart2, label: 'à¦¸à§‡à¦²à¦¸ à¦°à¦¿à¦ªà§‹à¦°à§à¦Ÿ' },
+    { to: '/manager/due', icon: Clock, label: 'à¦¬à¦•à§‡à¦¯à¦¼à¦¾ à¦¤à¦¾à¦²à¦¿à¦•à¦¾' },
+    { to: '/manager/performance', icon: TrendingUp, label: 'à¦ªà¦¾à¦°à¦«à¦°à¦®à§à¦¯à¦¾à¦¨à§à¦¸' },
+    { to: '/manager/profile', icon: User, label: 'à¦†à¦®à¦¾à¦° à¦ªà§à¦°à§‹à¦«à¦¾à¦‡à¦²' },
   ];
 
   const adminNav = [
-    { to: '/admin', icon: BarChart2, label: 'ড্যাশবোর্ড', end: true },
-    { to: '/admin/approvals', icon: CheckSquare, label: 'সেল Approval' },
-    { to: '/admin/new-sale', icon: Plus, label: 'নতুন সেল' },
-    { to: '/admin/sales', icon: BarChart2, label: 'সেলস রিপোর্ট' },
-    { to: '/admin/due', icon: Clock, label: 'বকেয়া তালিকা' },
-    { to: '/admin/staff', icon: Users, label: 'স্টাফ ম্যানেজমেন্ট' },
+    { to: '/admin', icon: BarChart2, label: 'à¦¡à§à¦¯à¦¾à¦¶à¦¬à§‹à¦°à§à¦¡', end: true },
+    { to: '/admin/approvals', icon: CheckSquare, label: 'à¦¸à§‡à¦² Approval' },
+    { to: '/admin/new-sale', icon: Plus, label: 'à¦¨à¦¤à§à¦¨ à¦¸à§‡à¦²' },
+    { to: '/admin/sales', icon: BarChart2, label: 'à¦¸à§‡à¦²à¦¸ à¦°à¦¿à¦ªà§‹à¦°à§à¦Ÿ' },
+    { to: '/admin/due', icon: Clock, label: 'à¦¬à¦•à§‡à¦¯à¦¼à¦¾ à¦¤à¦¾à¦²à¦¿à¦•à¦¾' },
+    { to: '/admin/staff', icon: Users, label: 'à¦¸à§à¦Ÿà¦¾à¦« à¦®à§à¦¯à¦¾à¦¨à§‡à¦œà¦®à§‡à¦¨à§à¦Ÿ' },
     { to: '/admin/roles', icon: Shield, label: 'Role Management' },
-    { to: '/admin/courses', icon: BookOpen, label: 'কোর্স ম্যানেজমেন্ট' },
-    { to: '/admin/settings', icon: Settings, label: 'সেটিংস' },
-    { to: '/admin/profile', icon: User, label: 'আমার প্রোফাইল' },
+    { to: '/admin/courses', icon: BookOpen, label: 'à¦•à§‹à¦°à§à¦¸ à¦®à§à¦¯à¦¾à¦¨à§‡à¦œà¦®à§‡à¦¨à§à¦Ÿ' },
+    { to: '/admin/settings', icon: Settings, label: 'à¦¸à§‡à¦Ÿà¦¿à¦‚à¦¸' },
+    { to: '/admin/profile', icon: User, label: 'à¦†à¦®à¦¾à¦° à¦ªà§à¦°à§‹à¦«à¦¾à¦‡à¦²' },
     ...(isSuperAdmin ? [{ to: '/admin/audit', icon: Activity, label: 'Activity Log' }] : []),
   ];
 
-  const navItems = isManager ? managerNav : adminNav;
+  const currentModule = getModuleForPath(location.pathname);
+  let navItems;
+  let navLabel;
+  if (location.pathname.startsWith('/hr')) {
+    navItems = MODULES.find(m => m.key === 'hr')?.sidebar || [];
+    navLabel = 'HR Module';
+  } else if (location.pathname.startsWith('/accounting')) {
+    navItems = MODULES.find(m => m.key === 'accounting')?.sidebar || [];
+    navLabel = 'Accounting Module';
+  } else {
+    navItems = isManager ? managerNav : adminNav;
+    navLabel = currentModule?.label || 'CRM';
+  }
 
   const SidebarContent = () => (
     <>
       <div className="p-4 border-b border-gray-100 flex items-center justify-between">
         {!collapsed && (
           <div>
-            <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-10 mb-1" />
-            <p className="text-xs text-gray-400">{user?.role_label}</p>
+            <img src="/logo.png" alt="à¦¸à¦¾à¦«à¦²à§à¦¯ à¦à¦•à¦¾à¦¡à§‡à¦®à¦¿" className="h-10 mb-1" />
+            <p className="text-xs text-gray-400">{navLabel}</p>
           </div>
         )}
         <button onClick={() => setCollapsed(!collapsed)}
@@ -154,17 +196,27 @@ export function AdminLayout({ children }) {
       </div>
 
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-        {navItems.map(({ to, icon: Icon, label, end }) => (
-          <NavLink key={to} to={to} end={end}
-            onClick={() => setSidebarOpen(false)}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
-               ${isActive ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'}`
-            }>
-            <Icon size={18} className="flex-shrink-0" />
-            {!collapsed && <span>{label}</span>}
-          </NavLink>
-        ))}
+        {navItems.map((item) => {
+          if (item.group) {
+            return (
+              <AdminGroupItem key={item.group} item={item} collapsed={collapsed}
+                anyActive={item.children.some(c => location.pathname === c.to || location.pathname.startsWith(c.to + '/'))}
+                onClose={() => setSidebarOpen(false)} location={location} />
+            );
+          }
+          const { to, icon: Icon, label, end } = item;
+          return (
+            <NavLink key={to} to={to} end={end}
+              onClick={() => setSidebarOpen(false)}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
+                 ${isActive ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'}`
+              }>
+              <Icon size={18} className="flex-shrink-0" />
+              {!collapsed && <span>{label}</span>}
+            </NavLink>
+          );
+        })}
       </nav>
 
       <div className="p-3 border-t border-gray-100">
@@ -189,7 +241,7 @@ export function AdminLayout({ children }) {
         <button onClick={handleLogout}
           className={`flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl transition-all ${collapsed ? 'justify-center' : ''}`}>
           <LogOut size={16} />
-          {!collapsed && 'লগআউট'}
+          {!collapsed && 'à¦²à¦—à¦†à¦‰à¦Ÿ'}
         </button>
       </div>
     </>
@@ -221,7 +273,7 @@ export function AdminLayout({ children }) {
             <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl bg-gray-100">
               <Menu size={20} className="text-gray-600" />
             </button>
-            <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-8" />
+            <img src="/logo.png" alt="à¦¸à¦¾à¦«à¦²à§à¦¯ à¦à¦•à¦¾à¦¡à§‡à¦®à¦¿" className="h-8" />
           </div>
           <main className="flex-1 overflow-y-auto page-enter">{children}</main>
         </div>
@@ -239,7 +291,7 @@ export function AccountingLayout({ children }) {
   const handleLogout = async () => {
     await logout();
     navigate('/login');
-    toast.success('লগআউট হয়েছে');
+    toast.success('à¦²à¦—à¦†à¦‰à¦Ÿ à¦¹à¦¯à¦¼à§‡à¦›à§‡');
   };
 
   const navItems = MODULES.find(m => m.key === 'accounting').sidebar;
@@ -249,7 +301,7 @@ export function AccountingLayout({ children }) {
       <div className="p-4 border-b border-gray-100 flex items-center justify-between">
         {!collapsed && (
           <div>
-            <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-10 mb-1" />
+            <img src="/logo.png" alt="à¦¸à¦¾à¦«à¦²à§à¦¯ à¦à¦•à¦¾à¦¡à§‡à¦®à¦¿" className="h-10 mb-1" />
             <p className="text-xs text-gray-400">Accounting Module</p>
           </div>
         )}
@@ -295,7 +347,7 @@ export function AccountingLayout({ children }) {
         <button onClick={handleLogout}
           className={`flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl transition-all ${collapsed ? 'justify-center' : ''}`}>
           <LogOut size={16} />
-          {!collapsed && 'লগআউট'}
+          {!collapsed && 'à¦²à¦—à¦†à¦‰à¦Ÿ'}
         </button>
       </div>
     </>
@@ -327,7 +379,7 @@ export function AccountingLayout({ children }) {
             <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl bg-gray-100">
               <Menu size={20} className="text-gray-600" />
             </button>
-            <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-8" />
+            <img src="/logo.png" alt="à¦¸à¦¾à¦«à¦²à§à¦¯ à¦à¦•à¦¾à¦¡à§‡à¦®à¦¿" className="h-8" />
           </div>
           <main className="flex-1 overflow-y-auto page-enter">{children}</main>
         </div>
@@ -354,7 +406,7 @@ export function HrLayout({ children }) {
   const handleLogout = async () => {
     await logout();
     navigate('/login');
-    toast.success('লগআউট হয়েছে');
+    toast.success('à¦²à¦—à¦†à¦‰à¦Ÿ à¦¹à¦¯à¦¼à§‡à¦›à§‡');
   };
 
   const navItems = MODULES.find(m => m.key === 'hr').sidebar;
@@ -364,7 +416,7 @@ export function HrLayout({ children }) {
       <div className="p-4 border-b border-gray-100 flex items-center justify-between">
         {!collapsed && (
           <div>
-            <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-10 mb-1" />
+            <img src="/logo.png" alt="à¦¸à¦¾à¦«à¦²à§à¦¯ à¦à¦•à¦¾à¦¡à§‡à¦®à¦¿" className="h-10 mb-1" />
             <p className="text-xs text-gray-400">HR Module</p>
           </div>
         )}
@@ -449,7 +501,7 @@ export function HrLayout({ children }) {
         <button onClick={handleLogout}
           className={`flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl transition-all ${collapsed ? 'justify-center' : ''}`}>
           <LogOut size={16} />
-          {!collapsed && 'লগআউট'}
+          {!collapsed && 'à¦²à¦—à¦†à¦‰à¦Ÿ'}
         </button>
       </div>
     </>
@@ -481,7 +533,7 @@ export function HrLayout({ children }) {
             <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl bg-gray-100">
               <Menu size={20} className="text-gray-600" />
             </button>
-            <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-8" />
+            <img src="/logo.png" alt="à¦¸à¦¾à¦«à¦²à§à¦¯ à¦à¦•à¦¾à¦¡à§‡à¦®à¦¿" className="h-8" />
           </div>
           <main className="flex-1 overflow-y-auto page-enter">{children}</main>
         </div>
@@ -489,7 +541,7 @@ export function HrLayout({ children }) {
     </div>
   );
 }
-// ── Unified sub-group renderer for nested nav items (HR: Leave, Attendance, Payroll) ──
+// â”€â”€ Unified sub-group renderer for nested nav items (HR: Leave, Attendance, Payroll) â”€â”€
 function UnifiedSubGroup({ item, onClose, pendingCount }) {
   const location = useLocation();
   const isAnyActive = item.children.some(c => location.pathname === c.to || location.pathname.startsWith(c.to + '/'));
@@ -544,28 +596,28 @@ function buildModuleList(user) {
     let items;
     if (user.role_level >= 4) {
       items = [
-        { to: base, icon: BarChart2, label: 'ড্যাশবোর্ড', end: true },
-        { to: `${base}/new-sale`, icon: Plus, label: 'নতুন সেল' },
+        { to: base, icon: BarChart2, label: 'à¦¡à§à¦¯à¦¾à¦¶à¦¬à§‹à¦°à§à¦¡', end: true },
+        { to: `${base}/new-sale`, icon: Plus, label: 'à¦¨à¦¤à§à¦¨ à¦¸à§‡à¦²' },
         { to: `${base}/approvals`, icon: CheckSquare, label: 'Pending' },
-        { to: `${base}/performance`, icon: TrendingUp, label: 'পারফরম্যান্স' },
-        { to: `${base}/due`, icon: Clock, label: 'বকেয়া' },
+        { to: `${base}/performance`, icon: TrendingUp, label: 'à¦ªà¦¾à¦°à¦«à¦°à¦®à§à¦¯à¦¾à¦¨à§à¦¸' },
+        { to: `${base}/due`, icon: Clock, label: 'à¦¬à¦•à§‡à¦¯à¦¼à¦¾' },
       ];
     } else if (user.role === 'manager') {
       items = [
-        { to: base, icon: BarChart2, label: 'ড্যাশবোর্ড', end: true },
-        { to: `${base}/approvals`, icon: CheckSquare, label: 'সেল Approval' },
-        { to: `${base}/new-sale`, icon: Plus, label: 'নতুন সেল' },
-        { to: `${base}/sales`, icon: BarChart2, label: 'সেলস রিপোর্ট' },
-        { to: `${base}/due`, icon: Clock, label: 'বকেয়া তালিকা' },
-        { to: `${base}/performance`, icon: TrendingUp, label: 'পারফরম্যান্স' },
+        { to: base, icon: BarChart2, label: 'à¦¡à§à¦¯à¦¾à¦¶à¦¬à§‹à¦°à§à¦¡', end: true },
+        { to: `${base}/approvals`, icon: CheckSquare, label: 'à¦¸à§‡à¦² Approval' },
+        { to: `${base}/new-sale`, icon: Plus, label: 'à¦¨à¦¤à§à¦¨ à¦¸à§‡à¦²' },
+        { to: `${base}/sales`, icon: BarChart2, label: 'à¦¸à§‡à¦²à¦¸ à¦°à¦¿à¦ªà§‹à¦°à§à¦Ÿ' },
+        { to: `${base}/due`, icon: Clock, label: 'à¦¬à¦•à§‡à¦¯à¦¼à¦¾ à¦¤à¦¾à¦²à¦¿à¦•à¦¾' },
+        { to: `${base}/performance`, icon: TrendingUp, label: 'à¦ªà¦¾à¦°à¦«à¦°à¦®à§à¦¯à¦¾à¦¨à§à¦¸' },
       ];
     } else {
       items = [
-        { to: base, icon: BarChart2, label: 'ড্যাশবোর্ড', end: true },
-        { to: `${base}/approvals`, icon: CheckSquare, label: 'সেল Approval' },
-        { to: `${base}/new-sale`, icon: Plus, label: 'নতুন সেল' },
-        { to: `${base}/sales`, icon: BarChart2, label: 'সেলস রিপোর্ট' },
-        { to: `${base}/due`, icon: Clock, label: 'বকেয়া তালিকা' },
+        { to: base, icon: BarChart2, label: 'à¦¡à§à¦¯à¦¾à¦¶à¦¬à§‹à¦°à§à¦¡', end: true },
+        { to: `${base}/approvals`, icon: CheckSquare, label: 'à¦¸à§‡à¦² Approval' },
+        { to: `${base}/new-sale`, icon: Plus, label: 'à¦¨à¦¤à§à¦¨ à¦¸à§‡à¦²' },
+        { to: `${base}/sales`, icon: BarChart2, label: 'à¦¸à§‡à¦²à¦¸ à¦°à¦¿à¦ªà§‹à¦°à§à¦Ÿ' },
+        { to: `${base}/due`, icon: Clock, label: 'à¦¬à¦•à§‡à¦¯à¦¼à¦¾ à¦¤à¦¾à¦²à¦¿à¦•à¦¾' },
       ];
     }
     list.push({ key: 'crm', label: 'CRM', icon: BarChart2, basePath: base, items });
@@ -579,7 +631,7 @@ function buildModuleList(user) {
     list.push({ key: 'accounting', label: 'Accounting', icon: Wallet, basePath: '/accounting', items: MODULES.find(m => m.key === 'accounting')?.sidebar || [] });
   }
 
-  // My Office — সবার জন্য (ESS থাকলে অতিরিক্ত items)
+  // My Office â€” à¦¸à¦¬à¦¾à¦° à¦œà¦¨à§à¦¯ (ESS à¦¥à¦¾à¦•à¦²à§‡ à¦…à¦¤à¦¿à¦°à¦¿à¦•à§à¦¤ items)
   const myOfficeItems = [
     ...(user.has_ess ? [
       { to: '/portal', icon: Home, label: 'Home', end: true },
@@ -587,7 +639,7 @@ function buildModuleList(user) {
       { to: '/portal/leave', icon: Calendar, label: 'Leave' },
       { to: '/portal/approvals', icon: CheckSquare, label: 'Approvals' },
     ] : []),
-    { to: profileRoute, icon: User, label: 'আমার প্রোফাইল' },
+    { to: profileRoute, icon: User, label: 'à¦†à¦®à¦¾à¦° à¦ªà§à¦°à§‹à¦«à¦¾à¦‡à¦²' },
   ];
   const myOfficeBasePath = user.has_ess ? '/portal' : profileRoute;
   list.push({ key: 'ess', label: 'My Office', icon: Briefcase, basePath: myOfficeBasePath, items: myOfficeItems });
@@ -624,13 +676,13 @@ export function UnifiedLayout({ children }) {
   const handleLogout = async () => {
     await logout();
     navigate('/login');
-    toast.success('লগআউট হয়েছে');
+    toast.success('à¦²à¦—à¦†à¦‰à¦Ÿ à¦¹à¦¯à¦¼à§‡à¦›à§‡');
   };
 
   const SidebarNav = ({ onClose }) => (
     <>
       <div className="p-4 border-b border-gray-100">
-        <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-9 mb-1" />
+        <img src="/logo.png" alt="à¦¸à¦¾à¦«à¦²à§à¦¯ à¦à¦•à¦¾à¦¡à§‡à¦®à¦¿" className="h-9 mb-1" />
         <p className="text-xs text-gray-400">{user?.role_label}</p>
       </div>
       <nav className="flex-1 p-2.5 overflow-y-auto space-y-0.5">
@@ -681,7 +733,7 @@ export function UnifiedLayout({ children }) {
         </div>
         <button onClick={handleLogout}
           className="flex items-center gap-2 w-full px-3 py-2 text-xs text-red-500 hover:bg-red-50 rounded-xl transition-all">
-          <LogOut size={14} /> লগআউট
+          <LogOut size={14} /> à¦²à¦—à¦†à¦‰à¦Ÿ
         </button>
       </div>
     </>
@@ -709,7 +761,7 @@ export function UnifiedLayout({ children }) {
           <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl bg-gray-100">
             <Menu size={20} className="text-gray-600" />
           </button>
-          <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-7" />
+          <img src="/logo.png" alt="à¦¸à¦¾à¦«à¦²à§à¦¯ à¦à¦•à¦¾à¦¡à§‡à¦®à¦¿" className="h-7" />
         </div>
         <main className="flex-1 overflow-y-auto page-enter">{children}</main>
       </div>
