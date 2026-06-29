@@ -640,7 +640,7 @@ export function UnifiedLayout({ children }) {
           const isActive = mod.key === activeModuleKey;
           return (
             <div key={mod.key}>
-              <button onClick={() => setOpenModules(prev => ({ ...prev, [mod.key]: !prev[mod.key] }))}
+              <button onClick={() => setOpenModules(prev => ({ [mod.key]: !prev[mod.key] }))}
                 className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all
                   ${isActive ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'}`}>
                 <ModIcon size={17} className="flex-shrink-0" />
