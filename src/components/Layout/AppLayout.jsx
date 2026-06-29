@@ -215,7 +215,7 @@ export function AdminLayout({ children }) {
                  ${isActive ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'}`
               }>
               <Icon size={18} className="flex-shrink-0" />
-              {!collapsed && <span>{label}</span>}
+              {!collapsed && <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>}
             </NavLink>
           );
         })}
@@ -337,7 +337,7 @@ export function AccountingLayout({ children }) {
                  ${isActive ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'}`
               }>
               <Icon size={18} className="flex-shrink-0" />
-              {!collapsed && <span>{label}</span>}
+              {!collapsed && <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>}
             </NavLink>
           );
         })}
@@ -571,7 +571,7 @@ function UnifiedSubGroup({ item, onClose, pendingCount }) {
         className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all
           ${isAnyActive ? 'text-primary-600 bg-primary-50' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'}`}>
         <Icon size={13} className="flex-shrink-0" />
-        <span className="flex-1 text-left whitespace-nowrap overflow-hidden text-ellipsis min-w-0">{item.label}</span>
+        <span style={{ flex: 1, textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{item.label}</span>
         <ChevronDown size={11} className={`transition-transform flex-shrink-0 ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
@@ -584,7 +584,7 @@ function UnifiedSubGroup({ item, onClose, pendingCount }) {
                   `flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-all
                    ${isActive ? 'bg-primary-100 text-primary-700' : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'}`}>
                 <CIcon size={12} className="flex-shrink-0" />
-                <span className="flex-1 whitespace-nowrap overflow-hidden text-ellipsis min-w-0">{child.label}</span>
+                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, minWidth: 0 }}>{child.label}</span>
                 {child.to === '/hr/leave-applications' && pendingCount > 0 && (
                   <span className="bg-red-500 text-white text-[9px] font-bold px-1 py-0.5 rounded-full min-w-[16px] text-center">
                     {pendingCount}
@@ -714,7 +714,7 @@ export function UnifiedLayout({ children }) {
                 className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all
                   ${isActive ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'}`}>
                 <ModIcon size={17} className="flex-shrink-0" />
-                <span className="flex-1 text-left whitespace-nowrap overflow-hidden text-ellipsis min-w-0">{mod.label}</span>
+                <span style={{ flex: 1, textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{mod.label}</span>
                 <ChevronDown size={14} className={`flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
               </button>
               {isOpen && (
@@ -730,7 +730,7 @@ export function UnifiedLayout({ children }) {
                           `flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all overflow-hidden
                            ${ia ? 'bg-primary-100 text-primary-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'}`}>
                         <ItemIcon size={14} className="flex-shrink-0" />
-                        <span className="whitespace-nowrap overflow-hidden text-ellipsis min-w-0">{item.label}</span>
+                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>
                       </NavLink>
                     );
                   })}
