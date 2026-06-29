@@ -533,6 +533,12 @@ function buildModuleList(user) {
   const moduleAccess = (user.module_access || []).map(a => a.module_key);
   const list = [];
 
+  // Profile route depends on role
+  const profileRoute = user.role === 'manager' ? '/manager/profile'
+    : user.role_level <= 2 ? '/admin/profile'
+    : user.role_level >= 4 && user.role !== 'employee' ? '/executive/profile'
+    : '/portal/profile';
+
   if (user.role !== 'employee' && user.role !== 'super_admin') {
     const base = user.role === 'manager' ? '/manager' : user.role_level <= 2 ? '/admin' : '/executive';
     let items;
@@ -543,7 +549,6 @@ function buildModuleList(user) {
         { to: `${base}/approvals`, icon: CheckSquare, label: 'Pending' },
         { to: `${base}/performance`, icon: TrendingUp, label: 'পারফরম্যান্স' },
         { to: `${base}/due`, icon: Clock, label: 'বকেয়া' },
-        { to: `${base}/profile`, icon: User, label: 'প্রোফাইল' },
       ];
     } else if (user.role === 'manager') {
       items = [
@@ -553,7 +558,6 @@ function buildModuleList(user) {
         { to: `${base}/sales`, icon: BarChart2, label: 'সেলস রিপোর্ট' },
         { to: `${base}/due`, icon: Clock, label: 'বকেয়া তালিকা' },
         { to: `${base}/performance`, icon: TrendingUp, label: 'পারফরম্যান্স' },
-        { to: `${base}/profile`, icon: User, label: 'আমার প্রোফাইল' },
       ];
     } else {
       items = [
@@ -562,7 +566,6 @@ function buildModuleList(user) {
         { to: `${base}/new-sale`, icon: Plus, label: 'নতুন সেল' },
         { to: `${base}/sales`, icon: BarChart2, label: 'সেলস রিপোর্ট' },
         { to: `${base}/due`, icon: Clock, label: 'বকেয়া তালিকা' },
-        { to: `${base}/profile`, icon: User, label: 'আমার প্রোফাইল' },
       ];
     }
     list.push({ key: 'crm', label: 'CRM', icon: BarChart2, basePath: base, items });
@@ -576,18 +579,18 @@ function buildModuleList(user) {
     list.push({ key: 'accounting', label: 'Accounting', icon: Wallet, basePath: '/accounting', items: MODULES.find(m => m.key === 'accounting')?.sidebar || [] });
   }
 
-  if (user.has_ess) {
-    list.push({
-      key: 'ess', label: 'My Office', icon: Briefcase, basePath: '/portal',
-      items: [
-        { to: '/portal', icon: Home, label: 'Home', end: true },
-        { to: '/portal/attendance', icon: Clock, label: 'Attendance' },
-        { to: '/portal/leave', icon: Calendar, label: 'Leave' },
-        { to: '/portal/approvals', icon: CheckSquare, label: 'Approvals' },
-        { to: '/portal/profile', icon: User, label: 'Profile' },
-      ],
-    });
-  }
+  // My Office — সবার জন্য (ESS থাকলে অতিরিক্ত items)
+  const myOfficeItems = [
+    ...(user.has_ess ? [
+      { to: '/portal', icon: Home, label: 'Home', end: true },
+      { to: '/portal/attendance', icon: Clock, label: 'Attendance' },
+      { to: '/portal/leave', icon: Calendar, label: 'Leave' },
+      { to: '/portal/approvals', icon: CheckSquare, label: 'Approvals' },
+    ] : []),
+    { to: profileRoute, icon: User, label: 'আমার প্রোফাইল' },
+  ];
+  const myOfficeBasePath = user.has_ess ? '/portal' : profileRoute;
+  list.push({ key: 'ess', label: 'My Office', icon: Briefcase, basePath: myOfficeBasePath, items: myOfficeItems });
 
   return list;
 }
