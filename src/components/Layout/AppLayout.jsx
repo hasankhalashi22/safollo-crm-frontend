@@ -584,7 +584,7 @@ function UnifiedSubGroup({ item, onClose, pendingCount }) {
                   `flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-all
                    ${isActive ? 'bg-primary-100 text-primary-700' : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'}`}>
                 <CIcon size={12} className="flex-shrink-0" />
-                <span className="flex-1">{child.label}</span>
+                <span className="flex-1 truncate">{child.label}</span>
                 {child.to === '/hr/leave-applications' && pendingCount > 0 && (
                   <span className="bg-red-500 text-white text-[9px] font-bold px-1 py-0.5 rounded-full min-w-[16px] text-center">
                     {pendingCount}
@@ -730,7 +730,7 @@ export function UnifiedLayout({ children }) {
                           `flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all
                            ${ia ? 'bg-primary-100 text-primary-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'}`}>
                         <ItemIcon size={14} className="flex-shrink-0" />
-                        {item.label}
+                        <span className="truncate">{item.label}</span>
                       </NavLink>
                     );
                   })}
@@ -759,7 +759,7 @@ export function UnifiedLayout({ children }) {
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
-      <aside className="hidden lg:flex w-56 bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0">
+      <aside className="hidden lg:flex w-64 bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0">
         <SidebarNav onClose={() => {}} />
       </aside>
       {sidebarOpen && (
