@@ -82,10 +82,21 @@ export default function Employees() {
           <h1 className="text-2xl font-display font-bold text-dark">Employee Directory</h1>
           <p className="text-sm text-gray-400 mt-0.5">{employees.length} জন কর্মী</p>
         </div>
-        <button onClick={() => setAddModal(true)}
-          className="flex items-center gap-2 bg-primary-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium active:scale-95">
-          <Plus size={16} /> Add Employee
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={async () => {
+            try {
+              const r = await hrApi.syncProfiles();
+              toast.success(r.data?.message || 'Sync হয়েছে ✅');
+              fetchEmployees();
+            } catch { toast.error('Sync হয়নি'); }
+          }} className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">
+            <ShieldCheck size={14} /> Sync Profiles
+          </button>
+          <button onClick={() => setAddModal(true)}
+            className="flex items-center gap-2 bg-primary-500 text-white px-4 py-2.5 rounded-xl text-sm font-medium active:scale-95">
+            <Plus size={16} /> Add Employee
+          </button>
+        </div>
       </div>
 
       {/* Filters */}

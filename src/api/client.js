@@ -190,6 +190,7 @@ uploadEmployeeNid: (id, formData) => api.post(`/api/hr/employees/${id}/nid`, for
 uploadEmployeeSignature: (id, formData) => api.post(`/api/hr/employees/${id}/signature`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
 getEmployeeModuleAccess: (id) => api.get(`/api/hr/employees/${id}/module-access`),
 setEmployeeModuleAccess: (id, access) => api.put(`/api/hr/employees/${id}/module-access`, { access }),
+  syncProfiles: () => api.post('/api/hr/sync-profiles'),
 getHolidays: (year) => api.get(`/api/hr/holidays${year ? `?year=${year}` : ''}`),
 createHoliday: (data) => api.post('/api/hr/holidays', data),
 deleteHoliday: (id) => api.delete(`/api/hr/holidays/${id}`),
