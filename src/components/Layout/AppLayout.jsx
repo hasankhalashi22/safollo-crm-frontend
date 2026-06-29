@@ -397,7 +397,7 @@ export function HrLayout({ children }) {
   const [openGroups, setOpenGroups] = useState({ leave: true, attendance: true, payroll: true });
   const location = useLocation();
 
-  const toggleGroup = (key) => setOpenGroups(prev => ({ ...prev, [key]: !prev[key] }));
+  const toggleGroup = (key) => setOpenGroups(prev => ({ [key]: !prev[key] }));
 
   useEffect(() => {
     leaveApi.getMyApprovalQueue().then(r => setPendingLeaveCount((r.data || []).length)).catch(() => setPendingLeaveCount(0));
