@@ -18,8 +18,8 @@ function AdminGroupItem({ item, collapsed, anyActive, onClose, location, isOpen:
         className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
           ${anyActive ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'}`}>
         <Icon size={18} className="flex-shrink-0" />
-        {!collapsed && <><span className="flex-1 text-left">{item.label}</span>
-          <ChevronDown size={14} className={`transition-transform ${open ? 'rotate-180' : ''}`} /></>}
+        {!collapsed && <><span className="flex-1 text-left" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>
+          <ChevronDown size={14} className={`transition-transform flex-shrink-0 ${open ? 'rotate-180' : ''}`} /></>}
       </button>
       {open && !collapsed && (
         <div className="ml-4 mt-1 space-y-1 border-l-2 border-gray-100 pl-3">
@@ -29,7 +29,7 @@ function AdminGroupItem({ item, collapsed, anyActive, onClose, location, isOpen:
                 `flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all
                  ${isActive ? 'bg-primary-50 text-primary-600' : 'text-gray-500 hover:bg-gray-50'}`}>
               <CIcon size={16} className="flex-shrink-0" />
-              <span>{label}</span>
+              <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
             </NavLink>
           ))}
         </div>
@@ -67,13 +67,13 @@ export function ExecutiveLayout({ children }) {
   const handleLogout = async () => {
     await logout();
     navigate('/login');
-    toast.success('à¦²à¦—à¦†à¦‰à¦Ÿ à¦¹à¦¯à¦¼à§‡à¦›à§‡');
+    toast.success('লগআউট হয়েছে');
   };
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       <div className="bg-primary-500 text-white px-4 py-3 flex items-center justify-between sticky top-0 z-10 shadow-md">
-        <img src="/logo.png" alt="à¦¸à¦¾à¦«à¦²à§à¦¯ à¦à¦•à¦¾à¦¡à§‡à¦®à¦¿" className="h-8 brightness-0 invert" />
+        <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-8 brightness-0 invert" />
         <button onClick={handleLogout} className="p-2 rounded-xl bg-primary-600 active:scale-95">
           <LogOut size={18} />
         </button>
@@ -86,14 +86,14 @@ export function ExecutiveLayout({ children }) {
           <NavLink to="/executive" end className={({ isActive }) =>
             `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`}>
             <Home size={20} />
-            <span className="text-xs">à¦¹à§‹à¦®</span>
+            <span className="text-xs">হোম</span>
           </NavLink>
           <NavLink to="/executive/new-sale" className={({ isActive }) =>
             `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`}>
             <div className="bg-primary-500 text-white rounded-full p-2.5 -mt-6 shadow-lg">
               <Plus size={22} />
             </div>
-            <span className="text-xs text-gray-400 mt-0.5">à¦¨à¦¤à§à¦¨ à¦¸à§‡à¦²</span>
+            <span className="text-xs text-gray-400 mt-0.5">নতুন সেল</span>
           </NavLink>
           <NavLink to="/executive/approvals" className={({ isActive }) =>
             `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`}>
@@ -103,17 +103,17 @@ export function ExecutiveLayout({ children }) {
           <NavLink to="/executive/performance" className={({ isActive }) =>
             `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`}>
             <TrendingUp size={20} />
-            <span className="text-xs">à¦ªà¦¾à¦°à¦«à¦°à¦®à§à¦¯à¦¾à¦¨à§à¦¸</span>
+            <span className="text-xs">পারফরম্যান্স</span>
           </NavLink>
           <NavLink to="/executive/due" className={({ isActive }) =>
             `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`}>
             <Clock size={20} />
-            <span className="text-xs">à¦¬à¦•à§‡à¦¯à¦¼à¦¾</span>
+            <span className="text-xs">বকেয়া</span>
           </NavLink>
           <NavLink to="/executive/profile" className={({ isActive }) =>
             `flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl transition-all ${isActive ? 'text-primary-500' : 'text-gray-400'}`}>
             <User size={20} />
-            <span className="text-xs">à¦ªà§à¦°à§‹à¦«à¦¾à¦‡à¦²</span>
+            <span className="text-xs">প্রোফাইল</span>
           </NavLink>
           {user?.has_ess && (
             <button onClick={() => navigate('/portal')}
@@ -137,7 +137,7 @@ export function AdminLayout({ children }) {
   const handleLogout = async () => {
     await logout();
     navigate('/login');
-    toast.success('à¦²à¦—à¦†à¦‰à¦Ÿ à¦¹à¦¯à¦¼à§‡à¦›à§‡');
+    toast.success('লগআউট হয়েছে');
   };
 
   const location = useLocation();
@@ -145,30 +145,29 @@ export function AdminLayout({ children }) {
   const isSuperAdmin = user?.role === 'super_admin';
 
   const managerNav = [
-    { to: '/manager', icon: BarChart2, label: 'à¦¡à§à¦¯à¦¾à¦¶à¦¬à§‹à¦°à§à¦¡', end: true },
-    { to: '/manager/approvals', icon: CheckSquare, label: 'à¦¸à§‡à¦² Approval' },
-    { to: '/manager/new-sale', icon: Plus, label: 'à¦¨à¦¤à§à¦¨ à¦¸à§‡à¦²' },
-    { to: '/manager/sales', icon: BarChart2, label: 'à¦¸à§‡à¦²à¦¸ à¦°à¦¿à¦ªà§‹à¦°à§à¦Ÿ' },
-    { to: '/manager/due', icon: Clock, label: 'à¦¬à¦•à§‡à¦¯à¦¼à¦¾ à¦¤à¦¾à¦²à¦¿à¦•à¦¾' },
-    { to: '/manager/performance', icon: TrendingUp, label: 'à¦ªà¦¾à¦°à¦«à¦°à¦®à§à¦¯à¦¾à¦¨à§à¦¸' },
-    { to: '/manager/profile', icon: User, label: 'à¦†à¦®à¦¾à¦° à¦ªà§à¦°à§‹à¦«à¦¾à¦‡à¦²' },
+    { to: '/manager', icon: BarChart2, label: 'ড্যাশবোর্ড', end: true },
+    { to: '/manager/approvals', icon: CheckSquare, label: 'সেল Approval' },
+    { to: '/manager/new-sale', icon: Plus, label: 'নতুন সেল' },
+    { to: '/manager/sales', icon: BarChart2, label: 'সেলস রিপোর্ট' },
+    { to: '/manager/due', icon: Clock, label: 'বকেয়া তালিকা' },
+    { to: '/manager/performance', icon: TrendingUp, label: 'পারফরম্যান্স' },
+    { to: '/manager/profile', icon: User, label: 'আমার প্রোফাইল' },
   ];
 
   const adminNav = [
-    { to: '/admin', icon: BarChart2, label: 'à¦¡à§à¦¯à¦¾à¦¶à¦¬à§‹à¦°à§à¦¡', end: true },
-    { to: '/admin/approvals', icon: CheckSquare, label: 'à¦¸à§‡à¦² Approval' },
-    { to: '/admin/new-sale', icon: Plus, label: 'à¦¨à¦¤à§à¦¨ à¦¸à§‡à¦²' },
-    { to: '/admin/sales', icon: BarChart2, label: 'à¦¸à§‡à¦²à¦¸ à¦°à¦¿à¦ªà§‹à¦°à§à¦Ÿ' },
-    { to: '/admin/due', icon: Clock, label: 'à¦¬à¦•à§‡à¦¯à¦¼à¦¾ à¦¤à¦¾à¦²à¦¿à¦•à¦¾' },
-    { to: '/admin/staff', icon: Users, label: 'à¦¸à§à¦Ÿà¦¾à¦« à¦®à§à¦¯à¦¾à¦¨à§‡à¦œà¦®à§‡à¦¨à§à¦Ÿ' },
+    { to: '/admin', icon: BarChart2, label: 'ড্যাশবোর্ড', end: true },
+    { to: '/admin/approvals', icon: CheckSquare, label: 'সেল Approval' },
+    { to: '/admin/new-sale', icon: Plus, label: 'নতুন সেল' },
+    { to: '/admin/sales', icon: BarChart2, label: 'সেলস রিপোর্ট' },
+    { to: '/admin/due', icon: Clock, label: 'বকেয়া তালিকা' },
+    { to: '/admin/staff', icon: Users, label: 'স্টাফ ম্যানেজমেন্ট' },
     { to: '/admin/roles', icon: Shield, label: 'Role Management' },
-    { to: '/admin/courses', icon: BookOpen, label: 'à¦•à§‹à¦°à§à¦¸ à¦®à§à¦¯à¦¾à¦¨à§‡à¦œà¦®à§‡à¦¨à§à¦Ÿ' },
-    { to: '/admin/settings', icon: Settings, label: 'à¦¸à§‡à¦Ÿà¦¿à¦‚à¦¸' },
-    { to: '/admin/profile', icon: User, label: 'à¦†à¦®à¦¾à¦° à¦ªà§à¦°à§‹à¦«à¦¾à¦‡à¦²' },
+    { to: '/admin/courses', icon: BookOpen, label: 'কোর্স ম্যানেজমেন্ট' },
+    { to: '/admin/settings', icon: Settings, label: 'সেটিংস' },
+    { to: '/admin/profile', icon: User, label: 'আমার প্রোফাইল' },
     ...(isSuperAdmin ? [{ to: '/admin/audit', icon: Activity, label: 'Activity Log' }] : []),
   ];
 
-  const currentModule = getModuleForPath(location.pathname);
   let navItems;
   let navLabel;
   if (location.pathname.startsWith('/hr')) {
@@ -179,7 +178,7 @@ export function AdminLayout({ children }) {
     navLabel = 'Accounting Module';
   } else {
     navItems = isManager ? managerNav : adminNav;
-    navLabel = currentModule?.label || 'CRM';
+    navLabel = getModuleForPath(location.pathname)?.label || 'CRM';
   }
 
   const SidebarContent = () => (
@@ -187,7 +186,7 @@ export function AdminLayout({ children }) {
       <div className="p-4 border-b border-gray-100 flex items-center justify-between">
         {!collapsed && (
           <div>
-            <img src="/logo.png" alt="à¦¸à¦¾à¦«à¦²à§à¦¯ à¦à¦•à¦¾à¦¡à§‡à¦®à¦¿" className="h-10 mb-1" />
+            <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-10 mb-1" />
             <p className="text-xs text-gray-400">{navLabel}</p>
           </div>
         )}
@@ -211,17 +210,12 @@ export function AdminLayout({ children }) {
             <NavLink key={to} to={to} end={end}
               onClick={() => setSidebarOpen(false)}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
-                 ${isActive ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'}`
-              }>
-              <Icon size={18} className="flex-shrink-0" />
+                              }>
+              <Icon size={18} className='flex-shrink-0' />
               {!collapsed && <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>}
             </NavLink>
           );
         })}
-      </nav>
-
-      <div className="p-3 border-t border-gray-100">
         {!collapsed && (
           <div className="flex items-center gap-3 px-3 py-2.5 mb-2">
             <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
@@ -243,7 +237,7 @@ export function AdminLayout({ children }) {
         <button onClick={handleLogout}
           className={`flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl transition-all ${collapsed ? 'justify-center' : ''}`}>
           <LogOut size={16} />
-          {!collapsed && 'à¦²à¦—à¦†à¦‰à¦Ÿ'}
+          {!collapsed && 'লগআউট'}
         </button>
       </div>
     </>
@@ -275,7 +269,7 @@ export function AdminLayout({ children }) {
             <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl bg-gray-100">
               <Menu size={20} className="text-gray-600" />
             </button>
-            <img src="/logo.png" alt="à¦¸à¦¾à¦«à¦²à§à¦¯ à¦à¦•à¦¾à¦¡à§‡à¦®à¦¿" className="h-8" />
+            <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-8" />
           </div>
           <main className="flex-1 overflow-y-auto page-enter">{children}</main>
         </div>
@@ -292,12 +286,10 @@ export function AccountingLayout({ children }) {
   const [collapsed, setCollapsed] = useState(false);
   const [openAccGroup, setOpenAccGroup] = useState(null);
 
-  const toggleAccGroup = (key) => setOpenAccGroup(prev => prev === key ? null : key);
-
   const handleLogout = async () => {
     await logout();
     navigate('/login');
-    toast.success('à¦²à¦—à¦†à¦‰à¦Ÿ à¦¹à¦¯à¦¼à§‡à¦›à§‡');
+    toast.success('লগআউট হয়েছে');
   };
 
   const navItems = MODULES.find(m => m.key === 'accounting').sidebar;
@@ -307,7 +299,7 @@ export function AccountingLayout({ children }) {
       <div className="p-4 border-b border-gray-100 flex items-center justify-between">
         {!collapsed && (
           <div>
-            <img src="/logo.png" alt="à¦¸à¦¾à¦«à¦²à§à¦¯ à¦à¦•à¦¾à¦¡à§‡à¦®à¦¿" className="h-10 mb-1" />
+            <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-10 mb-1" />
             <p className="text-xs text-gray-400">Accounting Module</p>
           </div>
         )}
@@ -325,7 +317,7 @@ export function AccountingLayout({ children }) {
                 anyActive={item.children.some(c => location.pathname === c.to || location.pathname.startsWith(c.to + '/'))}
                 onClose={() => setSidebarOpen(false)} location={location}
                 isOpen={openAccGroup === item.group}
-                onToggle={() => toggleAccGroup(item.group)} />
+                onToggle={() => setOpenAccGroup(prev => prev === item.group ? null : item.group)} />
             );
           }
           const { to, icon: Icon, label, end } = item;
@@ -365,7 +357,7 @@ export function AccountingLayout({ children }) {
         <button onClick={handleLogout}
           className={`flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl transition-all ${collapsed ? 'justify-center' : ''}`}>
           <LogOut size={16} />
-          {!collapsed && 'à¦²à¦—à¦†à¦‰à¦Ÿ'}
+          {!collapsed && 'লগআউট'}
         </button>
       </div>
     </>
@@ -397,7 +389,7 @@ export function AccountingLayout({ children }) {
             <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl bg-gray-100">
               <Menu size={20} className="text-gray-600" />
             </button>
-            <img src="/logo.png" alt="à¦¸à¦¾à¦«à¦²à§à¦¯ à¦à¦•à¦¾à¦¡à§‡à¦®à¦¿" className="h-8" />
+            <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-8" />
           </div>
           <main className="flex-1 overflow-y-auto page-enter">{children}</main>
         </div>
@@ -424,7 +416,7 @@ export function HrLayout({ children }) {
   const handleLogout = async () => {
     await logout();
     navigate('/login');
-    toast.success('à¦²à¦—à¦†à¦‰à¦Ÿ à¦¹à¦¯à¦¼à§‡à¦›à§‡');
+    toast.success('লগআউট হয়েছে');
   };
 
   const navItems = MODULES.find(m => m.key === 'hr').sidebar;
@@ -434,7 +426,7 @@ export function HrLayout({ children }) {
       <div className="p-4 border-b border-gray-100 flex items-center justify-between">
         {!collapsed && (
           <div>
-            <img src="/logo.png" alt="à¦¸à¦¾à¦«à¦²à§à¦¯ à¦à¦•à¦¾à¦¡à§‡à¦®à¦¿" className="h-10 mb-1" />
+            <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-10 mb-1" />
             <p className="text-xs text-gray-400">HR Module</p>
           </div>
         )}
@@ -457,7 +449,7 @@ export function HrLayout({ children }) {
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all
                     ${anyActive ? 'bg-primary-50 text-primary-600' : 'text-gray-600 hover:bg-gray-50'}`}>
                   <Icon size={18} className="flex-shrink-0" />
-                  {!collapsed && <><span className="flex-1 text-left">{item.label}</span>
+                  {!collapsed && <><span className="flex-1 text-left" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>
                     <ChevronDown size={14} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} /></>}
                 </button>
                 {isOpen && !collapsed && (
@@ -519,7 +511,7 @@ export function HrLayout({ children }) {
         <button onClick={handleLogout}
           className={`flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-xl transition-all ${collapsed ? 'justify-center' : ''}`}>
           <LogOut size={16} />
-          {!collapsed && 'à¦²à¦—à¦†à¦‰à¦Ÿ'}
+          {!collapsed && 'লগআউট'}
         </button>
       </div>
     </>
@@ -551,7 +543,7 @@ export function HrLayout({ children }) {
             <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl bg-gray-100">
               <Menu size={20} className="text-gray-600" />
             </button>
-            <img src="/logo.png" alt="à¦¸à¦¾à¦«à¦²à§à¦¯ à¦à¦•à¦¾à¦¡à§‡à¦®à¦¿" className="h-8" />
+            <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-8" />
           </div>
           <main className="flex-1 overflow-y-auto page-enter">{children}</main>
         </div>
@@ -559,7 +551,7 @@ export function HrLayout({ children }) {
     </div>
   );
 }
-// â”€â”€ Unified sub-group renderer for nested nav items (HR: Leave, Attendance, Payroll) â”€â”€
+// ── Unified sub-group renderer for nested nav items (HR: Leave, Attendance, Payroll) ──
 function UnifiedSubGroup({ item, onClose, pendingCount }) {
   const location = useLocation();
   const isAnyActive = item.children.some(c => location.pathname === c.to || location.pathname.startsWith(c.to + '/'));
@@ -571,7 +563,7 @@ function UnifiedSubGroup({ item, onClose, pendingCount }) {
         className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all
           ${isAnyActive ? 'text-primary-600 bg-primary-50' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'}`}>
         <Icon size={13} className="flex-shrink-0" />
-        <span style={{ flex: 1, textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{item.label}</span>
+        <span className="flex-1 text-left" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>
         <ChevronDown size={11} className={`transition-transform flex-shrink-0 ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
@@ -584,7 +576,7 @@ function UnifiedSubGroup({ item, onClose, pendingCount }) {
                   `flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-all
                    ${isActive ? 'bg-primary-100 text-primary-700' : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'}`}>
                 <CIcon size={12} className="flex-shrink-0" />
-                <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1, minWidth: 0 }}>{child.label}</span>
+                <span className="flex-1" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{child.label}</span>
                 {child.to === '/hr/leave-applications' && pendingCount > 0 && (
                   <span className="bg-red-500 text-white text-[9px] font-bold px-1 py-0.5 rounded-full min-w-[16px] text-center">
                     {pendingCount}
@@ -614,28 +606,28 @@ function buildModuleList(user) {
     let items;
     if (user.role_level >= 4) {
       items = [
-        { to: base, icon: BarChart2, label: 'à¦¡à§à¦¯à¦¾à¦¶à¦¬à§‹à¦°à§à¦¡', end: true },
-        { to: `${base}/new-sale`, icon: Plus, label: 'à¦¨à¦¤à§à¦¨ à¦¸à§‡à¦²' },
+        { to: base, icon: BarChart2, label: 'ড্যাশবোর্ড', end: true },
+        { to: `${base}/new-sale`, icon: Plus, label: 'নতুন সেল' },
         { to: `${base}/approvals`, icon: CheckSquare, label: 'Pending' },
-        { to: `${base}/performance`, icon: TrendingUp, label: 'à¦ªà¦¾à¦°à¦«à¦°à¦®à§à¦¯à¦¾à¦¨à§à¦¸' },
-        { to: `${base}/due`, icon: Clock, label: 'à¦¬à¦•à§‡à¦¯à¦¼à¦¾' },
+        { to: `${base}/performance`, icon: TrendingUp, label: 'পারফরম্যান্স' },
+        { to: `${base}/due`, icon: Clock, label: 'বকেয়া' },
       ];
     } else if (user.role === 'manager') {
       items = [
-        { to: base, icon: BarChart2, label: 'à¦¡à§à¦¯à¦¾à¦¶à¦¬à§‹à¦°à§à¦¡', end: true },
-        { to: `${base}/approvals`, icon: CheckSquare, label: 'à¦¸à§‡à¦² Approval' },
-        { to: `${base}/new-sale`, icon: Plus, label: 'à¦¨à¦¤à§à¦¨ à¦¸à§‡à¦²' },
-        { to: `${base}/sales`, icon: BarChart2, label: 'à¦¸à§‡à¦²à¦¸ à¦°à¦¿à¦ªà§‹à¦°à§à¦Ÿ' },
-        { to: `${base}/due`, icon: Clock, label: 'à¦¬à¦•à§‡à¦¯à¦¼à¦¾ à¦¤à¦¾à¦²à¦¿à¦•à¦¾' },
-        { to: `${base}/performance`, icon: TrendingUp, label: 'à¦ªà¦¾à¦°à¦«à¦°à¦®à§à¦¯à¦¾à¦¨à§à¦¸' },
+        { to: base, icon: BarChart2, label: 'ড্যাশবোর্ড', end: true },
+        { to: `${base}/approvals`, icon: CheckSquare, label: 'সেল Approval' },
+        { to: `${base}/new-sale`, icon: Plus, label: 'নতুন সেল' },
+        { to: `${base}/sales`, icon: BarChart2, label: 'সেলস রিপোর্ট' },
+        { to: `${base}/due`, icon: Clock, label: 'বকেয়া তালিকা' },
+        { to: `${base}/performance`, icon: TrendingUp, label: 'পারফরম্যান্স' },
       ];
     } else {
       items = [
-        { to: base, icon: BarChart2, label: 'à¦¡à§à¦¯à¦¾à¦¶à¦¬à§‹à¦°à§à¦¡', end: true },
-        { to: `${base}/approvals`, icon: CheckSquare, label: 'à¦¸à§‡à¦² Approval' },
-        { to: `${base}/new-sale`, icon: Plus, label: 'à¦¨à¦¤à§à¦¨ à¦¸à§‡à¦²' },
-        { to: `${base}/sales`, icon: BarChart2, label: 'à¦¸à§‡à¦²à¦¸ à¦°à¦¿à¦ªà§‹à¦°à§à¦Ÿ' },
-        { to: `${base}/due`, icon: Clock, label: 'à¦¬à¦•à§‡à¦¯à¦¼à¦¾ à¦¤à¦¾à¦²à¦¿à¦•à¦¾' },
+        { to: base, icon: BarChart2, label: 'ড্যাশবোর্ড', end: true },
+        { to: `${base}/approvals`, icon: CheckSquare, label: 'সেল Approval' },
+        { to: `${base}/new-sale`, icon: Plus, label: 'নতুন সেল' },
+        { to: `${base}/sales`, icon: BarChart2, label: 'সেলস রিপোর্ট' },
+        { to: `${base}/due`, icon: Clock, label: 'বকেয়া তালিকা' },
       ];
     }
     list.push({ key: 'crm', label: 'CRM', icon: BarChart2, basePath: base, items });
@@ -649,7 +641,7 @@ function buildModuleList(user) {
     list.push({ key: 'accounting', label: 'Accounting', icon: Wallet, basePath: '/accounting', items: MODULES.find(m => m.key === 'accounting')?.sidebar || [] });
   }
 
-  // My Office â€” à¦¸à¦¬à¦¾à¦° à¦œà¦¨à§à¦¯ (ESS à¦¥à¦¾à¦•à¦²à§‡ à¦…à¦¤à¦¿à¦°à¦¿à¦•à§à¦¤ items)
+  // My Office — সবার জন্য (ESS থাকলে অতিরিক্ত items)
   const myOfficeItems = [
     ...(user.has_ess ? [
       { to: '/portal', icon: Home, label: 'Home', end: true },
@@ -657,7 +649,7 @@ function buildModuleList(user) {
       { to: '/portal/leave', icon: Calendar, label: 'Leave' },
       { to: '/portal/approvals', icon: CheckSquare, label: 'Approvals' },
     ] : []),
-    { to: profileRoute, icon: User, label: 'à¦†à¦®à¦¾à¦° à¦ªà§à¦°à§‹à¦«à¦¾à¦‡à¦²' },
+    { to: profileRoute, icon: User, label: 'আমার প্রোফাইল' },
   ];
   const myOfficeBasePath = user.has_ess ? '/portal' : profileRoute;
   list.push({ key: 'ess', label: 'My Office', icon: Briefcase, basePath: myOfficeBasePath, items: myOfficeItems });
@@ -694,13 +686,13 @@ export function UnifiedLayout({ children }) {
   const handleLogout = async () => {
     await logout();
     navigate('/login');
-    toast.success('à¦²à¦—à¦†à¦‰à¦Ÿ à¦¹à¦¯à¦¼à§‡à¦›à§‡');
+    toast.success('লগআউট হয়েছে');
   };
 
   const SidebarNav = ({ onClose }) => (
     <>
       <div className="p-4 border-b border-gray-100">
-        <img src="/logo.png" alt="à¦¸à¦¾à¦«à¦²à§à¦¯ à¦à¦•à¦¾à¦¡à§‡à¦®à¦¿" className="h-9 mb-1" />
+        <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-9 mb-1" />
         <p className="text-xs text-gray-400">{user?.role_label}</p>
       </div>
       <nav className="flex-1 p-2.5 overflow-y-auto space-y-0.5">
@@ -714,7 +706,7 @@ export function UnifiedLayout({ children }) {
                 className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all
                   ${isActive ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'}`}>
                 <ModIcon size={17} className="flex-shrink-0" />
-                <span style={{ flex: 1, textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}>{mod.label}</span>
+                <span className="flex-1 text-left" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{mod.label}</span>
                 <ChevronDown size={14} className={`flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
               </button>
               {isOpen && (
@@ -727,7 +719,7 @@ export function UnifiedLayout({ children }) {
                     return (
                       <NavLink key={item.to} to={item.to} end={item.end} onClick={onClose}
                         className={({ isActive: ia }) =>
-                          `flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all overflow-hidden
+                          `flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all
                            ${ia ? 'bg-primary-100 text-primary-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'}`}>
                         <ItemIcon size={14} className="flex-shrink-0" />
                         <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>
@@ -751,7 +743,7 @@ export function UnifiedLayout({ children }) {
         </div>
         <button onClick={handleLogout}
           className="flex items-center gap-2 w-full px-3 py-2 text-xs text-red-500 hover:bg-red-50 rounded-xl transition-all">
-          <LogOut size={14} /> à¦²à¦—à¦†à¦‰à¦Ÿ
+          <LogOut size={14} /> লগআউট
         </button>
       </div>
     </>
@@ -759,7 +751,7 @@ export function UnifiedLayout({ children }) {
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
-      <aside className="hidden lg:flex w-64 bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0">
+      <aside className="hidden lg:flex w-56 bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0">
         <SidebarNav onClose={() => {}} />
       </aside>
       {sidebarOpen && (
@@ -779,7 +771,7 @@ export function UnifiedLayout({ children }) {
           <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl bg-gray-100">
             <Menu size={20} className="text-gray-600" />
           </button>
-          <img src="/logo.png" alt="à¦¸à¦¾à¦«à¦²à§à¦¯ à¦à¦•à¦¾à¦¡à§‡à¦®à¦¿" className="h-7" />
+          <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-7" />
         </div>
         <main className="flex-1 overflow-y-auto page-enter">{children}</main>
       </div>
