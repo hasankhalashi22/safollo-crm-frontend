@@ -649,8 +649,8 @@ function buildModuleList(user) {
   // My Office — সবার জন্য (ESS থাকলে অতিরিক্ত items)
   const myOfficeItems = [
     ...(user.has_ess ? [
-      { to: '/portal', icon: Home, label: 'Home', end: true },
-      { to: '/portal/attendance', icon: Clock, label: 'Attendance' },
+      { to: '/portal', icon: Home, label: 'আজকের Attendance', end: true },
+      { to: '/portal/attendance', icon: Clock, label: 'Attendance Report' },
       { to: '/portal/leave', icon: Calendar, label: 'Leave' },
       { to: '/portal/approvals', icon: CheckSquare, label: 'Approvals' },
     ] : []),
