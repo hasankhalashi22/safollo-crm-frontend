@@ -16,11 +16,16 @@ const MODULE_BADGE = {
   accounting: { bg: 'bg-amber-50',  text: 'text-amber-600' },
 };
 
-function InitialsAvatar({ name, size = 'md' }) {
+function InitialsAvatar({ name, photoUrl, size = 'md' }) {
   const initials = (name || '?').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
   const colors = ['bg-primary-100 text-primary-700', 'bg-amber-100 text-amber-700', 'bg-purple-100 text-purple-700', 'bg-blue-100 text-blue-700'];
   const color = colors[(name?.charCodeAt(0) || 0) % colors.length];
   const sz = size === 'lg' ? 'w-12 h-12 text-base' : 'w-9 h-9 text-sm';
+  if (photoUrl) {
+    return (
+      <img src={photoUrl} alt={name} className={`${sz} rounded-full object-cover object-top flex-shrink-0 border border-gray-100`} />
+    );
+  }
   return (
     <div className={`${sz} ${color} rounded-full flex items-center justify-center font-semibold flex-shrink-0`}>
       {initials}
@@ -122,7 +127,7 @@ export default function Employees() {
 
           return (
             <div key={emp.id} className="flex items-center gap-4 px-4 py-3.5 hover:bg-gray-50 transition-colors">
-              <InitialsAvatar name={emp.full_name} />
+              <InitialsAvatar name={emp.full_name} photoUrl={emp.photo_url} />
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -670,7 +675,7 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
 
         {/* Header */}
         <div className="bg-primary-50 px-5 py-4 flex items-center gap-3 border-b border-primary-100 flex-shrink-0">
-          <InitialsAvatar name={employee.full_name} size="lg" />
+          <InitialsAvatar name={employee.full_name} photoUrl={employee.photo_url} size="lg" />
           <div className="flex-1 min-w-0">
             <p className="font-bold text-gray-900 truncate">{employee.full_name}</p>
             <p className="text-xs text-gray-500 truncate">
