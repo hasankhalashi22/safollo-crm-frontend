@@ -218,6 +218,9 @@ export function AdminLayout({ children }) {
             </NavLink>
           );
         })}
+      </nav>
+
+      <div className="p-3 border-t border-gray-100">
         {!collapsed && (
           <div className="flex items-center gap-3 px-3 py-2.5 mb-2">
             <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
