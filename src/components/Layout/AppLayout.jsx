@@ -691,6 +691,7 @@ function buildModuleList(user) {
       { to: '/portal/attendance', icon: Clock, label: 'Attendance Report' },
       { to: '/portal/leave', icon: Calendar, label: 'Leave' },
       { to: '/portal/approvals', icon: CheckSquare, label: 'Approvals' },
+      { to: '/portal/notices', icon: BookText, label: 'Notice Board' },
     ] : []),
     { to: profileRoute, icon: User, label: 'আমার প্রোফাইল' },
   ];

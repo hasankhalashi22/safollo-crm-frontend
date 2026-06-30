@@ -16,6 +16,7 @@ import Shareholders from './pages/accounting/Shareholders';
 import Journal from './pages/accounting/Journal';
 
 import HrDashboard from './pages/hr/Dashboard';
+import Notices from './pages/hr/Notices';
 import Employees from './pages/hr/Employees';
 import Organogram from './pages/hr/Organogram';
 import LeaveSettings from './pages/hr/LeaveSettings';
@@ -108,6 +109,7 @@ useNotifications();
       <Route path="/portal/leave" element={<ProtectedRoute><UnifiedLayout><PortalLeave /></UnifiedLayout></ProtectedRoute>} />
       <Route path="/portal/approvals" element={<ProtectedRoute><UnifiedLayout><PortalApprovals /></UnifiedLayout></ProtectedRoute>} />
       <Route path="/portal/profile" element={<ProtectedRoute><UnifiedLayout><PortalProfile /></UnifiedLayout></ProtectedRoute>} />
+      <Route path="/portal/notices" element={<ProtectedRoute><UnifiedLayout><Notices /></UnifiedLayout></ProtectedRoute>} />
 
 
 <Route path="/change-password" element={<ForceChangePassword />} />
@@ -183,6 +185,8 @@ useNotifications();
 <Route path="/hr/payroll" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><UnifiedLayout><Payroll /></UnifiedLayout></ProtectedRoute>} />
 
 <Route path="/hr/payroll-settings" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><UnifiedLayout><PayrollSettings /></UnifiedLayout></ProtectedRoute>} />
+
+<Route path="/hr/notices" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><UnifiedLayout><Notices /></UnifiedLayout></ProtectedRoute>} />
 
 
       <Route path="/" element={<Navigate to="/login" replace />} />
