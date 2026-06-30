@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { hrApi } from '../../api/client';
 import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
@@ -13,6 +14,7 @@ const CATEGORY_LABELS = {
 
 export default function Notices() {
   const { user } = useAuth();
+  const location = useLocation();
   const [notices, setNotices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -20,8 +22,11 @@ export default function Notices() {
   const [form, setForm] = useState({ title: '', content: '', category: 'general' });
   const [file, setFile] = useState(null);
 
-  const isHrManager = user?.role === 'super_admin' ||
-    (user?.module_access || []).some(a => a.module_key === 'hr' && ['admin', 'hr_manager'].includes(a.role_key));
+  // Only the HR module page (/hr/notices) can create/delete — ESS portal (/portal/notices) is read-only for everyone, including HR staff
+  const isHrManager = location.pathname.startsWith('/hr') && (
+    user?.role === 'super_admin' ||
+    (user?.module_access || []).some(a => a.module_key === 'hr' && ['admin', 'hr_manager'].includes(a.role_key))
+  );
 
   const fetchNotices = () => {
     setLoading(true);
