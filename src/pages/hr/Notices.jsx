@@ -31,7 +31,10 @@ export default function Notices() {
     }).catch(() => setLoading(false));
   };
 
-  useEffect(() => { fetchNotices(); }, []);
+  useEffect(() => {
+    fetchNotices();
+    localStorage.setItem('notices_last_seen', new Date().toISOString());
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

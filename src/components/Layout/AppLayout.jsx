@@ -5,7 +5,7 @@ import { Home, Plus, Clock, User, BarChart2, Users, BookOpen, Settings, LogOut, 
 import { useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { MODULES, getModuleForPath, getVisibleModules } from '../../config/modules';
-import { leaveApi, approvalsApi } from '../../api/client';
+import { leaveApi, approvalsApi, hrApi } from '../../api/client';
 
 function AdminGroupItem({ item, collapsed, anyActive, onClose, location, isOpen: controlledOpen, onToggle }) {
   const [localOpen, setLocalOpen] = useState(anyActive);
@@ -710,6 +710,7 @@ export function UnifiedLayout({ children }) {
   const [pendingLeaveCount, setPendingLeaveCount] = useState(0);
   const [pendingApprovalCount, setPendingApprovalCount] = useState(0);
   const [pendingDueCount, setPendingDueCount] = useState(0);
+  const [unreadNoticeCount, setUnreadNoticeCount] = useState(0);
 
   const moduleList = useMemo(() => user && user.role !== 'super_admin' ? buildModuleList(user) : [], [user]);
 
@@ -727,7 +728,15 @@ export function UnifiedLayout({ children }) {
     }
     approvalsApi.getPending().then(r => setPendingApprovalCount((r.data || []).length)).catch(() => {});
     approvalsApi.getPendingDue().then(r => setPendingDueCount((r.data || []).length)).catch(() => {});
-  }, [moduleList]);
+    if (user?.has_ess) {
+      hrApi.getNotices().then(r => {
+        const notices = r.data || [];
+        const lastSeen = localStorage.getItem('notices_last_seen');
+        const unread = lastSeen ? notices.filter(n => new Date(n.created_at) > new Date(lastSeen)).length : notices.length;
+        setUnreadNoticeCount(unread);
+      }).catch(() => {});
+    }
+  }, [moduleList, user?.has_ess]);
 
   if (user?.role === 'super_admin') return <AdminLayout>{children}</AdminLayout>;
 
@@ -764,7 +773,7 @@ export function UnifiedLayout({ children }) {
                       return <UnifiedSubGroup key={item.group} item={item} onClose={onClose} pendingCount={pendingLeaveCount} />;
                     }
                     const ItemIcon = item.icon;
-                    const badge = item.to.includes('/approvals') ? pendingApprovalCount : item.to.includes('/due') ? pendingDueCount : 0;
+                    const badge = item.to.includes('/approvals') ? pendingApprovalCount : item.to.includes('/due') ? pendingDueCount : item.to.includes('/notices') ? unreadNoticeCount : 0;
                     return (
                       <NavLink key={item.to} to={item.to} end={item.end} onClick={onClose}
                         className={({ isActive: ia }) =>
