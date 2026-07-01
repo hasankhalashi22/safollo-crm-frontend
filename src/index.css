@@ -4,6 +4,9 @@
 
 @layer base {
   * { -webkit-tap-highlight-color: transparent; }
+  html, body {
+    overflow-x: hidden;
+  }
   body {
     @apply font-sans text-dark bg-gray-50 antialiased;
     min-height: 100vh;
