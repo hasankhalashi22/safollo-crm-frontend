@@ -298,7 +298,7 @@ export function AdminLayout({ children }) {
           </div>
         )}
 
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
           <div className="lg:hidden bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3 shadow-sm">
             <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl bg-gray-100">
               <Menu size={20} className="text-gray-600" />
@@ -418,7 +418,7 @@ export function AccountingLayout({ children }) {
           </div>
         )}
 
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
           <div className="lg:hidden bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3 shadow-sm">
             <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl bg-gray-100">
               <Menu size={20} className="text-gray-600" />
@@ -572,7 +572,7 @@ export function HrLayout({ children }) {
           </div>
         )}
 
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
           <div className="lg:hidden bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3 shadow-sm">
             <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl bg-gray-100">
               <Menu size={20} className="text-gray-600" />
@@ -837,7 +837,7 @@ export function UnifiedLayout({ children }) {
           </aside>
         </div>
       )}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
         <div className="lg:hidden bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3 shadow-sm">
           <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl bg-gray-100">
             <Menu size={20} className="text-gray-600" />
