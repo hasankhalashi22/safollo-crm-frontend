@@ -489,26 +489,7 @@ function AddEmployeeModal({ allEmployees, onClose, onSuccess }) {
           <h3 className="font-bold text-lg">Add Employee</h3>
           <button onClick={onClose} className="p-1.5 bg-gray-100 rounded-full">✕</button>
         </div>
-        <div className="flex gap-2 mb-4">
-          <button onClick={() => setMode('new')}
-            className={`flex-1 py-2 rounded-xl text-sm font-medium ${mode === 'new' ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-600'}`}>
-            নতুন কর্মী
-          </button>
-          <button onClick={() => setMode('import')}
-            className={`flex-1 py-2 rounded-xl text-sm font-medium ${mode === 'import' ? 'bg-primary-500 text-white' : 'bg-gray-100 text-gray-600'}`}>
-            CRM থেকে আনুন
-          </button>
-        </div>
         <form onSubmit={handleSubmit} className="space-y-3">
-          {mode === 'import' && (
-            <div>
-              <label className="block text-sm font-medium mb-1.5">CRM User বেছে নিন</label>
-              <select className="input-field" value={selectedUserId} onChange={e => handleImportSelect(e.target.value)}>
-                <option value="">-- Select --</option>
-                {unlinkedUsers.map(u => <option key={u.id} value={u.id}>{u.full_name || u.phone} ({u.role_label})</option>)}
-              </select>
-            </div>
-          )}
           <div>
             <label className="block text-sm font-medium mb-1.5">নাম *</label>
             <input type="text" className="input-field" value={form.full_name} onChange={e => set('full_name', e.target.value)} />
