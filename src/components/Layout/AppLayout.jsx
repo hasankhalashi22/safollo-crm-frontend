@@ -305,7 +305,7 @@ export function AdminLayout({ children }) {
             </button>
             <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-8" />
           </div>
-          <main className="flex-1 overflow-y-auto page-enter">{children}</main>
+          <main className="flex-1 overflow-y-auto overflow-x-hidden page-enter">{children}</main>
         </div>
       </div>
     </div>
@@ -425,7 +425,7 @@ export function AccountingLayout({ children }) {
             </button>
             <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-8" />
           </div>
-          <main className="flex-1 overflow-y-auto page-enter">{children}</main>
+          <main className="flex-1 overflow-y-auto overflow-x-hidden page-enter">{children}</main>
         </div>
       </div>
     </div>
@@ -579,7 +579,7 @@ export function HrLayout({ children }) {
             </button>
             <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-8" />
           </div>
-          <main className="flex-1 overflow-y-auto page-enter">{children}</main>
+          <main className="flex-1 overflow-y-auto overflow-x-hidden page-enter">{children}</main>
         </div>
       </div>
     </div>
@@ -832,7 +832,7 @@ export function UnifiedLayout({ children }) {
           </button>
           <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-7" />
         </div>
-        <main className="flex-1 overflow-y-auto page-enter">{children}</main>
+        <main className="flex-1 overflow-y-auto overflow-x-hidden page-enter">{children}</main>
       </div>
     </div>
   );
