@@ -497,22 +497,28 @@ function AddEmployeeModal({ allEmployees, onClose, onSuccess }) {
             <input type="text" className="input-field" value={form.phone} onChange={e => set('phone', e.target.value)} />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1.5">Position</label>
-            <select className="input-field" value={form.position_id} onChange={e => handlePositionChange(e.target.value)}>
-              <option value="">-- None --</option>
-              {positions.map(p => <option key={p.id} value={p.id}>{p.title}{p.department ? ` (${p.department})` : ''}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1.5">Designation</label>
-            <input type="text" className="input-field" value={form.designation} onChange={e => set('designation', e.target.value)} />
-          </div>
-          <div>
             <label className="block text-sm font-medium mb-1.5">Department</label>
-            <select className="input-field" value={form.department} onChange={e => set('department', e.target.value)}>
+            <select className="input-field" value={form.department} onChange={e => {
+              set('department', e.target.value);
+              set('designation', '');
+              set('position_id', '');
+            }}>
               <option value="">-- None --</option>
               {[...new Set(positions.map(p => p.department).filter(Boolean))].sort().map(d => (
                 <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1.5">পদবী</label>
+            <select className="input-field" value={form.designation} onChange={e => {
+              const pos = positions.find(p => p.department === form.department && p.title === e.target.value);
+              set('designation', e.target.value);
+              if (pos) set('position_id', pos.id);
+            }} disabled={!form.department}>
+              <option value="">-- Department আগে সিলেক্ট করুন --</option>
+              {positions.filter(p => p.department === form.department).map(p => (
+                <option key={p.id} value={p.title}>{p.title}</option>
               ))}
             </select>
           </div>
