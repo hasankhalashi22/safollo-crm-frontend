@@ -566,6 +566,10 @@ function FileUploadBox({ label, currentUrl, onUpload }) {
 }
 
 function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
+  const { user: currentUser } = useAuth();
+  const isSuperAdmin = currentUser?.role === 'super_admin';
+  const hrRole = currentUser?.module_access?.find(a => a.module_key === 'hr')?.role_key;
+  const canManageAccess = isSuperAdmin || hrRole === 'hr_advisor';
   const [tab, setTab] = useState('info');
   const [form, setForm] = useState({
     full_name: employee.full_name || '',
@@ -718,7 +722,7 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
 
         {/* 2 Tabs */}
         <div className="flex border-b border-gray-100 flex-shrink-0">
-          {[{ key: 'info', label: 'তথ্য ও নথি' }, { key: 'access', label: 'Access ও বেতন' }].map(t => (
+          {[{ key: 'info', label: 'তথ্য ও নথি' }, { key: 'access', label: canManageAccess ? 'Access ও বেতন' : 'বেতন' }].map(t => (
             <button key={t.key} type="button" onClick={() => setTab(t.key)}
               className={`flex-1 py-2.5 text-sm font-medium border-b-2 transition-colors ${tab === t.key ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-400 hover:text-gray-600'}`}>
               {t.label}
@@ -939,7 +943,8 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
                   <EssAccessTab employee={employee} onSuccess={onSuccess} />
                 </section>
 
-                {/* Module Access */}
+                {/* Module Access — hr_advisor ও super_admin only */}
+                {canManageAccess && (
                 <section>
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Module Access</p>
                   <div className="space-y-2">
@@ -966,6 +971,7 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
                     {loading ? 'Saving...' : '✅ Module Access সংরক্ষণ করুন'}
                   </button>
                 </section>
+                )}
 
                 {/* Salary */}
                 <section>
