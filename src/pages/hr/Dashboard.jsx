@@ -40,7 +40,11 @@ export default function HrDashboard() {
     const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 0 }), 'yyyy-MM-dd');
     const year = new Date().getFullYear();
 
-    const ok = (r) => r.status === 'fulfilled' ? (r.value?.data || []) : [];
+    const ok = (r, label) => {
+      if (r.status === 'rejected') console.error(`[HR Dashboard] ${label} FAILED:`, r.reason);
+      else console.log(`[HR Dashboard] ${label} OK:`, r.value?.data?.length ?? r.value?.data);
+      return r.status === 'fulfilled' ? (r.value?.data || []) : [];
+    };
 
     Promise.allSettled([
       hrApi.getEmployees(),
@@ -51,18 +55,18 @@ export default function HrDashboard() {
       hrApi.getHolidays(year),
       hrApi.getNotices(),
     ]).then(([emp, todayAtt, weekAtt, approvedLeaves, pendingLeaves, hols, nots]) => {
-      setEmployees(ok(emp));
-      setTodayAttendance(ok(todayAtt));
-      setWeekAttendance(ok(weekAtt));
+      setEmployees(ok(emp, 'getEmployees'));
+      setTodayAttendance(ok(todayAtt, 'todayAttendance'));
+      setWeekAttendance(ok(weekAtt, 'weekAttendance'));
 
       const todayStr = new Date().toISOString().split('T')[0];
-      const onLeave = ok(approvedLeaves).filter(l =>
+      const onLeave = ok(approvedLeaves, 'approvedLeaves').filter(l =>
         l.start_date <= todayStr && l.end_date >= todayStr
       );
       setOnLeaveToday(onLeave);
-      setPendingLeaveCount(ok(pendingLeaves).length);
-      setHolidays(ok(hols));
-      setNotices(ok(nots).slice(0, 3));
+      setPendingLeaveCount(ok(pendingLeaves, 'pendingLeaves').length);
+      setHolidays(ok(hols, 'holidays'));
+      setNotices(ok(nots, 'notices').slice(0, 3));
     }).finally(() => setLoading(false));
   }, []);
 
