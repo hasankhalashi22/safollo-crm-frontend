@@ -594,8 +594,8 @@ function UnifiedSubGroup({ item, onClose, pendingCount }) {
   return (
     <div>
       <button onClick={() => setOpen(v => !v)}
-        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all
-          ${isAnyActive ? 'text-primary-600 bg-primary-50' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'}`}>
+        className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm font-semibold transition-all
+          ${isAnyActive ? 'text-primary-600 bg-primary-50' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'}`}>
         <Icon size={13} className="flex-shrink-0" />
         <span className="flex-1 text-left" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>
         <ChevronDown size={11} className={`transition-transform flex-shrink-0 ${open ? 'rotate-180' : ''}`} />
@@ -607,8 +607,8 @@ function UnifiedSubGroup({ item, onClose, pendingCount }) {
             return (
               <NavLink key={child.to} to={child.to} onClick={onClose}
                 className={({ isActive }) =>
-                  `flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-all
-                   ${isActive ? 'bg-primary-100 text-primary-700' : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'}`}>
+                  `flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm font-medium transition-all
+                   ${isActive ? 'bg-primary-100 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'}`}>
                 <CIcon size={12} className="flex-shrink-0" />
                 <span className="flex-1" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{child.label}</span>
                 {child.to === '/hr/leave-applications' && pendingCount > 0 && (
@@ -777,8 +777,8 @@ export function UnifiedLayout({ children }) {
                     return (
                       <NavLink key={item.to} to={item.to} end={item.end} onClick={onClose}
                         className={({ isActive: ia }) =>
-                          `flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all
-                           ${ia ? 'bg-primary-100 text-primary-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'}`}>
+                          `flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-sm font-medium transition-all
+                           ${ia ? 'bg-primary-100 text-primary-700' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'}`}>
                         <ItemIcon size={14} className="flex-shrink-0" />
                         <span className="flex-1" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>
                         {badge > 0 && <span className="bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] text-center flex-shrink-0">{badge}</span>}

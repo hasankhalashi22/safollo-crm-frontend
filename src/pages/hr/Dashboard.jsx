@@ -98,7 +98,7 @@ export default function HrDashboard() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         <SummaryCard icon={Users} label="মোট কর্মী" value={employees.length} color="bg-primary-500" />
         <SummaryCard icon={UserCheck} label="আজ উপস্থিত" value={todayAttendance.length} color="bg-green-500" />
         <SummaryCard icon={UserX} label="আজ ছুটিতে" value={onLeaveToday.length} color="bg-orange-400" />
