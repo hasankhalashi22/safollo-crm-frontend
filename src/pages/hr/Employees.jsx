@@ -467,12 +467,10 @@ function AddEmployeeModal({ allEmployees, onClose, onSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.full_name) return toast.error('নাম দিন');
-    if (mode === 'new' && form.grant_crm_access && (!form.phone || !form.crm_role_id)) return toast.error('CRM access দেওয়ার জন্য ফোন নম্বর ও Role আবশ্যক');
-    if (mode === 'new' && form.grant_basic_login && !form.phone) return toast.error('ESS Portal access দেওয়ার জন্য ফোন নম্বর আবশ্যক');
+    if (!form.phone) return toast.error('ফোন নম্বর দিন — ESS Access তৈরির জন্য আবশ্যক');
     setLoading(true);
     try {
-      const payload = { ...form };
-      if (mode === 'import' && selectedUserId) payload.user_id = selectedUserId;
+      const payload = { ...form, grant_basic_login: true };
       await hrApi.createEmployee(payload);
       toast.success('কর্মী যুক্ত হয়েছে ✅');
       onSuccess();
@@ -530,38 +528,6 @@ function AddEmployeeModal({ allEmployees, onClose, onSuccess }) {
               <option value="assignment_based">Assignment Based</option>
             </select>
           </div>
-          {mode === 'new' && (
-            <div className="border-t border-gray-100 pt-3 mt-1">
-              <div className="flex items-center gap-2 mb-3">
-                <input type="checkbox" checked={form.grant_crm_access} onChange={e => set('grant_crm_access', e.target.checked)} />
-                <label className="text-sm font-medium">CRM Access দিন</label>
-              </div>
-              {!form.grant_crm_access && (
-                <div className="flex items-center gap-2 mb-3">
-                  <input type="checkbox" checked={form.grant_basic_login} onChange={e => set('grant_basic_login', e.target.checked)} />
-                  <label className="text-sm font-medium">শুধু ESS Portal Access দিন (CRM ছাড়া)</label>
-                </div>
-              )}
-              {form.grant_crm_access && (
-                <div className="space-y-3 bg-blue-50 p-3 rounded-xl">
-                  <div>
-                    <label className="block text-sm font-medium mb-1.5">CRM Role *</label>
-                    <select className="input-field" value={form.crm_role_id} onChange={e => set('crm_role_id', e.target.value)}>
-                      <option value="">-- Select --</option>
-                      {roles.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1.5">Manager (optional)</label>
-                    <select className="input-field" value={form.crm_manager_id} onChange={e => set('crm_manager_id', e.target.value)}>
-                      <option value="">-- None --</option>
-                      {allEmployees.filter(e => e.crm_phone).map(e => <option key={e.user_id} value={e.user_id}>{e.full_name}</option>)}
-                    </select>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
           <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? 'Saving...' : '✅ Save'}
           </button>
