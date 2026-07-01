@@ -12,8 +12,15 @@ export const AuthProvider = ({ children }) => {
     const savedUser = localStorage.getItem('crm_user');
     if (token && savedUser) {
       setUser(JSON.parse(savedUser));
+      // Refresh user data including module_access
+      authApi.getMe().then(r => {
+        const fresh = r.data || r;
+        localStorage.setItem('crm_user', JSON.stringify(fresh));
+        setUser(fresh);
+      }).catch(() => {}).finally(() => setLoading(false));
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   const login = (token, userData) => {
