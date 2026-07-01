@@ -509,7 +509,12 @@ function AddEmployeeModal({ allEmployees, onClose, onSuccess }) {
           </div>
           <div>
             <label className="block text-sm font-medium mb-1.5">Department</label>
-            <input type="text" className="input-field" value={form.department} onChange={e => set('department', e.target.value)} />
+            <select className="input-field" value={form.department} onChange={e => set('department', e.target.value)}>
+              <option value="">-- None --</option>
+              {[...new Set(positions.map(p => p.department).filter(Boolean))].sort().map(d => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1.5">Reports To</label>
