@@ -1,9 +1,14 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { approvalsApi } from '../../api/client';
 import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { ZoomIn, CheckCircle, XCircle, Edit } from 'lucide-react';
+
+function Portal({ children }) {
+  return createPortal(children, document.body);
+}
 
 export default function SaleApproval() {
   const { user } = useAuth();
@@ -157,41 +162,49 @@ export default function SaleApproval() {
         )
       )}
 
-      {/* Sale Approval Modal */}
       {selected && (
-        <ApprovalModal
-          sale={selected}
-          onApprove={handleApprove}
-          onReject={(sale) => setRejectModal(sale)}
-          onClose={() => setSelected(null)}
-          onZoom={(url) => setZoomImage(url)}
-        />
+        <Portal>
+          <ApprovalModal
+            sale={selected}
+            onApprove={handleApprove}
+            onReject={(sale) => setRejectModal(sale)}
+            onClose={() => setSelected(null)}
+            onZoom={(url) => setZoomImage(url)}
+          />
+        </Portal>
       )}
 
-      {/* Due Payment Approval Modal */}
       {selectedDue && (
-        <DuePaymentModal
-          payment={selectedDue}
-          onApprove={handleApproveDue}
-          onReject={(payment) => setRejectDueModal(payment)}
-          onClose={() => setSelectedDue(null)}
-          onZoom={(url) => setZoomImage(url)}
-        />
+        <Portal>
+          <DuePaymentModal
+            payment={selectedDue}
+            onApprove={handleApproveDue}
+            onReject={(payment) => setRejectDueModal(payment)}
+            onClose={() => setSelectedDue(null)}
+            onZoom={(url) => setZoomImage(url)}
+          />
+        </Portal>
       )}
 
       {rejectModal && (
-        <RejectModal sale={rejectModal} onReject={handleReject} onClose={() => setRejectModal(null)} />
+        <Portal>
+          <RejectModal sale={rejectModal} onReject={handleReject} onClose={() => setRejectModal(null)} />
+        </Portal>
       )}
 
       {rejectDueModal && (
-        <RejectDueModal payment={rejectDueModal} onReject={handleRejectDue} onClose={() => setRejectDueModal(null)} />
+        <Portal>
+          <RejectDueModal payment={rejectDueModal} onReject={handleRejectDue} onClose={() => setRejectDueModal(null)} />
+        </Portal>
       )}
 
       {zoomImage && (
-        <div className="fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4" onClick={() => setZoomImage(null)}>
-          <img src={zoomImage} alt="proof" className="max-w-full max-h-full object-contain rounded-xl" />
-          <button className="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2">✕</button>
-        </div>
+        <Portal>
+          <div className="fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4" onClick={() => setZoomImage(null)}>
+            <img src={zoomImage} alt="proof" className="max-w-full max-h-full object-contain rounded-xl" />
+            <button className="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2">✕</button>
+          </div>
+        </Portal>
       )}
     </div>
   );
