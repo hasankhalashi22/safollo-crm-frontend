@@ -27,6 +27,12 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('crm_token', token);
     localStorage.setItem('crm_user', JSON.stringify(userData));
     setUser(userData);
+    // Fetch fresh data with module_access right after login
+    authApi.getMe().then(r => {
+      const fresh = r.data || r;
+      localStorage.setItem('crm_user', JSON.stringify(fresh));
+      setUser(fresh);
+    }).catch(() => {});
   };
 
   const logout = async () => {

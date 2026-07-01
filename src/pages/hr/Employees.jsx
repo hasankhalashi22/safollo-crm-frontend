@@ -569,7 +569,7 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
   const { user: currentUser } = useAuth();
   const isSuperAdmin = currentUser?.role === 'super_admin';
   const hrRole = currentUser?.module_access?.find(a => a.module_key === 'hr')?.role_key;
-  const canManageAccess = isSuperAdmin || hrRole === 'hr_advisor';
+  const canManageAccess = isSuperAdmin || hrRole === 'hr_advisor' || hrRole === 'admin';
   const [tab, setTab] = useState('info');
   const [form, setForm] = useState({
     full_name: employee.full_name || '',
