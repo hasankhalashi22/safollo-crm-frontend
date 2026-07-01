@@ -91,23 +91,23 @@ export default function HrDashboard() {
   }
 
   return (
-    <div className="p-4 lg:p-6 space-y-5 max-w-5xl mx-auto">
+    <div className="p-4 lg:p-6 space-y-5">
       <div>
         <h1 className="text-xl font-bold text-dark">HR Dashboard</h1>
         <p className="text-sm text-gray-500">{format(new Date(), 'EEEE, dd MMMM yyyy')}</p>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
         <SummaryCard icon={Users} label="মোট কর্মী" value={employees.length} color="bg-primary-500" />
         <SummaryCard icon={UserCheck} label="আজ উপস্থিত" value={todayAttendance.length} color="bg-green-500" />
         <SummaryCard icon={UserX} label="আজ ছুটিতে" value={onLeaveToday.length} color="bg-orange-400" />
         <SummaryCard icon={Clock} label="পেন্ডিং লিভ" value={pendingLeaveCount} color="bg-purple-500" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         {/* Weekly Attendance Chart */}
-        <div className="card lg:col-span-2">
+        <div className="card xl:col-span-2">
           <h2 className="text-sm font-semibold text-dark mb-4">এই সপ্তাহের উপস্থিতি</h2>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={weekChartData} barSize={28}>
