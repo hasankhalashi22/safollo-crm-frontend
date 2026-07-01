@@ -520,9 +520,15 @@ function AddEmployeeModal({ allEmployees, onClose, onSuccess }) {
               {allEmployees.map(e => <option key={e.id} value={e.id}>{e.full_name}</option>)}
             </select>
           </div>
-          <div className="flex items-center gap-2">
-            <input type="checkbox" checked={form.is_remote} onChange={e => set('is_remote', e.target.checked)} />
-            <label className="text-sm">Remote Employee</label>
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Employment Type</label>
+            <select className="input-field" value={form.employment_type} onChange={e => set('employment_type', e.target.value)}>
+              <option value="full_time">Full Time</option>
+              <option value="residential">Residential</option>
+              <option value="remote">Remote</option>
+              <option value="contractual">Contractual</option>
+              <option value="assignment_based">Assignment Based</option>
+            </select>
           </div>
           {mode === 'new' && (
             <div className="border-t border-gray-100 pt-3 mt-1">
@@ -796,9 +802,10 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
                         <label className="block text-xs font-medium text-gray-600 mb-1">Employment Type</label>
                         <select className="input-field" value={form.employment_type} onChange={e => set('employment_type', e.target.value)}>
                           <option value="full_time">Full Time</option>
-                          <option value="part_time">Part Time</option>
+                          <option value="residential">Residential</option>
+                          <option value="remote">Remote</option>
                           <option value="contractual">Contractual</option>
-                          <option value="intern">Intern</option>
+                          <option value="assignment_based">Assignment Based</option>
                         </select>
                       </div>
                       <div>
@@ -833,12 +840,7 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
                         </div>
                       </div>
                     )}
-                    <div className="flex items-center gap-2">
-                      <input type="checkbox" id="is_remote" checked={form.is_remote} onChange={e => set('is_remote', e.target.checked)} />
-                      <label htmlFor="is_remote" className="text-sm text-gray-600">Remote Employee</label>
-                    </div>
-                    {!form.is_remote && (
-                      <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-3 gap-3">
                         <div>
                           <label className="block text-xs font-medium text-gray-600 mb-1">Office Start</label>
                           <input type="time" className="input-field" value={form.office_start_time} onChange={e => set('office_start_time', e.target.value)} />
@@ -861,7 +863,6 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
                           </select>
                         </div>
                       </div>
-                    )}
                   </div>
                 </section>
 
