@@ -734,6 +734,15 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
             </p>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
+            <button type="button" onClick={() => {
+              const w = window.open('', '_blank');
+              w.document.write(generateCVHtml(employee));
+              w.document.close();
+              w.focus();
+              setTimeout(() => w.print(), 500);
+            }} className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-primary-50 text-primary-600 hover:bg-primary-100">
+              <Download size={13} /> CV
+            </button>
             <button type="button" onClick={handleToggleLock} disabled={loading}
               className={`px-2.5 py-1 rounded-lg text-xs font-medium ${isLocked ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'}`}>
               {isLocked ? '🔒 Locked' : '🔓 Lock'}
