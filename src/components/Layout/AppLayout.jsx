@@ -281,7 +281,7 @@ export function AdminLayout({ children }) {
     <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
       <TopModuleBar />
       <div className="flex flex-1 overflow-hidden">
-        <aside className={`hidden lg:flex bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0 transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'}`}>
+        <aside className={`hidden lg:flex bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0 transition-all duration-300 ${collapsed ? 'w-0 overflow-hidden' : 'w-64'}`}>
           <SidebarContent />
         </aside>
 
@@ -401,7 +401,7 @@ export function AccountingLayout({ children }) {
     <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
       <TopModuleBar />
       <div className="flex flex-1 overflow-hidden">
-        <aside className={`hidden lg:flex bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0 transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'}`}>
+        <aside className={`hidden lg:flex bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0 transition-all duration-300 ${collapsed ? 'w-0 overflow-hidden' : 'w-64'}`}>
           <SidebarContent />
         </aside>
 
@@ -555,7 +555,7 @@ export function HrLayout({ children }) {
     <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
       <TopModuleBar />
       <div className="flex flex-1 overflow-hidden">
-        <aside className={`hidden lg:flex bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0 transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'}`}>
+        <aside className={`hidden lg:flex bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0 transition-all duration-300 ${collapsed ? 'w-0 overflow-hidden' : 'w-64'}`}>
           <SidebarContent />
         </aside>
 
@@ -706,6 +706,7 @@ export function UnifiedLayout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [openModules, setOpenModules] = useState({});
   const [pendingLeaveCount, setPendingLeaveCount] = useState(0);
   const [pendingApprovalCount, setPendingApprovalCount] = useState(0);
@@ -748,9 +749,15 @@ export function UnifiedLayout({ children }) {
 
   const SidebarNav = ({ onClose }) => (
     <>
-      <div className="p-4 border-b border-gray-100">
-        <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-9 mb-1" />
-        <p className="text-xs text-gray-400">{user?.role_label}</p>
+      <div className="p-4 border-b border-gray-100 flex items-start justify-between">
+        <div>
+          <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-9 mb-1" />
+          <p className="text-xs text-gray-400">{user?.role_label}</p>
+        </div>
+        <button onClick={() => setSidebarCollapsed(true)}
+          className="hidden lg:flex p-1.5 bg-gray-100 rounded-lg text-gray-500 hover:bg-gray-200 flex-shrink-0 mt-1">
+          <ChevronLeft size={16} />
+        </button>
       </div>
       <nav className="flex-1 p-2.5 overflow-y-auto space-y-0.5">
         {moduleList.map(mod => {
@@ -810,9 +817,16 @@ export function UnifiedLayout({ children }) {
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
-      <aside className="hidden lg:flex w-56 bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0">
+      <aside className={`hidden lg:flex bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0 transition-all duration-300 ${sidebarCollapsed ? 'w-0 overflow-hidden' : 'w-56'}`}>
         <SidebarNav onClose={() => {}} />
       </aside>
+      {/* Collapsed toggle button — floats on the left edge */}
+      {sidebarCollapsed && (
+        <button onClick={() => setSidebarCollapsed(false)}
+          className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 z-40 bg-white border border-gray-200 shadow-md rounded-r-xl p-1.5 text-gray-500 hover:text-primary-600">
+          <ChevronRight size={18} />
+        </button>
+      )}
       {sidebarOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div className="fixed inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
