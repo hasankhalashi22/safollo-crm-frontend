@@ -3,8 +3,9 @@ import { createPortal } from 'react-dom';
 import { hrApi, usersApi, leaveApi, payrollApi, authApi } from '../../api/client';
 import { MODULES } from '../../config/modules';
 import toast from 'react-hot-toast';
-import { Edit2, User, Plus, Eye, Download, Key, Link, Unlink, ShieldCheck, Search } from 'lucide-react';
+import { Trash2, User, Plus, Eye, Download, Key, Link, Unlink, ShieldCheck, Search } from 'lucide-react';
 import { format } from 'date-fns';
+import { useAuth } from '../../hooks/useAuth';
 
 function Modal({ children }) {
   return createPortal(children, document.body);
@@ -33,27 +34,50 @@ function InitialsAvatar({ name, photoUrl, size = 'md' }) {
   );
 }
 
+const STATUS_BADGE = {
+  active: 'bg-green-50 text-green-700',
+  on_leave: 'bg-blue-50 text-blue-700',
+  resigned: 'bg-orange-50 text-orange-700',
+  terminated: 'bg-red-50 text-red-700',
+};
+
 export default function Employees() {
+  const { user: currentUser } = useAuth();
+  const isSuperAdmin = currentUser?.role === 'super_admin';
+
+  const [activeTab, setActiveTab] = useState('running');
   const [employees, setEmployees] = useState([]);
+  const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editModal, setEditModal] = useState(null);
   const [addModal, setAddModal] = useState(false);
-  const [viewModal, setViewModal] = useState(null);
   const [search, setSearch] = useState('');
   const [filterDept, setFilterDept] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
 
-  const fetchEmployees = () => {
+  const fetchData = () => {
     setLoading(true);
-    hrApi.getEmployees().then(r => {
-      setEmployees(r.data || []);
+    Promise.allSettled([hrApi.getEmployees(), hrApi.getEmployeeHistory()]).then(([empRes, histRes]) => {
+      if (empRes.status === 'fulfilled') setEmployees(empRes.value.data || []);
+      if (histRes.status === 'fulfilled') setHistory(histRes.value.data || []);
       setLoading(false);
-    }).catch(() => setLoading(false));
+    });
   };
 
-  useEffect(() => { fetchEmployees(); }, []);
+  useEffect(() => { fetchData(); }, []);
 
-  const handleResetPassword = async (emp) => {
+  const handleDelete = async (emp) => {
+    if (!confirm(`"${emp.full_name}"-কে ডিলিট করবেন? এই কর্মীর সব তথ্য স্থায়ীভাবে মুছে যাবে।`)) return;
+    try {
+      await hrApi.deleteEmployee(emp.id);
+      toast.success('কর্মী মুছে ফেলা হয়েছে');
+      fetchData();
+    } catch (err) {
+      toast.error(err.message || 'সমস্যা হয়েছে');
+    }
+  };
+
+  const handleResetPassword = async (e, emp) => {
+    e.stopPropagation();
     if (!confirm(`${emp.full_name}-এর পাসওয়ার্ড রিসেট করবেন?`)) return;
     try {
       await authApi.resetPassword(emp.user_id);
@@ -63,31 +87,49 @@ export default function Employees() {
     }
   };
 
-  const departments = useMemo(() => [...new Set(employees.map(e => e.department).filter(Boolean))], [employees]);
+  const departments = useMemo(() => {
+    const all = [...employees, ...history];
+    return [...new Set(all.map(e => e.department).filter(Boolean))];
+  }, [employees, history]);
 
-  const filtered = useMemo(() => employees.filter(emp => {
+  const currentList = activeTab === 'running' ? employees : history;
+
+  const filtered = useMemo(() => currentList.filter(emp => {
     const q = search.toLowerCase();
     const matchSearch = !q || (emp.full_name || '').toLowerCase().includes(q) || (emp.phone || '').includes(q) || (emp.designation || '').toLowerCase().includes(q);
     const matchDept = !filterDept || emp.department === filterDept;
-    const matchStatus = !filterStatus || (emp.status || 'active') === filterStatus;
-    return matchSearch && matchDept && matchStatus;
-  }), [employees, search, filterDept, filterStatus]);
+    return matchSearch && matchDept;
+  }), [currentList, search, filterDept]);
 
   if (loading) return <div className="flex justify-center py-12"><div className="spinner w-8 h-8" /></div>;
 
   return (
     <div className="p-6">
-      <div className="flex items-center justify-between mb-5">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-dark">Employee Directory</h1>
-          <p className="text-sm text-gray-400 mt-0.5">{employees.length} জন কর্মী</p>
+      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+        <div className="flex items-center gap-4 flex-wrap">
+          <div>
+            <h1 className="text-2xl font-display font-bold text-dark">Employee Directory</h1>
+          </div>
+          {/* Tabs */}
+          <div className="flex bg-gray-100 rounded-xl p-1">
+            <button onClick={() => setActiveTab('running')}
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${activeTab === 'running' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+              Running Employees
+              <span className="ml-1.5 text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full">{employees.length}</span>
+            </button>
+            <button onClick={() => setActiveTab('history')}
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${activeTab === 'history' ? 'bg-white text-primary-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+              Employee History
+              <span className="ml-1.5 text-xs bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded-full">{history.length}</span>
+            </button>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={async () => {
             try {
               const r = await hrApi.syncProfiles();
               toast.success(r.data?.message || 'Sync হয়েছে ✅');
-              fetchEmployees();
+              fetchData();
             } catch { toast.error('Sync হয়নি'); }
           }} className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">
             <ShieldCheck size={14} /> Sync Profiles
@@ -112,16 +154,9 @@ export default function Employees() {
           <option value="">সব বিভাগ</option>
           {departments.map(d => <option key={d} value={d}>{d}</option>)}
         </select>
-        <select className="input-field text-sm w-36" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
-          <option value="">সব Status</option>
-          <option value="active">Active</option>
-          <option value="on_leave">On Leave</option>
-          <option value="resigned">Resigned</option>
-          <option value="terminated">Terminated</option>
-        </select>
       </div>
 
-      {/* Card list */}
+      {/* List */}
       <div className="card p-0 overflow-hidden divide-y divide-gray-50">
         {filtered.length === 0 ? (
           <div className="py-16 text-center text-gray-400 text-sm">কোনো কর্মী পাওয়া যায়নি</div>
@@ -136,14 +171,19 @@ export default function Employees() {
             })),
           ].filter(Boolean);
 
+          const exitDate = emp.termination_date || emp.resignation_date;
+          const exitLabel = emp.termination_date ? 'টার্মিনেশন' : emp.resignation_date ? 'রিজাইন' : null;
+
           return (
-            <div key={emp.id} className="flex items-center gap-4 px-4 py-3.5 hover:bg-gray-50 transition-colors">
+            <div key={emp.id}
+              onClick={() => setEditModal(emp)}
+              className="flex items-center gap-4 px-4 py-3.5 hover:bg-gray-50 transition-colors cursor-pointer">
               <InitialsAvatar name={emp.full_name} photoUrl={emp.photo_url} />
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap mb-1">
                   <span className="font-semibold text-sm text-gray-900">{emp.full_name}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${emp.status === 'active' || !emp.status ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_BADGE[emp.status] || 'bg-gray-100 text-gray-500'}`}>
                     {emp.status || 'active'}
                   </span>
                   {allBadges.map(b => (
@@ -151,25 +191,28 @@ export default function Employees() {
                   ))}
                 </div>
                 <p className="text-xs text-gray-400 truncate">
-                  {[emp.designation || emp.position_title, emp.department, emp.reports_to_name ? `রিপোর্ট: ${emp.reports_to_name}` : null, emp.is_remote ? 'Remote' : null].filter(Boolean).join(' · ') || '—'}
+                  {[emp.designation || emp.position_title, emp.department,
+                    emp.reports_to_name ? `রিপোর্ট: ${emp.reports_to_name}` : null,
+                    emp.is_remote ? 'Remote' : null,
+                    exitDate && exitLabel ? `${exitLabel}: ${format(new Date(exitDate), 'dd/MM/yyyy')}` : null,
+                    emp.exit_reason ? `কারণ: ${emp.exit_reason}` : null,
+                  ].filter(Boolean).join(' · ') || '—'}
                 </p>
               </div>
 
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <button onClick={() => setViewModal(emp)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-200 transition-colors">
-                  <Eye size={13} /> দেখুন
-                </button>
+              <div className="flex items-center gap-2 flex-shrink-0" onClick={e => e.stopPropagation()}>
                 {emp.user_id && (
-                  <button onClick={() => handleResetPassword(emp)}
+                  <button onClick={(e) => handleResetPassword(e, emp)}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-600 rounded-lg text-xs font-medium hover:bg-amber-100 transition-colors">
                     <Key size={13} /> Reset
                   </button>
                 )}
-                <button onClick={() => setEditModal(emp)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium hover:bg-primary-100 transition-colors">
-                  <Edit2 size={13} /> এডিট
-                </button>
+                {isSuperAdmin && (
+                  <button onClick={() => handleDelete(emp)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-xs font-medium hover:bg-red-100 transition-colors">
+                    <Trash2 size={13} /> ডিলিট
+                  </button>
+                )}
               </div>
             </div>
           );
@@ -181,20 +224,14 @@ export default function Employees() {
           employee={editModal}
           allEmployees={employees}
           onClose={() => setEditModal(null)}
-          onSuccess={() => { setEditModal(null); fetchEmployees(); }}
+          onSuccess={() => { setEditModal(null); fetchData(); }}
         />
       )}
       {addModal && (
         <AddEmployeeModal
           allEmployees={employees}
           onClose={() => setAddModal(false)}
-          onSuccess={() => { setAddModal(false); fetchEmployees(); }}
-        />
-      )}
-      {viewModal && (
-        <EmployeeViewModal
-          employee={viewModal}
-          onClose={() => setViewModal(null)}
+          onSuccess={() => { setAddModal(false); fetchData(); }}
         />
       )}
     </div>
@@ -592,6 +629,9 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
     education_level: employee.education_level || '',
     education_details: employee.education_details || '',
     nid_number: employee.nid_number || '',
+    resignation_date: employee.resignation_date?.split('T')[0] || '',
+    termination_date: employee.termination_date?.split('T')[0] || '',
+    exit_reason: employee.exit_reason || '',
   });
   const [isLocked, setIsLocked] = useState(employee.is_locked || false);
   const [loading, setLoading] = useState(false);
@@ -781,6 +821,28 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
                         </select>
                       </div>
                     </div>
+                    {(form.status === 'resigned' || form.status === 'terminated') && (
+                      <div className="space-y-3 bg-orange-50 p-3 rounded-xl border border-orange-100">
+                        <div className="grid grid-cols-2 gap-3">
+                          {form.status === 'resigned' && (
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">রিজাইনের তারিখ</label>
+                              <input type="date" className="input-field" value={form.resignation_date} onChange={e => set('resignation_date', e.target.value)} />
+                            </div>
+                          )}
+                          {form.status === 'terminated' && (
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">টার্মিনেশনের তারিখ</label>
+                              <input type="date" className="input-field" value={form.termination_date} onChange={e => set('termination_date', e.target.value)} />
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">কারণ</label>
+                          <textarea className="input-field resize-none" rows={2} value={form.exit_reason} onChange={e => set('exit_reason', e.target.value)} placeholder="রিজাইন / টার্মিনেশনের কারণ..." />
+                        </div>
+                      </div>
+                    )}
                     <div className="flex items-center gap-2">
                       <input type="checkbox" id="is_remote" checked={form.is_remote} onChange={e => set('is_remote', e.target.checked)} />
                       <label htmlFor="is_remote" className="text-sm text-gray-600">Remote Employee</label>

@@ -172,6 +172,7 @@ export const bookApi = {
 
 export const hrApi = {
   getEmployees: () => api.get('/api/hr/employees'),
+  getEmployeeHistory: () => api.get('/api/hr/employees/history'),
   getEmployeeById: (id) => api.get(`/api/hr/employees/${id}`),
   getUnlinkedCrmUsers: () => api.get('/api/hr/employees/unlinked-crm-users'),
   createEmployee: (data) => api.post('/api/hr/employees', data),
