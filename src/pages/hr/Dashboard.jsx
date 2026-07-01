@@ -2,8 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Users, UserCheck, UserX, Clock, ChevronRight, CalendarDays, Bell } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { format, startOfWeek, addDays, isToday, parseISO, isSameDay } from 'date-fns';
-import { hrApi, leaveApi, attendanceApi } from '../../api/client';
+import { format, startOfWeek, addDays, isToday, parseISO } from 'date-fns';
+import { hrApi } from '../../api/client';
 
 const CATEGORY_LABELS = {
   urgent: { label: 'জরুরি', cls: 'bg-red-50 text-red-600' },
@@ -26,67 +26,27 @@ function SummaryCard({ icon: Icon, label, value, color }) {
 }
 
 export default function HrDashboard() {
-  const [employees, setEmployees] = useState([]);
-  const [todayAttendance, setTodayAttendance] = useState([]);
-  const [weekAttendance, setWeekAttendance] = useState([]);
-  const [onLeaveToday, setOnLeaveToday] = useState([]);
-  const [pendingLeaveCount, setPendingLeaveCount] = useState(0);
-  const [holidays, setHolidays] = useState([]);
-  const [notices, setNotices] = useState([]);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const today = format(new Date(), 'yyyy-MM-dd');
-    const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 0 }), 'yyyy-MM-dd');
-    const year = new Date().getFullYear();
-
-    const ok = (r, label) => {
-      if (r.status === 'rejected') console.error(`[HR Dashboard] ${label} FAILED:`, r.reason);
-      else console.log(`[HR Dashboard] ${label} OK:`, r.value?.data?.length ?? r.value?.data);
-      return r.status === 'fulfilled' ? (r.value?.data || []) : [];
-    };
-
-    Promise.allSettled([
-      hrApi.getEmployees(),
-      attendanceApi.getAll({ date: today }),
-      attendanceApi.getAll({ dateFrom: weekStart, dateTo: today }),
-      leaveApi.getAllApplications('approved'),
-      leaveApi.getAllApplications('pending'),
-      hrApi.getHolidays(year),
-      hrApi.getNotices(),
-    ]).then(([emp, todayAtt, weekAtt, approvedLeaves, pendingLeaves, hols, nots]) => {
-      setEmployees(ok(emp, 'getEmployees'));
-      setTodayAttendance(ok(todayAtt, 'todayAttendance'));
-      setWeekAttendance(ok(weekAtt, 'weekAttendance'));
-
-      const todayStr = new Date().toISOString().split('T')[0];
-      const onLeave = ok(approvedLeaves, 'approvedLeaves').filter(l =>
-        l.start_date <= todayStr && l.end_date >= todayStr
-      );
-      setOnLeaveToday(onLeave);
-      setPendingLeaveCount(ok(pendingLeaves, 'pendingLeaves').length);
-      setHolidays(ok(hols, 'holidays'));
-      setNotices(ok(nots, 'notices').slice(0, 3));
-    }).finally(() => setLoading(false));
+    hrApi.getDashboardStats()
+      .then(r => setStats(r.data))
+      .catch(err => setError(err?.message || 'লোড করা যায়নি'))
+      .finally(() => setLoading(false));
   }, []);
 
   const weekChartData = useMemo(() => {
+    if (!stats) return [];
     const weekStart = startOfWeek(new Date(), { weekStartsOn: 0 });
     return Array.from({ length: 7 }, (_, i) => {
       const day = addDays(weekStart, i);
       const dayStr = format(day, 'yyyy-MM-dd');
-      const count = weekAttendance.filter(a => a.date === dayStr || (a.check_in_time && a.check_in_time.startsWith(dayStr))).length;
-      return { day: format(day, 'EEE'), count };
+      const row = (stats.week_attendance || []).find(r => r.date === dayStr);
+      return { day: format(day, 'EEE'), count: row ? parseInt(row.count) : 0 };
     });
-  }, [weekAttendance]);
-
-  const upcomingHolidays = useMemo(() => {
-    const todayStr = format(new Date(), 'yyyy-MM-dd');
-    return holidays
-      .filter(h => h.date >= todayStr)
-      .sort((a, b) => a.date.localeCompare(b.date))
-      .slice(0, 4);
-  }, [holidays]);
+  }, [stats]);
 
   if (loading) {
     return (
@@ -95,6 +55,17 @@ export default function HrDashboard() {
       </div>
     );
   }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <p className="text-red-500 text-sm">ড্যাশবোর্ড লোড করা যায়নি: {error}</p>
+      </div>
+    );
+  }
+
+  const upcomingHolidays = stats?.upcoming_holidays || [];
+  const recentNotices = stats?.recent_notices || [];
 
   return (
     <div className="p-4 lg:p-6 space-y-5">
@@ -105,10 +76,10 @@ export default function HrDashboard() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-3">
-        <SummaryCard icon={Users} label="মোট কর্মী" value={employees.length} color="bg-primary-500" />
-        <SummaryCard icon={UserCheck} label="আজ উপস্থিত" value={todayAttendance.length} color="bg-green-500" />
-        <SummaryCard icon={UserX} label="আজ ছুটিতে" value={onLeaveToday.length} color="bg-orange-400" />
-        <SummaryCard icon={Clock} label="পেন্ডিং লিভ" value={pendingLeaveCount} color="bg-purple-500" />
+        <SummaryCard icon={Users} label="মোট কর্মী" value={stats?.total_employees ?? 0} color="bg-primary-500" />
+        <SummaryCard icon={UserCheck} label="আজ উপস্থিত" value={stats?.today_present ?? 0} color="bg-green-500" />
+        <SummaryCard icon={UserX} label="আজ ছুটিতে" value={stats?.on_leave_today ?? 0} color="bg-orange-400" />
+        <SummaryCard icon={Clock} label="পেন্ডিং লিভ" value={stats?.pending_leave ?? 0} color="bg-purple-500" />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
@@ -171,11 +142,11 @@ export default function HrDashboard() {
             সব দেখুন <ChevronRight size={14} />
           </Link>
         </div>
-        {notices.length === 0 ? (
+        {recentNotices.length === 0 ? (
           <p className="text-xs text-gray-400 py-4 text-center">কোনো নোটিশ নেই</p>
         ) : (
           <div className="space-y-2.5">
-            {notices.map(n => {
+            {recentNotices.map(n => {
               const cat = CATEGORY_LABELS[n.category] || CATEGORY_LABELS.general;
               return (
                 <div key={n.id} className="flex items-start gap-3 py-2.5 border-b border-gray-50 last:border-0">

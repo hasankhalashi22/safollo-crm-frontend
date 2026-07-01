@@ -191,6 +191,7 @@ uploadEmployeeSignature: (id, formData) => api.post(`/api/hr/employees/${id}/sig
 getEmployeeModuleAccess: (id) => api.get(`/api/hr/employees/${id}/module-access`),
 setEmployeeModuleAccess: (id, access) => api.put(`/api/hr/employees/${id}/module-access`, { access }),
   syncProfiles: () => api.post('/api/hr/sync-profiles'),
+getDashboardStats: () => api.get('/api/hr/dashboard-stats'),
 getHolidays: (year) => api.get(`/api/hr/holidays${year ? `?year=${year}` : ''}`),
 createHoliday: (data) => api.post('/api/hr/holidays', data),
 deleteHoliday: (id) => api.delete(`/api/hr/holidays/${id}`),
