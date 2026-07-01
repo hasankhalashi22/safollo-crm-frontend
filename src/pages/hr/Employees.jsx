@@ -183,6 +183,7 @@ export default function Employees() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap mb-1">
                   <span className="font-semibold text-sm text-gray-900">{emp.full_name}</span>
+                  {emp.employee_id && <span className="text-xs px-2 py-0.5 rounded-full font-mono bg-gray-100 text-gray-500">#{emp.employee_id}</span>}
                   <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_BADGE[emp.status] || 'bg-gray-100 text-gray-500'}`}>
                     {emp.status || 'active'}
                   </span>
