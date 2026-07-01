@@ -40,7 +40,9 @@ export default function HrDashboard() {
     const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 0 }), 'yyyy-MM-dd');
     const year = new Date().getFullYear();
 
-    Promise.all([
+    const ok = (r) => r.status === 'fulfilled' ? (r.value?.data || []) : [];
+
+    Promise.allSettled([
       hrApi.getEmployees(),
       attendanceApi.getAll({ date: today }),
       attendanceApi.getAll({ dateFrom: weekStart, dateTo: today }),
@@ -49,19 +51,19 @@ export default function HrDashboard() {
       hrApi.getHolidays(year),
       hrApi.getNotices(),
     ]).then(([emp, todayAtt, weekAtt, approvedLeaves, pendingLeaves, hols, nots]) => {
-      setEmployees(emp.data || []);
-      setTodayAttendance(todayAtt.data || []);
-      setWeekAttendance(weekAtt.data || []);
+      setEmployees(ok(emp));
+      setTodayAttendance(ok(todayAtt));
+      setWeekAttendance(ok(weekAtt));
 
       const todayStr = new Date().toISOString().split('T')[0];
-      const onLeave = (approvedLeaves.data || []).filter(l =>
+      const onLeave = ok(approvedLeaves).filter(l =>
         l.start_date <= todayStr && l.end_date >= todayStr
       );
       setOnLeaveToday(onLeave);
-      setPendingLeaveCount((pendingLeaves.data || []).length);
-      setHolidays(hols.data || []);
-      setNotices((nots.data || []).slice(0, 3));
-    }).catch(() => {}).finally(() => setLoading(false));
+      setPendingLeaveCount(ok(pendingLeaves).length);
+      setHolidays(ok(hols));
+      setNotices(ok(nots).slice(0, 3));
+    }).finally(() => setLoading(false));
   }, []);
 
   const weekChartData = useMemo(() => {
