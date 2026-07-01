@@ -281,7 +281,7 @@ export function AdminLayout({ children }) {
     <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
       <TopModuleBar />
       <div className="flex flex-1 overflow-hidden">
-        <aside className={`hidden lg:flex bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0 transition-all duration-300 ${collapsed ? 'w-0 overflow-hidden' : 'w-64'}`}>
+        <aside className={`hidden lg:flex bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0 transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'}`}>
           <SidebarContent />
         </aside>
 
@@ -401,7 +401,7 @@ export function AccountingLayout({ children }) {
     <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
       <TopModuleBar />
       <div className="flex flex-1 overflow-hidden">
-        <aside className={`hidden lg:flex bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0 transition-all duration-300 ${collapsed ? 'w-0 overflow-hidden' : 'w-64'}`}>
+        <aside className={`hidden lg:flex bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0 transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'}`}>
           <SidebarContent />
         </aside>
 
@@ -555,7 +555,7 @@ export function HrLayout({ children }) {
     <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
       <TopModuleBar />
       <div className="flex flex-1 overflow-hidden">
-        <aside className={`hidden lg:flex bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0 transition-all duration-300 ${collapsed ? 'w-0 overflow-hidden' : 'w-64'}`}>
+        <aside className={`hidden lg:flex bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0 transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'}`}>
           <SidebarContent />
         </aside>
 
@@ -747,33 +747,36 @@ export function UnifiedLayout({ children }) {
     toast.success('লগআউট হয়েছে');
   };
 
-  const SidebarNav = ({ onClose }) => (
+  const SidebarNav = ({ onClose, collapsed: col }) => (
     <>
-      <div className="p-4 border-b border-gray-100 flex items-start justify-between">
-        <div>
-          <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-9 mb-1" />
-          <p className="text-xs text-gray-400">{user?.role_label}</p>
-        </div>
-        <button onClick={() => setSidebarCollapsed(true)}
-          className="hidden lg:flex p-1.5 bg-gray-100 rounded-lg text-gray-500 hover:bg-gray-200 flex-shrink-0 mt-1">
-          <ChevronLeft size={16} />
+      <div className={`p-3 border-b border-gray-100 flex items-center ${col ? 'justify-center' : 'justify-between'}`}>
+        {!col && (
+          <div>
+            <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-9 mb-1" />
+            <p className="text-xs text-gray-400">{user?.role_label}</p>
+          </div>
+        )}
+        <button onClick={() => setSidebarCollapsed(v => !v)}
+          className="hidden lg:flex p-1.5 bg-gray-100 rounded-lg text-gray-500 hover:bg-gray-200 flex-shrink-0">
+          {col ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </button>
       </div>
-      <nav className="flex-1 p-2.5 overflow-y-auto space-y-0.5">
+      <nav className="flex-1 p-2 overflow-y-auto space-y-0.5">
         {moduleList.map(mod => {
           const ModIcon = mod.icon;
           const isOpen = !!openModules[mod.key];
           const isActive = mod.key === activeModuleKey;
           return (
             <div key={mod.key}>
-              <button onClick={() => setOpenModules(prev => ({ [mod.key]: !prev[mod.key] }))}
-                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all
+              <button onClick={() => !col && setOpenModules(prev => ({ [mod.key]: !prev[mod.key] }))}
+                title={col ? mod.label : undefined}
+                className={`w-full flex items-center gap-2.5 px-2.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${col ? 'justify-center' : ''}
                   ${isActive ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'}`}>
                 <ModIcon size={17} className="flex-shrink-0" />
-                <span className="flex-1 text-left" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{mod.label}</span>
-                <ChevronDown size={14} className={`flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                {!col && <span className="flex-1 text-left" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{mod.label}</span>}
+                {!col && <ChevronDown size={14} className={`flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />}
               </button>
-              {isOpen && (
+              {isOpen && !col && (
                 <div className="mt-1 ml-3 pl-3 border-l-2 border-gray-100 space-y-0.5 mb-1">
                   {mod.items.map(item => {
                     if (item.group) {
@@ -798,35 +801,30 @@ export function UnifiedLayout({ children }) {
           );
         })}
       </nav>
-      <div className="p-3 border-t border-gray-100">
-        <div className="flex items-center gap-2 px-2 py-2 mb-2">
-          <div className="w-7 h-7 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-xs font-bold flex-shrink-0">
-            {(user?.full_name || user?.phone)?.[0]?.toUpperCase()}
+      {!col && (
+        <div className="p-3 border-t border-gray-100">
+          <div className="flex items-center gap-2 px-2 py-2 mb-2">
+            <div className="w-7 h-7 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-xs font-bold flex-shrink-0">
+              {(user?.full_name || user?.phone)?.[0]?.toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium text-gray-700 truncate">{user?.full_name || user?.phone}</p>
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-gray-700 truncate">{user?.full_name || user?.phone}</p>
-          </div>
+          <button onClick={handleLogout}
+            className="flex items-center gap-2 w-full px-3 py-2 text-xs text-red-500 hover:bg-red-50 rounded-xl transition-all">
+            <LogOut size={14} /> লগআউট
+          </button>
         </div>
-        <button onClick={handleLogout}
-          className="flex items-center gap-2 w-full px-3 py-2 text-xs text-red-500 hover:bg-red-50 rounded-xl transition-all">
-          <LogOut size={14} /> লগআউট
-        </button>
-      </div>
+      )}
     </>
   );
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
-      <aside className={`hidden lg:flex bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0 transition-all duration-300 ${sidebarCollapsed ? 'w-0 overflow-hidden' : 'w-56'}`}>
-        <SidebarNav onClose={() => {}} />
+      <aside className={`hidden lg:flex bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0 transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-56'}`}>
+        <SidebarNav onClose={() => {}} collapsed={sidebarCollapsed} />
       </aside>
-      {/* Collapsed toggle button — floats on the left edge */}
-      {sidebarCollapsed && (
-        <button onClick={() => setSidebarCollapsed(false)}
-          className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 z-40 bg-white border border-gray-200 shadow-md rounded-r-xl p-1.5 text-gray-500 hover:text-primary-600">
-          <ChevronRight size={18} />
-        </button>
-      )}
       {sidebarOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div className="fixed inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
