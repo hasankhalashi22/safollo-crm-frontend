@@ -35,7 +35,7 @@ export default function AdminDashboard() {
       {/* Today stats */}
       <div>
         <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">আজকের সারসংক্ষেপ</h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
           <StatCard icon={<TrendingUp size={20} className="text-primary-500" />} label="আজকের সংগ্রহ" value={`৳${Number(today.today_collected || 0).toLocaleString()}`} bg="bg-primary-50" />
           <StatCard icon={<Users size={20} className="text-blue-500" />} label="আজকের লেনদেন" value={today.today_transactions || '০'} bg="bg-blue-50" />
           <StatCard icon={<TrendingUp size={20} className="text-green-500" />} label="মোট রেভিনিউ" value={`৳${Number(t.total_revenue || 0).toLocaleString()}`} bg="bg-green-50" />

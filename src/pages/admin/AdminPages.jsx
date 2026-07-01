@@ -88,7 +88,7 @@ export function AdminDueList() {
       </div>
 
       <div className="card mb-4">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
           <input className="input-field" placeholder="ফোন, নাম বা Executive" value={search} onChange={e => setSearch(e.target.value)} />
           <select className="input-field" value={execFilter} onChange={e => setExecFilter(e.target.value)}>
             <option value="">সব Executive</option>

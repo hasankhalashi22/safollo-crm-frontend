@@ -55,7 +55,7 @@ function MultiSelect({ options, selected, onChange, placeholder }) {
 
 function SummaryCards({ items }) {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+    <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-4">
       {items.map(({ label, value, color }) => (
         <div key={label} className="bg-gray-50 rounded-xl p-3">
           <p className="text-xs text-gray-400 mb-1">{label}</p>
@@ -523,7 +523,7 @@ const fetchSales = (f = filters) => {
               <Filter size={16} className="text-gray-400" />
               <span className="text-sm font-medium text-gray-600">ফিল্টার</span>
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">
               <div>
                 <label className="block text-xs text-gray-500 mb-1">মাস</label>
                 <input type="month" className="input-field" value={dailyFilters.month}
@@ -629,7 +629,7 @@ const fetchSales = (f = filters) => {
         <>
           {/* Course Wise filters */}
           <div className="card mb-4">
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 xl:grid-cols-5 gap-3">
               <div><label className="block text-xs text-gray-500 mb-1">কোর্স নির্বাচন</label>
                 <MultiSelect options={courses.map(c => c.name)} selected={courseFilters.selected}
                   onChange={v => setCourseFilters(p => ({ ...p, selected: v }))} placeholder="সব কোর্স" />
@@ -714,7 +714,7 @@ const fetchSales = (f = filters) => {
         <>
           {/* Executive Wise filters */}
           <div className="card mb-4">
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 xl:grid-cols-5 gap-3">
               <div><label className="block text-xs text-gray-500 mb-1">Executive নির্বাচন</label>
                 <MultiSelect options={executives.map(e => e.full_name || e.phone)} selected={execFilters.selected}
                   onChange={v => setExecFilters(p => ({ ...p, selected: v }))} placeholder="সব Executive" />
@@ -802,7 +802,7 @@ const fetchSales = (f = filters) => {
               <Filter size={16} className="text-gray-400" />
               <span className="text-sm font-medium text-gray-600">ফিল্টার</span>
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">
               <div className="relative">
                 <Search size={16} className="absolute left-3 top-3.5 text-gray-400" />
                 <input className="input-field pl-9" placeholder="ফোন বা নাম" value={filters.search}
@@ -898,7 +898,7 @@ const fetchSales = (f = filters) => {
               <Filter size={16} className="text-gray-400" />
               <span className="text-sm font-medium text-gray-600">ফিল্টার</span>
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">
               <div className="relative">
                 <Search size={16} className="absolute left-3 top-3.5 text-gray-400" />
                 <input className="input-field pl-9" placeholder="ফোন বা নাম" value={revenueFilters.search}

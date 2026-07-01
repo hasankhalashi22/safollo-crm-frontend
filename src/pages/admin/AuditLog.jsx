@@ -109,7 +109,7 @@ export default function AuditLog() {
 
       {/* Filters */}
       <div className="card mb-4 space-y-3">
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 xl:grid-cols-5 gap-3">
           <select className="input-field" value={filters.module} onChange={e => setFilter('module', e.target.value)}>
             <option value="">সব Module</option>
             <option value="sales">সেলস</option>

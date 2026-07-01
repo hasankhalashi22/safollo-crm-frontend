@@ -41,7 +41,7 @@ export default function AccountingDashboard() {
       <h1 className="text-2xl font-display font-bold text-dark">Accounting Dashboard</h1>
 
       {/* Key balances row: bKash + Rocket + 4 highlight accounts */}
-      <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 xl:grid-cols-6 gap-3">
 
         {/* bKash collection */}
         {(() => { const Icon = BRAND_STYLES['bKash'].icon; return (
@@ -90,7 +90,7 @@ export default function AccountingDashboard() {
       <p className="text-xs text-gray-400">Today's bKash/Rocket — resets and settles at 1:00 AM</p>
 
       {/* Today/Month summary */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
         <StatCard icon={<TrendingUp className="text-green-500" size={20} />} label="Today's Income" value={summary.today_in} bg="bg-green-50" />
         <StatCard icon={<TrendingDown className="text-red-500" size={20} />} label="Today's Expense" value={summary.today_out} bg="bg-red-50" />
         <StatCard icon={<TrendingUp className="text-green-500" size={20} />} label="This Month's Income" value={summary.month_in} bg="bg-green-50" />

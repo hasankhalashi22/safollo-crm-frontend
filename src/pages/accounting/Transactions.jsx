@@ -53,7 +53,7 @@ export default function Transactions() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 mb-6">
+      <div className="grid grid-cols-2 xl:grid-cols-6 gap-3 mb-6">
         <button onClick={() => setEntryMode('in')}
           className="flex flex-col items-center gap-2 p-4 bg-green-50 text-green-600 rounded-2xl border-2 border-green-100 active:scale-95 transition-all">
           <ArrowDownCircle size={28} />
@@ -87,7 +87,7 @@ export default function Transactions() {
       </div>
 
       <div className="card mb-4 space-y-3">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-3">
           <input type="date" className="input-field" value={filters.date_from} onChange={e => setFilter('date_from', e.target.value)} />
           <input type="date" className="input-field" value={filters.date_to} onChange={e => setFilter('date_to', e.target.value)} />
         </div>

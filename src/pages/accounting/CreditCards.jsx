@@ -140,7 +140,7 @@ const handleDownloadPdf = ({ mdName, ceoName }) => {
          {/* Totals */}
           <div className="card bg-primary-50">
             <h3 className="font-semibold text-gray-700 mb-3">All Cards Total</h3>
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+            <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 text-sm">
               <div>
                 <p className="text-gray-500 mb-1">Total Credit Used (All Time)</p>
                 <p className="font-bold text-purple-600">Tk {Number(data.totals.total_credit_used).toLocaleString()}</p>
