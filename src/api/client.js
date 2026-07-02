@@ -205,6 +205,7 @@ export const leaveApi = {
   getTypes: () => api.get('/api/leave/types'),
   createType: (data) => api.post('/api/leave/types', data),
   updateType: (id, data) => api.patch(`/api/leave/types/${id}`, data),
+  deleteType: (id) => api.delete(`/api/leave/types/${id}`),
   getPolicy: () => api.get('/api/leave/policy'),
   updatePolicy: (data) => api.patch('/api/leave/policy', data),
   getMyBalances: (year) => api.get(`/api/leave/my/balances${year ? `?year=${year}` : ''}`),

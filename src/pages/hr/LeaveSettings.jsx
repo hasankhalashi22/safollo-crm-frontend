@@ -2,8 +2,13 @@ import { useState, useEffect } from 'react';
 import { leaveApi, hrApi } from '../../api/client';
 import { Trash2, Plus, Edit2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function LeaveSettings() {
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === 'super_admin';
+  const hrRole = user?.module_access?.find(a => a.module_key === 'hr')?.role_key;
+  const canDelete = isSuperAdmin || user?.role === 'advisor' || hrRole === 'hr_advisor';
   const [types, setTypes] = useState([]);
   const [policy, setPolicy] = useState(null);
   const [positions, setPositions] = useState([]);
@@ -28,6 +33,15 @@ export default function LeaveSettings() {
       setHolidays(holidaysRes.data || []);
       setLoading(false);
     }).catch(() => setLoading(false));
+  };
+
+  const handleDeleteType = async (t) => {
+    if (!confirm(`"${t.name_bn || t.name}" মুছে ফেলবেন?`)) return;
+    try {
+      await leaveApi.deleteType(t.id);
+      toast.success('মুছে ফেলা হয়েছে');
+      fetchAll();
+    } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
   };
 
   useEffect(() => { fetchAll(); }, []);
@@ -66,9 +80,16 @@ export default function LeaveSettings() {
                   <td className="px-3 py-2">{t.is_paid ? '✅ Paid' : '❌ Unpaid'}</td>
                   <td className="px-3 py-2">{t.applicable_to === 'full_time' ? 'Full Time' : 'সবার জন্য'}</td>
                   <td className="px-3 py-2">
-                    <button onClick={() => setEditType(t)} className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs">
-                      <Edit2 size={14} />
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <button onClick={() => setEditType(t)} className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs">
+                        <Edit2 size={14} />
+                      </button>
+                      {canDelete && (
+                        <button onClick={() => handleDeleteType(t)} className="px-2 py-1 bg-red-50 text-red-500 rounded-lg text-xs">
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
