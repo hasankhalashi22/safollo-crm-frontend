@@ -55,7 +55,7 @@ export const MODULES = [
     roles: [
       { key: 'viewer', label: 'HR Viewer (শুধু দেখতে পারবে)' },
       { key: 'hr_manager', label: 'HR Manager (Settings ও Module Access ছাড়া সব)' },
-      { key: 'hr_advisor', label: 'HR Advisor (Delete ছাড়া সব)' },
+      { key: 'hr_advisor', label: 'HR Advisor (Settings ও Module Access সহ সব)' },
     ],
    sidebar: [
       { to: '/hr', icon: BarChart2, label: 'Dashboard', end: true },
