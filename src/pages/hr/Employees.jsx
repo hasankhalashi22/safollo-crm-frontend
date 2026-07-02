@@ -730,9 +730,9 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
           </div>
         </div>
 
-        {/* 2 Tabs */}
+        {/* Tabs */}
         <div className="flex border-b border-gray-100 flex-shrink-0">
-          {[{ key: 'info', label: 'তথ্য ও নথি' }, { key: 'access', label: 'Access ও বেতন' }].map(t => (
+          {[{ key: 'info', label: 'তথ্য ও নথি' }, { key: 'leave', label: 'ছুটি' }, { key: 'access', label: 'Access ও বেতন' }].map(t => (
             <button key={t.key} type="button" onClick={() => setTab(t.key)}
               className={`flex-1 py-2.5 text-sm font-medium border-b-2 transition-colors ${tab === t.key ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-400 hover:text-gray-600'}`}>
               {t.label}
@@ -950,6 +950,12 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
                 <button type="submit" className="btn-primary w-full" disabled={loading}>
                   {loading ? 'সংরক্ষণ হচ্ছে...' : '✅ সংরক্ষণ করুন'}
                 </button>
+              </div>
+            )}
+
+            {tab === 'leave' && (
+              <div className="space-y-4">
+                <LeaveBalanceTab employee={employee} />
               </div>
             )}
 
@@ -1244,6 +1250,93 @@ function SalaryTab({ employeeId }) {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+const MONTH_NAMES = ['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+
+function LeaveBalanceTab({ employee }) {
+  const [balances, setBalances] = useState([]);
+  const [residentialCredits, setResidentialCredits] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const year = new Date().getFullYear();
+
+  useEffect(() => {
+    const fetchAll = async () => {
+      try {
+        const res = await leaveApi.getEmployeeBalances(employee.id, year);
+        setBalances(res.data || []);
+        if (employee.employment_type === 'residential') {
+          const res2 = await leaveApi.getResidentialLeaveCredits(employee.id, year);
+          setResidentialCredits(res2.data || []);
+        }
+      } catch {/* */} finally { setLoading(false); }
+    };
+    fetchAll();
+  }, [employee.id]);
+
+  if (loading) return <div className="flex justify-center py-8"><div className="spinner w-6 h-6" /></div>;
+
+  return (
+    <div className="space-y-5">
+      {/* Annual leave balances */}
+      <section>
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">{year} সালের ছুটির হিসাব</p>
+        {balances.length === 0 ? (
+          <p className="text-sm text-gray-400 text-center py-4">কোনো ছুটি প্রযোজ্য নেই</p>
+        ) : (
+          <div className="space-y-2">
+            {balances.map(b => (
+              <div key={b.id} className="bg-gray-50 rounded-xl px-4 py-3">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-sm font-medium">{b.name_bn || b.name}</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-full ${b.is_paid ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
+                    {b.is_paid ? 'Paid' : 'Unpaid'}
+                  </span>
+                </div>
+                <div className="flex gap-4 text-xs text-gray-500">
+                  <span>মোট: <strong className="text-gray-700">{b.total_days} দিন</strong></span>
+                  <span>ভোগ: <strong className="text-orange-600">{b.used_days} দিন</strong></span>
+                  <span>বাকি: <strong className="text-primary-600">{b.remaining_days} দিন</strong></span>
+                </div>
+                <div className="mt-2 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary-500 rounded-full"
+                    style={{ width: b.total_days > 0 ? `${Math.min((b.used_days / b.total_days) * 100, 100)}%` : '0%' }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Residential monthly credits */}
+      {employee.employment_type === 'residential' && (
+        <section>
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">মাসিক আবাসিক ছুটি ({year})</p>
+          {residentialCredits.length === 0 ? (
+            <p className="text-sm text-gray-400 text-center py-4">এখনো কোনো মাসিক ছুটি জেনারেট হয়নি</p>
+          ) : (
+            <div className="space-y-2">
+              {residentialCredits.map(c => (
+                <div key={c.id} className="bg-blue-50 rounded-xl px-4 py-3 flex items-center justify-between">
+                  <span className="text-sm font-medium text-blue-800">{MONTH_NAMES[c.month - 1]}</span>
+                  <div className="flex gap-3 text-xs">
+                    <span className="text-gray-500">বরাদ্দ: <strong>{c.allocated_days}</strong></span>
+                    <span className="text-orange-600">ভোগ: <strong>{c.used_days}</strong></span>
+                    <span className={c.remaining_days > 0 ? 'text-green-600 font-semibold' : 'text-gray-400'}>
+                      বাকি: <strong>{c.remaining_days}</strong>
+                      {c.remaining_days > 0 && <span className="text-gray-400 ml-1">(Extra Pay হবে)</span>}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
     </div>
   );
 }
