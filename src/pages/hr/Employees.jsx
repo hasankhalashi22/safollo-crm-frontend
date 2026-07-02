@@ -442,6 +442,7 @@ function AddEmployeeModal({ allEmployees, onClose, onSuccess }) {
   const [form, setForm] = useState({
     full_name: '', phone: '', email: '', position_id: '', designation: '', department: '',
     reports_to: '', employment_type: 'full_time', is_remote: false,
+    monthly_residential_leave: 2,
     grant_crm_access: false, crm_role_id: '', crm_manager_id: '',
     grant_basic_login: false,
   });
@@ -540,6 +541,14 @@ function AddEmployeeModal({ allEmployees, onClose, onSuccess }) {
               <option value="assignment_based">Assignment Based</option>
             </select>
           </div>
+          {form.employment_type === 'residential' && (
+            <div>
+              <label className="block text-sm font-medium mb-1.5">মাসিক আবাসিক ছুটির পরিমাণ</label>
+              <select className="input-field" value={form.monthly_residential_leave} onChange={e => set('monthly_residential_leave', parseInt(e.target.value))}>
+                {[1,2,3,4,5].map(d => <option key={d} value={d}>{d} দিন</option>)}
+              </select>
+            </div>
+          )}
           <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? 'Saving...' : '✅ Save'}
           </button>
@@ -580,6 +589,7 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
     department: employee.department || '',
     reports_to: employee.reports_to || '',
     employment_type: employee.employment_type || 'full_time',
+    monthly_residential_leave: employee.monthly_residential_leave || 2,
     office_start_time: employee.office_start_time || '11:00',
     office_end_time: employee.office_end_time || '21:00',
     is_remote: employee.is_remote || false,
@@ -800,6 +810,14 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
                         </select>
                       </div>
                     </div>
+                    {form.employment_type === 'residential' && (
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">মাসিক আবাসিক ছুটির পরিমাণ</label>
+                        <select className="input-field" value={form.monthly_residential_leave} onChange={e => set('monthly_residential_leave', parseInt(e.target.value))}>
+                          {[1,2,3,4,5].map(d => <option key={d} value={d}>{d} দিন/মাস</option>)}
+                        </select>
+                      </div>
+                    )}
                     {(form.status === 'resigned' || form.status === 'terminated') && (
                       <div className="space-y-3 bg-orange-50 p-3 rounded-xl border border-orange-100">
                         <div className="grid grid-cols-2 gap-3">

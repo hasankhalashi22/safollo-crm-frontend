@@ -213,6 +213,7 @@ export const leaveApi = {
   applyLeave: (data) => api.post('/api/leave/my/apply', data),
   getAllApplications: (status) => api.get(`/api/leave/applications${status ? `?status=${status}` : ''}`),
   getEmployeeBalances: (employeeId, year) => api.get(`/api/leave/employees/${employeeId}/balances${year ? `?year=${year}` : ''}`),
+  getResidentialLeaveCredits: (employeeId, year) => api.get(`/api/leave/employees/${employeeId}/residential-credits${year ? `?year=${year}` : ''}`),
   processApplication: (id, data) => api.patch(`/api/leave/applications/${id}/process`, data),
 getMyApprovalQueue: () => api.get('/api/leave/my/approval-queue'),
 getRegister: (year) => api.get(`/api/leave/register${year ? `?year=${year}` : ''}`),
