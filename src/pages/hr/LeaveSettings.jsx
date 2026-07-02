@@ -78,7 +78,14 @@ export default function LeaveSettings() {
                   <td className="px-3 py-2">{t.annual_quota_days} দিন</td>
                   <td className="px-3 py-2">{t.eligibility_months > 0 ? `${t.eligibility_months} মাস পর` : 'তাৎক্ষণিক'}</td>
                   <td className="px-3 py-2">{t.is_paid ? '✅ Paid' : '❌ Unpaid'}</td>
-                  <td className="px-3 py-2">{t.applicable_to === 'full_time' ? 'Full Time' : 'সবার জন্য'}</td>
+                  <td className="px-3 py-2">{{
+                    all: 'সবার জন্য',
+                    full_time: 'Full Time',
+                    residential: 'Residential',
+                    remote: 'Remote',
+                    contractual: 'Contractual',
+                    assignment_based: 'Assignment Based',
+                  }[t.applicable_to] || t.applicable_to}</td>
                   <td className="px-3 py-2">
                     <div className="flex items-center gap-1.5">
                       <button onClick={() => setEditType(t)} className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs">
@@ -337,8 +344,12 @@ function LeaveTypeModal({ leaveType, onClose, onSuccess }) {
           <div>
             <label className="block text-sm font-medium mb-1.5">প্রযোজ্য কাদের জন্য</label>
             <select className="input-field" value={form.applicable_to} onChange={e => set('applicable_to', e.target.value)}>
-              <option value="full_time">শুধু Full Time</option>
               <option value="all">সবার জন্য</option>
+              <option value="full_time">Full Time</option>
+              <option value="residential">Residential</option>
+              <option value="remote">Remote</option>
+              <option value="contractual">Contractual</option>
+              <option value="assignment_based">Assignment Based</option>
             </select>
           </div>
           {isEdit && (
