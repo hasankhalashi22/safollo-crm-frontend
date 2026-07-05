@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { salesApi, fieldConfigsApi, coursesApi, usersApi } from '../../api/client';
 import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
-import { Phone, Edit, Trash2 } from 'lucide-react';
+import { Phone, Edit, Trash2, X, ZoomIn } from 'lucide-react';
 
 export function AdminDueList() {
   const { user: currentUser } = useAuth();
@@ -16,6 +17,7 @@ export function AdminDueList() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const [reassignModal, setReassignModal] = useState(null);
+  const [historyModal, setHistoryModal] = useState(null);
 
   const fetchDues = () => {
     setLoading(true);
@@ -116,7 +118,7 @@ export function AdminDueList() {
             ) : filtered.length === 0 ? (
               <tr><td colSpan={8} className="text-center py-12 text-green-500">✅ কোনো বকেয়া নেই</td></tr>
             ) : filtered.map(d => (
-              <tr key={d.id} className="hover:bg-gray-50">
+              <tr key={d.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setHistoryModal(d)}>
                 <td className="px-4 py-3">
                   <p className="font-medium">{d.student_name || '—'}</p>
                   <p className="text-xs text-gray-400">{d.student_phone}</p>
@@ -130,17 +132,17 @@ export function AdminDueList() {
                   {d.last_due_date ? format(new Date(d.last_due_date), 'dd/MM/yyyy') : '—'}
                 </td>
                 <td className="px-4 py-3 text-gray-500">{d.executive_name || '—'}</td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                   <a href={`tel:${d.student_phone}`} className="p-1.5 bg-green-50 text-green-600 rounded-lg inline-flex">
                     <Phone size={16} />
                   </a>
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                   <button onClick={() => setReassignModal(d)} className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium">
                     Reassign
                   </button>
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                   {currentUser?.role === 'super_admin' && (
                     <button onClick={() => handleDeleteDue(d)}
                       className="px-2 py-1 bg-red-50 text-red-500 rounded-lg text-xs font-medium">
@@ -158,6 +160,9 @@ export function AdminDueList() {
         <ReassignModal due={reassignModal} executives={executives}
           onClose={() => setReassignModal(null)}
           onSuccess={() => { setReassignModal(null); fetchDues(); }} />
+      )}
+      {historyModal && (
+        <DueHistoryModal due={historyModal} onClose={() => setHistoryModal(null)} />
       )}
     </div>
   );
@@ -464,5 +469,118 @@ export function AdminSettings() {
         )}
       </div>
     </div>
+  );
+}
+const MONTH_BN = ['জানু','ফেব্রু','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টে','অক্টো','নভে','ডিসে'];
+
+function DueHistoryModal({ due, onClose }) {
+  const [detail, setDetail] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [zoomImg, setZoomImg] = useState(null);
+
+  useEffect(() => {
+    salesApi.getById(due.id).then(res => {
+      setDetail(res.data || res);
+      setLoading(false);
+    }).catch(() => {
+      toast.error('লোড হয়নি, আবার চেষ্টা করুন');
+      setLoading(false);
+    });
+  }, [due.id]);
+
+  const history = detail?.payment_history || [];
+
+  return createPortal(
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+      <div className="bg-white w-full max-w-lg rounded-2xl max-h-[90vh] flex flex-col shadow-2xl">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
+          <div>
+            <p className="font-display font-bold text-lg">{due.student_name || due.student_phone}</p>
+            <p className="text-xs text-gray-400">{due.course_name} • {due.batch_name} • {due.executive_name}</p>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-full bg-gray-100"><X size={18} /></button>
+        </div>
+
+        <div className="overflow-y-auto flex-1 px-5 py-4 space-y-5">
+          {loading ? (
+            <div className="flex justify-center py-10"><div className="spinner w-6 h-6" /></div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-gray-50 rounded-xl p-3">
+                  <p className="text-xs text-gray-400 mb-0.5">ভর্তির তারিখ</p>
+                  <p className="font-semibold text-sm">{detail?.created_at ? format(new Date(detail.created_at), 'dd MMM yyyy') : '—'}</p>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-3">
+                  <p className="text-xs text-gray-400 mb-0.5">কোর্স মূল্য</p>
+                  <p className="font-semibold text-sm">৳{Number(due.course_price).toLocaleString()}</p>
+                </div>
+                <div className="bg-green-50 rounded-xl p-3">
+                  <p className="text-xs text-gray-400 mb-0.5">মোট সংগৃহীত</p>
+                  <p className="font-semibold text-sm text-green-600">৳{Number(due.total_collected).toLocaleString()}</p>
+                </div>
+                <div className="bg-red-50 rounded-xl p-3">
+                  <p className="text-xs text-gray-400 mb-0.5">বকেয়া</p>
+                  <p className="font-bold text-sm text-red-600">৳{Number(due.due_amount).toLocaleString()}</p>
+                </div>
+                {due.last_due_date && (
+                  <div className="col-span-2 bg-orange-50 rounded-xl p-3">
+                    <p className="text-xs text-gray-400 mb-0.5">পরিশোধের প্রতিশ্রুতির তারিখ</p>
+                    <p className="font-semibold text-sm text-orange-600">{format(new Date(due.last_due_date), 'dd MMM yyyy')}</p>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">পেমেন্ট ইতিহাস ({history.length}টি)</p>
+                {history.length === 0 ? (
+                  <p className="text-sm text-gray-400 text-center py-4">কোনো পেমেন্ট রেকর্ড নেই</p>
+                ) : (
+                  <div className="space-y-3">
+                    {history.map((p, i) => (
+                      <div key={p.id || i} className="border border-gray-100 rounded-2xl p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-green-600 text-base">৳{Number(p.amount).toLocaleString()}</span>
+                          <span className="text-xs text-gray-400">{p.created_at ? format(new Date(p.created_at), 'dd MMM yyyy, hh:mm a') : ''}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-gray-500">
+                          {p.payment_method && <span>পদ্ধতি: <strong className="text-gray-700">{p.payment_method}</strong></span>}
+                          {p.sender_number && <span>নম্বর: <strong className="text-gray-700">{p.sender_number}</strong></span>}
+                          {p.transaction_id && <span className="col-span-2">TxnID: <strong className="text-gray-700">{p.transaction_id}</strong></span>}
+                          {p.due_date && <span className="col-span-2 text-orange-600">পরবর্তী পরিশোধ: <strong>{format(new Date(p.due_date), 'dd MMM yyyy')}</strong></span>}
+                          {p.collected_by_name && <span className="col-span-2">এন্ট্রি: <strong className="text-gray-700">{p.collected_by_name}</strong></span>}
+                          {p.notes && <span className="col-span-2 text-blue-600">নোট: {p.notes}</span>}
+                        </div>
+                        {p.payment_proof_url && (
+                          <button onClick={() => setZoomImg(p.payment_proof_url)}
+                            className="flex items-center gap-1.5 text-xs text-primary-600 bg-primary-50 px-3 py-1.5 rounded-xl">
+                            <ZoomIn size={14} /> পেমেন্ট প্রুফ দেখুন
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="px-5 pb-4 pt-3 border-t border-gray-100 flex-shrink-0">
+          <a href={`tel:${due.student_phone}`}
+            className="flex items-center justify-center gap-2 py-2.5 bg-green-50 text-green-600 rounded-xl text-sm font-medium w-full">
+            <Phone size={16} /> কল করুন ({due.student_phone})
+          </a>
+        </div>
+      </div>
+
+      {zoomImg && (
+        <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4" onClick={() => setZoomImg(null)}>
+          <img src={zoomImg} alt="proof" className="max-w-full max-h-full rounded-xl object-contain" />
+          <button className="absolute top-4 right-4 p-2 bg-white/20 rounded-full text-white"><X size={20} /></button>
+        </div>
+      )}
+    </div>,
+    document.body
   );
 }
