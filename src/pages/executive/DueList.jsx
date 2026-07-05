@@ -102,7 +102,9 @@ export default function DueList() {
                   <div className="flex items-center gap-2 mt-1.5">
                     <span className="badge-due">বকেয়া ৳{Number(due.due_amount).toLocaleString()}</span>
                     {due.last_due_date && (
-                      <span className="text-xs text-gray-400">{format(new Date(due.last_due_date), 'dd/MM/yyyy')}</span>
+                      <span className="text-xs bg-orange-50 text-orange-600 px-2 py-0.5 rounded-full">
+                        পরিশোধের তারিখ: {format(new Date(due.last_due_date), 'dd/MM/yyyy')}
+                      </span>
                     )}
                   </div>
                 </div>
