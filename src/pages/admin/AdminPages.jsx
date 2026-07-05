@@ -18,6 +18,8 @@ export function AdminDueList() {
   const [dateTo, setDateTo] = useState('');
   const [reassignModal, setReassignModal] = useState(null);
   const [historyModal, setHistoryModal] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 30;
 
   const fetchDues = () => {
     setLoading(true);
@@ -46,6 +48,7 @@ export function AdminDueList() {
     if (dateFrom) result = result.filter(d => d.last_due_date && new Date(d.last_due_date) >= new Date(dateFrom));
     if (dateTo) result = result.filter(d => d.last_due_date && new Date(d.last_due_date) <= new Date(dateTo));
     setFiltered(result);
+    setCurrentPage(1);
   }, [search, execFilter, dateFrom, dateTo, dues]);
 
   const handleExport = () => {
@@ -117,7 +120,7 @@ export function AdminDueList() {
               <tr><td colSpan={8} className="text-center py-12 text-gray-400">লোড হচ্ছে...</td></tr>
             ) : filtered.length === 0 ? (
               <tr><td colSpan={8} className="text-center py-12 text-green-500">✅ কোনো বকেয়া নেই</td></tr>
-            ) : filtered.map(d => (
+            ) : filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE).map(d => (
               <tr key={d.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setHistoryModal(d)}>
                 <td className="px-4 py-3">
                   <p className="font-medium">{d.student_name || '—'}</p>
@@ -154,6 +157,33 @@ export function AdminDueList() {
             ))}
           </tbody>
         </table>
+        {filtered.length > PAGE_SIZE && (() => {
+          const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+          const pages = [];
+          for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || Math.abs(i - currentPage) <= 2) pages.push(i);
+            else if (pages[pages.length - 1] !== '...') pages.push('...');
+          }
+          return (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+              <p className="text-xs text-gray-400">মোট {filtered.length}টি — পেইজ {currentPage}/{totalPages}</p>
+              <div className="flex items-center gap-1">
+                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}
+                  className="p-1.5 rounded-lg border border-gray-200 text-gray-500 disabled:opacity-30 hover:bg-gray-50">←</button>
+                {pages.map((p, i) => p === '...' ? (
+                  <span key={`e${i}`} className="px-2 text-gray-400 text-sm">...</span>
+                ) : (
+                  <button key={p} onClick={() => setCurrentPage(p)}
+                    className={`w-8 h-8 rounded-lg text-sm font-medium ${currentPage === p ? 'bg-primary-500 text-white' : 'border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+                    {p}
+                  </button>
+                ))}
+                <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}
+                  className="p-1.5 rounded-lg border border-gray-200 text-gray-500 disabled:opacity-30 hover:bg-gray-50">→</button>
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {reassignModal && (
