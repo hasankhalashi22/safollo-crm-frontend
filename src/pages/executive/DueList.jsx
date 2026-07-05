@@ -429,14 +429,15 @@ function PaymentHistoryModal({ due, onClose, onPay }) {
                           {p.transaction_id && <span className="col-span-2">TxnID: <strong className="text-gray-700">{p.transaction_id}</strong></span>}
                           {p.due_date && <span className="col-span-2 text-orange-600">পরবর্তী পরিশোধ: <strong>{format(new Date(p.due_date), 'dd MMM yyyy')}</strong></span>}
                           {p.collected_by_name && <span className="col-span-2">এন্ট্রি: <strong className="text-gray-700">{p.collected_by_name}</strong></span>}
-                          {p.note && <span className="col-span-2 text-blue-600">নোট: {p.note}</span>}
+                          {p.notes && <span className="col-span-2 text-blue-600">নোট: {p.notes}</span>}
                         </div>
-                        {p.proof_url && (
-                          <button onClick={() => setZoomImg(p.proof_url)}
+                        {p.payment_proof_url && (
+                          <button onClick={(e) => { e.stopPropagation(); setZoomImg(p.payment_proof_url); }}
                             className="flex items-center gap-1.5 text-xs text-primary-600 bg-primary-50 px-3 py-1.5 rounded-xl">
                             <ZoomIn size={14} /> পেমেন্ট প্রুফ দেখুন
                           </button>
                         )}
+
                       </div>
                     ))}
                   </div>
