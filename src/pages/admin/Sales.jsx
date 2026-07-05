@@ -139,7 +139,7 @@ export default function AdminSales() {
   const [editModal, setEditModal] = useState(null);
   const [filters, setFilters] = useState(EMPTY_ENROLLMENT_FILTERS);
   const [currentPage, setCurrentPage] = useState(1);
-  const PAGE_SIZE = 50;
+  const PAGE_SIZE = 30;
   const [revenueFilters, setRevenueFilters] = useState(EMPTY_REVENUE_FILTERS);
   const [subTab, setSubTab] = useState('details');
   const [dailyFilters, setDailyFilters] = useState({ month: format(new Date(), 'yyyy-MM'), date_from: '', date_to: '', executive_id: '', course_id: '' });
