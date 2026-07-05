@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { salesApi, paymentsApi, bookApi } from '../../api/client';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
-import { Phone, ChevronDown, ChevronUp, Search, Download } from 'lucide-react';
+import { Phone, ChevronDown, ChevronUp, Search, Download, X, ZoomIn } from 'lucide-react';
 
 export default function DueList() {
   const [dues, setDues] = useState([]);
@@ -11,6 +12,7 @@ export default function DueList() {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(null);
   const [payModal, setPayModal] = useState(null);
+  const [historyModal, setHistoryModal] = useState(null);
 
   const fetchDues = () => {
     salesApi.getDueList({ limit: 500 }).then(res => {
@@ -93,9 +95,8 @@ export default function DueList() {
       ) : (
         <div className="space-y-3">
           {filtered.map(due => (
-            <div key={due.id} className="card">
-              <div className="flex items-start justify-between cursor-pointer"
-                onClick={() => setExpanded(expanded === due.id ? null : due.id)}>
+            <div key={due.id} className="card cursor-pointer" onClick={() => setHistoryModal(due)}>
+              <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <p className="font-semibold">{due.student_name || due.student_phone}</p>
                   <p className="text-xs text-gray-500">{due.course_name} • {due.batch_name}</p>
@@ -108,51 +109,19 @@ export default function DueList() {
                     )}
                   </div>
                 </div>
-                {expanded === due.id ? <ChevronUp size={18} className="text-gray-400 mt-1" /> : <ChevronDown size={18} className="text-gray-400 mt-1" />}
+                <span className="text-xs text-gray-400 mt-1">বিস্তারিত →</span>
               </div>
-
-              {expanded === due.id && (
-                <div className="mt-3 pt-3 border-t border-gray-100 space-y-3">
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div>
-                      <p className="text-gray-400 text-xs">ফোন</p>
-                      <p className="font-medium">{due.student_phone}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-xs">কোর্স মূল্য</p>
-                      <p className="font-medium">৳{Number(due.course_price).toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-xs">সংগৃহীত</p>
-                      <p className="font-medium text-green-600">৳{Number(due.total_collected).toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-xs">বাকি</p>
-                      <p className="font-bold text-red-600">৳{Number(due.due_amount).toLocaleString()}</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <a href={`tel:${due.student_phone}`}
-                      className="flex-1 flex items-center justify-center gap-2 py-2 bg-green-50 text-green-600 rounded-xl text-sm font-medium">
-                      <Phone size={16} /> কল করুন
-                    </a>
-                    {due.is_book ? (
-                      <button onClick={() => setPayModal(due)}
-                        className="flex-1 py-2 bg-primary-500 text-white rounded-xl text-sm font-medium active:scale-95">
-                        ডেলিভারি স্ট্যাটাস
-                      </button>
-                    ) : (
-                      <button onClick={() => setPayModal(due)}
-                        className="flex-1 py-2 bg-primary-500 text-white rounded-xl text-sm font-medium active:scale-95">
-                        পেমেন্ট নিন
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
           ))}
         </div>
+      )}
+
+      {historyModal && (
+        <PaymentHistoryModal
+          due={historyModal}
+          onClose={() => setHistoryModal(null)}
+          onPay={(due) => { setHistoryModal(null); setPayModal(due); }}
+        />
       )}
 
    {payModal && (
@@ -385,5 +354,119 @@ function BookDeliveryModal({ due, onClose, onSuccess }) {
         </form>
       </div>
     </div>
+  );
+}
+function PaymentHistoryModal({ due, onClose, onPay }) {
+  const [detail, setDetail] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [zoomImg, setZoomImg] = useState(null);
+
+  useEffect(() => {
+    salesApi.getById(due.id).then(res => {
+      setDetail(res.data || res);
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, [due.id]);
+
+  const history = detail?.payment_history || [];
+
+  return createPortal(
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-end">
+      <div className="bg-white w-full rounded-t-3xl max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0">
+          <div>
+            <p className="font-display font-bold text-lg">{due.student_name || due.student_phone}</p>
+            <p className="text-xs text-gray-400">{due.course_name} • {due.batch_name}</p>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-full bg-gray-100"><X size={18} /></button>
+        </div>
+
+        <div className="overflow-y-auto flex-1 px-5 py-4 space-y-5">
+          {loading ? (
+            <div className="flex justify-center py-10"><div className="spinner w-6 h-6" /></div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-gray-50 rounded-xl p-3">
+                  <p className="text-xs text-gray-400 mb-0.5">ভর্তির তারিখ</p>
+                  <p className="font-semibold text-sm">{detail?.created_at ? format(new Date(detail.created_at), 'dd MMM yyyy') : '—'}</p>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-3">
+                  <p className="text-xs text-gray-400 mb-0.5">কোর্স মূল্য</p>
+                  <p className="font-semibold text-sm">৳{Number(due.course_price).toLocaleString()}</p>
+                </div>
+                <div className="bg-green-50 rounded-xl p-3">
+                  <p className="text-xs text-gray-400 mb-0.5">মোট সংগৃহীত</p>
+                  <p className="font-semibold text-sm text-green-600">৳{Number(due.total_collected).toLocaleString()}</p>
+                </div>
+                <div className="bg-red-50 rounded-xl p-3">
+                  <p className="text-xs text-gray-400 mb-0.5">বকেয়া</p>
+                  <p className="font-bold text-sm text-red-600">৳{Number(due.due_amount).toLocaleString()}</p>
+                </div>
+                {due.last_due_date && (
+                  <div className="col-span-2 bg-orange-50 rounded-xl p-3">
+                    <p className="text-xs text-gray-400 mb-0.5">পরিশোধের প্রতিশ্রুতির তারিখ</p>
+                    <p className="font-semibold text-sm text-orange-600">{format(new Date(due.last_due_date), 'dd MMM yyyy')}</p>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">পেমেন্ট ইতিহাস ({history.length}টি)</p>
+                {history.length === 0 ? (
+                  <p className="text-sm text-gray-400 text-center py-4">কোনো পেমেন্ট রেকর্ড নেই</p>
+                ) : (
+                  <div className="space-y-3">
+                    {history.map((p, i) => (
+                      <div key={p.id || i} className="border border-gray-100 rounded-2xl p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-green-600">৳{Number(p.amount).toLocaleString()}</span>
+                          <span className="text-xs text-gray-400">{p.created_at ? format(new Date(p.created_at), 'dd MMM yyyy, hh:mm a') : ''}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-gray-500">
+                          {p.payment_method && <span>পদ্ধতি: <strong className="text-gray-700">{p.payment_method}</strong></span>}
+                          {p.sender_number && <span>নম্বর: <strong className="text-gray-700">{p.sender_number}</strong></span>}
+                          {p.transaction_id && <span className="col-span-2">TxnID: <strong className="text-gray-700">{p.transaction_id}</strong></span>}
+                          {p.due_date && <span className="col-span-2 text-orange-600">পরবর্তী পরিশোধ: <strong>{format(new Date(p.due_date), 'dd MMM yyyy')}</strong></span>}
+                          {p.collected_by_name && <span className="col-span-2">এন্ট্রি: <strong className="text-gray-700">{p.collected_by_name}</strong></span>}
+                          {p.note && <span className="col-span-2 text-blue-600">নোট: {p.note}</span>}
+                        </div>
+                        {p.proof_url && (
+                          <button onClick={() => setZoomImg(p.proof_url)}
+                            className="flex items-center gap-1.5 text-xs text-primary-600 bg-primary-50 px-3 py-1.5 rounded-xl">
+                            <ZoomIn size={14} /> পেমেন্ট প্রুফ দেখুন
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+
+        <div className="px-5 pb-5 pt-3 border-t border-gray-100 flex gap-3 flex-shrink-0">
+          <a href={`tel:${due.student_phone}`}
+            className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-green-50 text-green-600 rounded-xl text-sm font-medium">
+            <Phone size={16} /> কল করুন
+          </a>
+          {!due.is_book && (
+            <button onClick={() => onPay(due)}
+              className="flex-1 py-2.5 bg-primary-500 text-white rounded-xl text-sm font-medium">
+              পেমেন্ট নিন
+            </button>
+          )}
+        </div>
+      </div>
+
+      {zoomImg && (
+        <div className="fixed inset-0 bg-black/90 z-[60] flex items-center justify-center p-4" onClick={() => setZoomImg(null)}>
+          <img src={zoomImg} alt="proof" className="max-w-full max-h-full rounded-xl object-contain" />
+          <button className="absolute top-4 right-4 p-2 bg-white/20 rounded-full text-white"><X size={20} /></button>
+        </div>
+      )}
+    </div>,
+    document.body
   );
 }
