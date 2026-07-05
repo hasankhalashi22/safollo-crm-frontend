@@ -138,6 +138,8 @@ export default function AdminSales() {
   const [selected, setSelected] = useState(null);
   const [editModal, setEditModal] = useState(null);
   const [filters, setFilters] = useState(EMPTY_ENROLLMENT_FILTERS);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 50;
   const [revenueFilters, setRevenueFilters] = useState(EMPTY_REVENUE_FILTERS);
   const [subTab, setSubTab] = useState('details');
   const [dailyFilters, setDailyFilters] = useState({ month: format(new Date(), 'yyyy-MM'), date_from: '', date_to: '', executive_id: '', course_id: '' });
@@ -156,6 +158,7 @@ const fetchSales = (f = filters) => {
     salesApi.getAll(params).then(res => {
       setSales(res.data || []);
       setTotal(res.total || 0);
+      setCurrentPage(1);
       setLoading(false);
     }).catch(() => setLoading(false));
   };
@@ -847,7 +850,7 @@ const fetchSales = (f = filters) => {
                     <tr><td colSpan={12} className="text-center py-12 text-gray-400">লোড হচ্ছে...</td></tr>
                   ) : sales.length === 0 ? (
                     <tr><td colSpan={12} className="text-center py-12 text-gray-400">কোনো রেকর্ড নেই</td></tr>
-                  ) : sales.map(s => (
+                  ) : sales.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE).map(s => (
                     <tr key={s.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setSelected(s)}>
                       <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{format(new Date(s.created_at), 'dd/MM/yy')}</td>
                       <td className="px-4 py-3">
@@ -889,6 +892,44 @@ const fetchSales = (f = filters) => {
                 </tbody>
               </table>
             </div>
+            {/* Pagination */}
+            {sales.length > PAGE_SIZE && (() => {
+              const totalPages = Math.ceil(sales.length / PAGE_SIZE);
+              const pages = [];
+              for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || Math.abs(i - currentPage) <= 2) pages.push(i);
+                else if (pages[pages.length - 1] !== '...') pages.push('...');
+              }
+              return (
+                <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+                  <p className="text-xs text-gray-400">
+                    মোট {sales.length} টি এন্ট্রি — পেইজ {currentPage}/{totalPages}
+                  </p>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="p-1.5 rounded-lg border border-gray-200 text-gray-500 disabled:opacity-30 hover:bg-gray-50">
+                      ←
+                    </button>
+                    {pages.map((p, i) => p === '...' ? (
+                      <span key={`e${i}`} className="px-2 text-gray-400 text-sm">...</span>
+                    ) : (
+                      <button key={p} onClick={() => setCurrentPage(p)}
+                        className={`w-8 h-8 rounded-lg text-sm font-medium ${currentPage === p ? 'bg-primary-500 text-white' : 'border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+                        {p}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="p-1.5 rounded-lg border border-gray-200 text-gray-500 disabled:opacity-30 hover:bg-gray-50">
+                      →
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </>
       ) : (
