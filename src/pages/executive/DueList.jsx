@@ -365,7 +365,10 @@ function PaymentHistoryModal({ due, onClose, onPay }) {
     salesApi.getById(due.id).then(res => {
       setDetail(res.data || res);
       setLoading(false);
-    }).catch(() => setLoading(false));
+    }).catch(err => {
+      toast.error('লোড হয়নি, আবার চেষ্টা করুন');
+      setLoading(false);
+    });
   }, [due.id]);
 
   const history = detail?.payment_history || [];

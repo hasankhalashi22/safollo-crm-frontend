@@ -4,7 +4,7 @@ const BASE_URL = 'https://safollo-crm-backend.onrender.com';
 
 const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 30000,
+  timeout: 60000,
 });
 
 api.interceptors.request.use((config) => {
