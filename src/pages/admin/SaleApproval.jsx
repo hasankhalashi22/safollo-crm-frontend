@@ -268,9 +268,15 @@ function ApprovalModal({ sale, onApprove, onReject, onClose, onZoom }) {
                 <InfoCard label="কোর্স মূল্য" value={`৳${Number(sale.course_price).toLocaleString()}`} />
                 <InfoCard label="সংগৃহীত" value={`৳${Number(sale.total_collected).toLocaleString()}`} />
                 <InfoCard label="বাকি" value={`৳${Number(sale.due_amount || 0).toLocaleString()}`} />
-                {Number(sale.due_amount) > 0 && sale.payment_history?.[0]?.due_date && (
-                  <InfoCard label="বাকি দেওয়ার তারিখ" value={format(new Date(sale.payment_history[0].due_date), 'dd/MM/yyyy')} />
-                )}
+                {Number(sale.due_amount) > 0 && (() => {
+                  const lastDueDate = [...(sale.payment_history || [])].reverse().find(p => p.due_date)?.due_date;
+                  return lastDueDate ? (
+                    <div className="bg-red-50 rounded-xl p-3 col-span-2">
+                      <p className="text-xs text-gray-400 mb-0.5">বাকি দেওয়ার তারিখ</p>
+                      <p className="font-bold text-red-600">{format(new Date(lastDueDate), 'dd MMM yyyy')}</p>
+                    </div>
+                  ) : null;
+                })()}
                 <InfoCard label="নোট" value={sale.notes || '—'} />
               </div>
             )}
