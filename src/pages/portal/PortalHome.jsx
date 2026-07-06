@@ -25,7 +25,10 @@ export default function PortalHome() {
 
   useEffect(() => { fetchAll(); }, []);
 
+  const requiresLocationCheck = ['full_time', 'residential'].includes(user?.employment_type);
+
   const verifyLocation = () => new Promise((resolve, reject) => {
+    if (!requiresLocationCheck) return resolve();
     if (!navigator.geolocation) return reject(new Error('আপনার ডিভাইসে GPS সমর্থিত নয়'));
     navigator.geolocation.getCurrentPosition(
       (pos) => {
