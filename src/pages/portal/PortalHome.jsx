@@ -31,7 +31,7 @@ export default function PortalHome() {
       (pos) => {
         const OFFICE_LAT = 23.8136438979753;
         const OFFICE_LNG = 90.36224638800711;
-        const RADIUS_METERS = 100;
+        const RADIUS_METERS = 30;
         const toRad = (v) => (v * Math.PI) / 180;
         const R = 6371000;
         const dLat = toRad(pos.coords.latitude - OFFICE_LAT);
