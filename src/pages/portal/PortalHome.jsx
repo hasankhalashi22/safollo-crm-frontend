@@ -25,9 +25,32 @@ export default function PortalHome() {
 
   useEffect(() => { fetchAll(); }, []);
 
+  const verifyLocation = () => new Promise((resolve, reject) => {
+    if (!navigator.geolocation) return reject(new Error('আপনার ডিভাইসে GPS সমর্থিত নয়'));
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const OFFICE_LAT = 23.8136438979753;
+        const OFFICE_LNG = 90.36224638800711;
+        const RADIUS_METERS = 100;
+        const toRad = (v) => (v * Math.PI) / 180;
+        const R = 6371000;
+        const dLat = toRad(pos.coords.latitude - OFFICE_LAT);
+        const dLng = toRad(pos.coords.longitude - OFFICE_LNG);
+        const a = Math.sin(dLat / 2) ** 2 +
+          Math.cos(toRad(OFFICE_LAT)) * Math.cos(toRad(pos.coords.latitude)) * Math.sin(dLng / 2) ** 2;
+        const distance = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        if (distance <= RADIUS_METERS) resolve();
+        else reject(new Error('আপনি এখন সাফল্য একাডেমিতে অবস্থান করছেন না'));
+      },
+      () => reject(new Error('Location permission দিন এবং GPS চালু করুন')),
+      { timeout: 10000, enableHighAccuracy: true }
+    );
+  });
+
   const handleCheckIn = async () => {
     setActionLoading(true);
     try {
+      await verifyLocation();
       await attendanceApi.checkIn();
       toast.success('Check-in সফল হয়েছে ✅');
       fetchAll();
@@ -61,6 +84,7 @@ export default function PortalHome() {
   const handleCheckOut = async () => {
     setActionLoading(true);
     try {
+      await verifyLocation();
       await attendanceApi.checkOut();
       toast.success('Check-out সফল হয়েছে ✅');
       fetchAll();
