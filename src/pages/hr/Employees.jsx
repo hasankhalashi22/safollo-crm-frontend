@@ -194,7 +194,7 @@ export default function Employees() {
                 <p className="text-xs text-gray-400 truncate">
                   {[emp.designation || emp.position_title, emp.department,
                     emp.reports_to_name ? `রিপোর্ট: ${emp.reports_to_name}` : null,
-                    emp.is_remote ? 'Remote' : null,
+                    emp.employment_type && emp.employment_type !== 'full_time' ? { full_time: 'Full Time', residential: 'Residential', remote: 'Remote', contractual: 'Contractual', assignment_based: 'Assignment Based' }[emp.employment_type] : null,
                     exitDate && exitLabel ? `${exitLabel}: ${format(new Date(exitDate), 'dd/MM/yyyy')}` : null,
                     emp.exit_reason ? `কারণ: ${emp.exit_reason}` : null,
                   ].filter(Boolean).join(' · ') || '—'}
