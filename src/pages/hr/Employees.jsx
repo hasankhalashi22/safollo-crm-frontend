@@ -163,7 +163,7 @@ export default function Employees() {
         ) : filtered.map(emp => {
           const allBadges = [
             emp.user_id && { key: 'ess', label: 'ESS', cls: 'bg-green-50 text-green-700' },
-            emp.crm_phone && { key: 'crm', label: `CRM: ${emp.crm_role_label || 'User'}`, cls: 'bg-blue-50 text-blue-600' },
+            emp.crm_phone && emp.crm_role_label && emp.crm_role_label !== 'Employee (ESS only)' && { key: 'crm', label: `CRM: ${emp.crm_role_label}`, cls: 'bg-blue-50 text-blue-600' },
             ...(emp.module_access || []).filter(a => a.module_key !== 'crm').map(a => ({
               key: a.module_key,
               label: MODULES.find(m => m.key === a.module_key)?.label || a.module_key,
