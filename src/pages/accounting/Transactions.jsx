@@ -1,4 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+
+function useScrollLock() {
+  useEffect(() => {
+    const y = window.scrollY;
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${y}px`;
+    document.body.style.width = '100%';
+    return () => {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      window.scrollTo(0, y);
+    };
+  }, []);
+}
 import { accountingApi } from '../../api/client';
 import { useAuth } from '../../hooks/useAuth';
 import { canEditModule, canUpdateModule } from '../../utils/moduleAccess';
@@ -256,6 +271,7 @@ export default function Transactions() {
 }
 
 function EntryModal({ mode, onClose, onSuccess }) {
+  useScrollLock();
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [proofPreview, setProofPreview] = useState(null);
@@ -529,6 +545,7 @@ function EntryModal({ mode, onClose, onSuccess }) {
 }
 
 function DistributeProfitModal({ onClose, onSuccess }) {
+  useScrollLock();
   const [accounts, setAccounts] = useState([]);
   const [shareholders, setShareholders] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -638,6 +655,7 @@ function DistributeProfitModal({ onClose, onSuccess }) {
 }
 
 function EditModal({ txn, onClose, onSuccess }) {
+  useScrollLock();
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [proofPreview, setProofPreview] = useState(null);
