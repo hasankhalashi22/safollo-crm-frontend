@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { accountingApi } from '../../api/client';
 import { useAuth } from '../../hooks/useAuth';
-import { canEditModule } from '../../utils/moduleAccess';
+import { canEditModule, canUpdateModule } from '../../utils/moduleAccess';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { Trash2, Camera, X, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Edit2, CreditCard, TrendingUp, Users, ZoomIn } from 'lucide-react';
@@ -9,6 +9,7 @@ import { Trash2, Camera, X, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Edit
 export default function Transactions() {
  const { user } = useAuth();
   const canEdit = canEditModule(user, 'accounting');
+  const canUpdate = canUpdateModule(user, 'accounting');
   const [transactions, setTransactions] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -144,7 +145,7 @@ export default function Transactions() {
                             <ZoomIn size={14} />
                           </button>
                         )}
-                        {(isSuperAdmin || canEdit) && (
+                        {(isSuperAdmin || canUpdate) && (
                           <button onClick={() => setEditTxn(t)}
                             className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium">
                             <Edit2 size={14} />

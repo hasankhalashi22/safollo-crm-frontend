@@ -12,8 +12,14 @@ export function hasModuleAccess(user, moduleKey) {
   return !!getModuleRole(user, moduleKey);
 }
 
-// Convenience check: does this user have edit-level access (editor or admin) to a module?
+// Convenience check: does this user have entry-level access (editor or above)?
 export function canEditModule(user, moduleKey) {
   const role = getModuleRole(user, moduleKey);
   return role === 'editor' || role === 'admin' || role === 'hr_manager';
+}
+
+// Convenience check: can this user edit/update existing records (admin or above)?
+export function canUpdateModule(user, moduleKey) {
+  const role = getModuleRole(user, moduleKey);
+  return role === 'admin' || role === 'hr_manager';
 }
