@@ -4,19 +4,23 @@ import { useAuth } from '../../hooks/useAuth';
 import { canEditModule, canUpdateModule } from '../../utils/moduleAccess';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
-import { Trash2, Camera, X, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Edit2, CreditCard, TrendingUp, Users, ZoomIn } from 'lucide-react';
+import { Trash2, Camera, X, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Edit2, CreditCard, TrendingUp, Users, ZoomIn, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+
+const PAGE_SIZE = 30;
 
 export default function Transactions() {
  const { user } = useAuth();
   const canEdit = canEditModule(user, 'accounting');
   const canUpdate = canUpdateModule(user, 'accounting');
   const [transactions, setTransactions] = useState([]);
+  const [accounts, setAccounts] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [entryMode, setEntryMode] = useState(null);
   const [editTxn, setEditTxn] = useState(null);
   const [proofModal, setProofModal] = useState(null);
-  const [filters, setFilters] = useState({ date_from: '', date_to: '', transaction_type: '' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [filters, setFilters] = useState({ date_from: '', date_to: '', transaction_type: '', account_id: '' });
 
   const fetchTransactions = (f = filters) => {
     setLoading(true);
@@ -24,14 +28,19 @@ export default function Transactions() {
     if (f.date_from) params.date_from = f.date_from;
     if (f.date_to) params.date_to = f.date_to;
     if (f.transaction_type) params.transaction_type = f.transaction_type;
+    if (f.account_id) params.account_id = f.account_id;
     accountingApi.getTransactions(params).then(r => {
       setTransactions(r.data || []);
       setTotal(r.total || 0);
+      setCurrentPage(1);
       setLoading(false);
     }).catch(() => setLoading(false));
   };
 
-  useEffect(() => { fetchTransactions(); }, []);
+  useEffect(() => {
+    fetchTransactions();
+    accountingApi.getAccounts().then(r => setAccounts(r.data || []));
+  }, []);
 
   const setFilter = (k, v) => setFilters(p => ({ ...p, [k]: v }));
 
@@ -92,10 +101,14 @@ export default function Transactions() {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-3">
           <input type="date" className="input-field" value={filters.date_from} onChange={e => setFilter('date_from', e.target.value)} />
           <input type="date" className="input-field" value={filters.date_to} onChange={e => setFilter('date_to', e.target.value)} />
+          <select className="input-field" value={filters.account_id} onChange={e => setFilter('account_id', e.target.value)}>
+            <option value="">সব Account</option>
+            {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+          </select>
         </div>
         <div className="flex gap-2">
           <button onClick={() => fetchTransactions()} className="btn-primary py-2 px-6">Search</button>
-          <button onClick={() => { setFilters({ date_from: '', date_to: '', transaction_type: '' }); fetchTransactions({ date_from: '', date_to: '', transaction_type: '' }); }}
+          <button onClick={() => { setFilters({ date_from: '', date_to: '', transaction_type: '', account_id: '' }); fetchTransactions({ date_from: '', date_to: '', transaction_type: '', account_id: '' }); }}
             className="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl text-sm font-medium">Reset</button>
         </div>
       </div>
@@ -115,7 +128,7 @@ export default function Transactions() {
                 <tr><td colSpan={7} className="text-center py-12 text-gray-400">Loading...</td></tr>
               ) : transactions.length === 0 ? (
                 <tr><td colSpan={7} className="text-center py-12 text-gray-400">No records</td></tr>
-              ) : transactions.map(t => {
+              ) : transactions.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE).map(t => {
                 const isCashIn = t.transaction_type === 'revenue';
                 const isCashOut = t.transaction_type === 'expense';
                 const isCardCharge = t.transaction_type === 'credit_card_charge';
@@ -166,6 +179,40 @@ export default function Transactions() {
           </table>
         </div>
       </div>
+
+      {/* যোগফল */}
+      {transactions.length > 0 && (() => {
+        const totalIn = transactions.filter(t => t.transaction_type === 'revenue').reduce((s, t) => s + Number(t.amount), 0);
+        const totalOut = transactions.filter(t => t.transaction_type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
+        const totalPages = Math.ceil(transactions.length / PAGE_SIZE);
+        const pages = [];
+        const start = Math.max(1, currentPage - 3);
+        const end = Math.min(totalPages, start + 6);
+        for (let i = start; i <= end; i++) pages.push(i);
+        return (
+          <>
+            <div className="flex gap-4 mt-3 px-1">
+              <div className="text-sm text-green-600 font-medium">মোট Cash In: <span className="font-bold">Tk {totalIn.toLocaleString()}</span></div>
+              <div className="text-sm text-red-600 font-medium">মোট Cash Out: <span className="font-bold">Tk {totalOut.toLocaleString()}</span></div>
+              <div className="text-sm text-gray-600 font-medium">নেট: <span className="font-bold">Tk {(totalIn - totalOut).toLocaleString()}</span></div>
+            </div>
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-1 mt-4">
+                <button onClick={() => setCurrentPage(1)} disabled={currentPage === 1} className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30"><ChevronsLeft size={16} /></button>
+                <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1} className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30"><ChevronLeft size={16} /></button>
+                {pages.map(p => (
+                  <button key={p} onClick={() => setCurrentPage(p)}
+                    className={`w-8 h-8 rounded-lg text-sm font-medium ${currentPage === p ? 'bg-primary-600 text-white' : 'hover:bg-gray-100 text-gray-600'}`}>
+                    {p}
+                  </button>
+                ))}
+                <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages} className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30"><ChevronRight size={16} /></button>
+                <button onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages} className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30"><ChevronsRight size={16} /></button>
+              </div>
+            )}
+          </>
+        );
+      })()}
 
       {entryMode && entryMode !== 'distribute_profit' && (
         <EntryModal
