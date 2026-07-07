@@ -4,7 +4,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { canEditModule } from '../../utils/moduleAccess';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
-import { Trash2, Camera, X, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Edit2, CreditCard, TrendingUp, Users } from 'lucide-react';
+import { Trash2, Camera, X, ArrowDownCircle, ArrowUpCircle, ArrowLeftRight, Edit2, CreditCard, TrendingUp, Users, ZoomIn } from 'lucide-react';
 
 export default function Transactions() {
  const { user } = useAuth();
@@ -14,6 +14,7 @@ export default function Transactions() {
   const [loading, setLoading] = useState(true);
   const [entryMode, setEntryMode] = useState(null);
   const [editTxn, setEditTxn] = useState(null);
+  const [proofModal, setProofModal] = useState(null);
   const [filters, setFilters] = useState({ date_from: '', date_to: '', transaction_type: '' });
 
   const fetchTransactions = (f = filters) => {
@@ -137,6 +138,12 @@ export default function Transactions() {
                     <td className="px-4 py-3 text-gray-500">{t.created_by_name || t.created_by_phone || '—'}</td>
                     <td className="px-4 py-3">
                       <div className="flex gap-1">
+                        {t.proof_url && (
+                          <button onClick={() => setProofModal(t.proof_url)}
+                            className="px-2 py-1 bg-purple-50 text-purple-600 rounded-lg text-xs font-medium" title="Proof দেখুন">
+                            <ZoomIn size={14} />
+                          </button>
+                        )}
                         {(isSuperAdmin || canEdit) && (
                           <button onClick={() => setEditTxn(t)}
                             className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium">
@@ -180,6 +187,20 @@ export default function Transactions() {
           onClose={() => setEditTxn(null)}
           onSuccess={() => { setEditTxn(null); fetchTransactions(); }}
         />
+      )}
+
+      {proofModal && (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={() => setProofModal(null)}>
+          <button className="absolute top-4 right-4 text-white bg-black/40 rounded-full p-2" onClick={() => setProofModal(null)}>
+            <X size={20} />
+          </button>
+          <img
+            src={proofModal}
+            alt="proof"
+            className="max-w-full max-h-[90vh] rounded-xl object-contain"
+            onClick={e => e.stopPropagation()}
+          />
+        </div>
       )}
     </div>
   );
