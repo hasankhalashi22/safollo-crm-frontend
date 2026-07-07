@@ -113,12 +113,24 @@ export default function Transactions() {
         </div>
       </div>
 
+      {transactions.length > 0 && (() => {
+        const totalIn = transactions.filter(t => t.transaction_type === 'revenue').reduce((s, t) => s + Number(t.amount), 0);
+        const totalOut = transactions.filter(t => t.transaction_type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
+        return (
+          <div className="flex flex-wrap gap-4 mb-3 px-1">
+            <div className="text-sm text-gray-500">মোট এন্ট্রি: <span className="font-bold text-gray-700">{transactions.length}</span></div>
+            <div className="text-sm text-green-600">মোট Cash In: <span className="font-bold">Tk {totalIn.toLocaleString()}</span></div>
+            <div className="text-sm text-red-600">মোট Cash Out: <span className="font-bold">Tk {totalOut.toLocaleString()}</span></div>
+          </div>
+        );
+      })()}
+
       <div className="card overflow-hidden p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                {['Date', 'Description', 'Account', 'Cash In', 'Cash Out', 'Created By', 'Action'].map(h => (
+                {['#', 'Date', 'Description', 'Account', 'Cash In', 'Cash Out', 'Created By', 'Action'].map(h => (
                   <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -128,13 +140,14 @@ export default function Transactions() {
                 <tr><td colSpan={7} className="text-center py-12 text-gray-400">Loading...</td></tr>
               ) : transactions.length === 0 ? (
                 <tr><td colSpan={7} className="text-center py-12 text-gray-400">No records</td></tr>
-              ) : transactions.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE).map(t => {
+              ) : transactions.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE).map((t, idx) => {
                 const isCashIn = t.transaction_type === 'revenue';
                 const isCashOut = t.transaction_type === 'expense';
                 const isCardCharge = t.transaction_type === 'credit_card_charge';
                 const isTransfer = !isCashIn && !isCashOut && !isCardCharge;
                 return (
                   <tr key={t.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">{(currentPage - 1) * PAGE_SIZE + idx + 1}</td>
                     <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{format(new Date(t.transaction_date), 'dd/MM/yy')}</td>
                     <td className="px-4 py-3 text-gray-600">{t.description || '—'}</td>
                     <td className="px-4 py-3 text-gray-500">
@@ -180,38 +193,26 @@ export default function Transactions() {
         </div>
       </div>
 
-      {/* যোগফল */}
-      {transactions.length > 0 && (() => {
-        const totalIn = transactions.filter(t => t.transaction_type === 'revenue').reduce((s, t) => s + Number(t.amount), 0);
-        const totalOut = transactions.filter(t => t.transaction_type === 'expense').reduce((s, t) => s + Number(t.amount), 0);
+      {transactions.length > 1 && (() => {
         const totalPages = Math.ceil(transactions.length / PAGE_SIZE);
         const pages = [];
         const start = Math.max(1, currentPage - 3);
         const end = Math.min(totalPages, start + 6);
         for (let i = start; i <= end; i++) pages.push(i);
-        return (
-          <>
-            <div className="flex gap-4 mt-3 px-1">
-              <div className="text-sm text-green-600 font-medium">মোট Cash In: <span className="font-bold">Tk {totalIn.toLocaleString()}</span></div>
-              <div className="text-sm text-red-600 font-medium">মোট Cash Out: <span className="font-bold">Tk {totalOut.toLocaleString()}</span></div>
-              <div className="text-sm text-gray-600 font-medium">নেট: <span className="font-bold">Tk {(totalIn - totalOut).toLocaleString()}</span></div>
-            </div>
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-1 mt-4">
-                <button onClick={() => setCurrentPage(1)} disabled={currentPage === 1} className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30"><ChevronsLeft size={16} /></button>
-                <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1} className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30"><ChevronLeft size={16} /></button>
-                {pages.map(p => (
-                  <button key={p} onClick={() => setCurrentPage(p)}
-                    className={`w-8 h-8 rounded-lg text-sm font-medium ${currentPage === p ? 'bg-primary-600 text-white' : 'hover:bg-gray-100 text-gray-600'}`}>
-                    {p}
-                  </button>
-                ))}
-                <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages} className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30"><ChevronRight size={16} /></button>
-                <button onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages} className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30"><ChevronsRight size={16} /></button>
-              </div>
-            )}
-          </>
-        );
+        return totalPages > 1 ? (
+          <div className="flex items-center justify-center gap-1 mt-4">
+            <button onClick={() => setCurrentPage(1)} disabled={currentPage === 1} className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30"><ChevronsLeft size={16} /></button>
+            <button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1} className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30"><ChevronLeft size={16} /></button>
+            {pages.map(p => (
+              <button key={p} onClick={() => setCurrentPage(p)}
+                className={`w-8 h-8 rounded-lg text-sm font-medium ${currentPage === p ? 'bg-primary-600 text-white' : 'hover:bg-gray-100 text-gray-600'}`}>
+                {p}
+              </button>
+            ))}
+            <button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages} className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30"><ChevronRight size={16} /></button>
+            <button onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages} className="p-1.5 rounded-lg hover:bg-gray-100 disabled:opacity-30"><ChevronsRight size={16} /></button>
+          </div>
+        ) : null;
       })()}
 
       {entryMode && entryMode !== 'distribute_profit' && (
