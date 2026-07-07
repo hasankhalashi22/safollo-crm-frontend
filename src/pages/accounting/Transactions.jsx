@@ -150,7 +150,7 @@ export default function Transactions() {
                             <Edit2 size={14} />
                           </button>
                         )}
-                        {(isSuperAdmin || canEdit) && (
+                        {isSuperAdmin && (
                           <button onClick={() => handleDelete(t)}
                             className="px-2 py-1 bg-red-50 text-red-500 rounded-lg text-xs font-medium">
                             <Trash2 size={14} />
