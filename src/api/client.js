@@ -157,7 +157,7 @@ getJournal: (params) => api.get('/api/accounting/journal', { params }),
   createTransaction: (formData) => api.post('/api/accounting/transactions', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
-  getTransactions: (params) => api.get('/api/accounting/transactions', { params }),
+  getTransactions: (params) => api.get('/api/accounting/transactions', { params: { limit: 10000, ...params } }),
   deleteTransaction: (id) => api.delete(`/api/accounting/transactions/${id}`),
 updateTransaction: (id, formData) => api.patch(`/api/accounting/transactions/${id}`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
