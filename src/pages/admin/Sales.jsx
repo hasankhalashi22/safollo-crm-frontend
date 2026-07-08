@@ -362,7 +362,18 @@ const fetchSales = (f = filters) => {
     return Object.values(map).sort((a, b) => b.date.localeCompare(a.date));
   })();
 
-  const dailySummaryRows = enrollmentSummaryRows;
+  // Merged table: union of all dates from both summaries
+  const dailySummaryRows = (() => {
+    const map = {};
+    enrollmentSummaryRows.forEach(r => {
+      map[r.date] = { date: r.date, count: r.count, gross: r.gross, due: r.due, collected: 0 };
+    });
+    collectionSummaryRows.forEach(r => {
+      if (map[r.date]) map[r.date].collected = r.collected;
+      else map[r.date] = { date: r.date, count: 0, gross: 0, due: 0, collected: r.collected };
+    });
+    return Object.values(map).sort((a, b) => b.date.localeCompare(a.date));
+  })();
 
   const courseRows = useMemo(() => {
     let f = [...sales];
@@ -593,108 +604,70 @@ const fetchSales = (f = filters) => {
             </div>
           </div>
 
-          {enrollmentSummaryRows.length > 0 && (
+          {dailySummaryRows.length > 0 && (
             <div className="card mb-4">
-              <p className="text-xs font-medium text-gray-500 mb-3">দৈনিক সেলস চার্ট (Enrollment ভিত্তিক)</p>
+              <p className="text-xs font-medium text-gray-500 mb-3">দৈনিক সেলস চার্ট</p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 8, fontSize: 11, color: '#666' }}>
-                {[['গ্রস সেল','#378ADD'],['বকেয়া','#E24B4A']].map(([l,c]) => (
+                {[['গ্রস সেল','#378ADD'],['সংগৃহীত','#1D9E75'],['বকেয়া','#E24B4A']].map(([l,c]) => (
                   <span key={l} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                     <span style={{ width: 10, height: 10, borderRadius: 2, background: c, display: 'inline-block' }} />{l}
                   </span>
                 ))}
               </div>
               <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={enrollmentSummaryRows.map(r => ({ date: format(new Date(r.date), 'dd/MM'), gross: r.gross, due: r.due }))}
+                <BarChart data={dailySummaryRows.map(r => ({ date: format(new Date(r.date), 'dd/MM'), gross: r.gross, collected: r.collected, due: r.due }))}
                   margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                   <XAxis dataKey="date" tick={{ fontSize: 10 }} />
                   <YAxis tick={{ fontSize: 10 }} tickFormatter={v => `৳${(v/1000).toFixed(0)}k`} />
                   <Tooltip formatter={(v) => `৳${Number(v).toLocaleString()}`} />
                   <Bar dataKey="gross" name="গ্রস সেল" fill="#378ADD" radius={[3,3,0,0]} />
+                  <Bar dataKey="collected" name="সংগৃহীত" fill="#1D9E75" radius={[3,3,0,0]} />
                   <Bar dataKey="due" name="বকেয়া" fill="#E24B4A" radius={[3,3,0,0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           )}
 
-          {/* Table 1: Enrollment Summary */}
-          <div className="card overflow-hidden p-0 mb-4">
-            <div className="px-4 py-3 bg-blue-50 border-b border-blue-100">
-              <p className="text-sm font-semibold text-blue-700">Enrollment Summary (Enrollment তারিখ ভিত্তিক)</p>
-              <p className="text-xs text-blue-500 mt-0.5">কোন তারিখে কতটি enrollment হয়েছে এবং মোট গ্রস সেল</p>
+          <div className="card overflow-hidden p-0">
+            <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
+              <p className="text-xs text-gray-400">গ্রস সেল ও এনরোলমেন্ট = enrollment তারিখ ভিত্তিক · সংগৃহীত = payment approved তারিখ ভিত্তিক</p>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b border-gray-100">
                   <tr>
-                    {['তারিখ', 'এনরোলমেন্ট', 'গ্রস সেল', 'বকেয়া'].map(h => (
+                    {['তারিখ', 'এনরোলমেন্ট', 'গ্রস সেল', 'সংগৃহীত', 'বকেয়া'].map(h => (
                       <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {loading ? (
-                    <tr><td colSpan={4} className="text-center py-12 text-gray-400">লোড হচ্ছে...</td></tr>
-                  ) : enrollmentSummaryRows.length === 0 ? (
-                    <tr><td colSpan={4} className="text-center py-12 text-gray-400">কোনো রেকর্ড নেই</td></tr>
-                  ) : enrollmentSummaryRows.map(r => (
+                    <tr><td colSpan={5} className="text-center py-12 text-gray-400">লোড হচ্ছে...</td></tr>
+                  ) : dailySummaryRows.length === 0 ? (
+                    <tr><td colSpan={5} className="text-center py-12 text-gray-400">কোনো রেকর্ড নেই</td></tr>
+                  ) : dailySummaryRows.map(r => (
                     <tr key={r.date} className="hover:bg-gray-50">
                       <td className="px-4 py-3 font-medium whitespace-nowrap">{format(new Date(r.date), 'dd/MM/yyyy')}</td>
-                      <td className="px-4 py-3 text-center font-medium">{r.count}</td>
-                      <td className="px-4 py-3 text-blue-600 font-semibold whitespace-nowrap">৳{Number(r.gross).toLocaleString()}</td>
-                      <td className="px-4 py-3 text-red-500 whitespace-nowrap">৳{Number(r.due).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-center font-medium">{r.count || '—'}</td>
+                      <td className="px-4 py-3 text-blue-600 font-semibold whitespace-nowrap">{r.gross ? `৳${Number(r.gross).toLocaleString()}` : '—'}</td>
+                      <td className="px-4 py-3 text-green-600 font-semibold whitespace-nowrap">{r.collected ? `৳${Number(r.collected).toLocaleString()}` : '—'}</td>
+                      <td className="px-4 py-3 text-red-500 whitespace-nowrap">{r.due ? `৳${Number(r.due).toLocaleString()}` : '—'}</td>
                     </tr>
                   ))}
-                  {enrollmentSummaryRows.length > 0 && (() => {
-                    const t = enrollmentSummaryRows.reduce((acc, r) => ({
-                      count: acc.count + r.count, gross: acc.gross + r.gross, due: acc.due + r.due
-                    }), { count: 0, gross: 0, due: 0 });
+                  {dailySummaryRows.length > 0 && (() => {
+                    const t = dailySummaryRows.reduce((acc, r) => ({
+                      count: acc.count + (r.count || 0), gross: acc.gross + (r.gross || 0),
+                      collected: acc.collected + (r.collected || 0), due: acc.due + (r.due || 0)
+                    }), { count: 0, gross: 0, collected: 0, due: 0 });
                     return (
                       <tr className="bg-primary-50 font-bold border-t-2 border-primary-100">
                         <td className="px-4 py-3 text-primary-700">মোট</td>
                         <td className="px-4 py-3 text-center text-primary-700">{t.count}</td>
                         <td className="px-4 py-3 text-blue-700 whitespace-nowrap">৳{Number(t.gross).toLocaleString()}</td>
+                        <td className="px-4 py-3 text-green-700 whitespace-nowrap">৳{Number(t.collected).toLocaleString()}</td>
                         <td className="px-4 py-3 text-red-600 whitespace-nowrap">৳{Number(t.due).toLocaleString()}</td>
-                      </tr>
-                    );
-                  })()}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Table 2: Collection Summary */}
-          <div className="card overflow-hidden p-0">
-            <div className="px-4 py-3 bg-green-50 border-b border-green-100">
-              <p className="text-sm font-semibold text-green-700">Collection Summary (Payment তারিখ ভিত্তিক)</p>
-              <p className="text-xs text-green-500 mt-0.5">কোন তারিখে কত টাকা সংগ্রহ হয়েছে (approved payments)</p>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-100">
-                  <tr>
-                    {['তারিখ', 'সংগৃহীত'].map(h => (
-                      <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {loading ? (
-                    <tr><td colSpan={2} className="text-center py-12 text-gray-400">লোড হচ্ছে...</td></tr>
-                  ) : collectionSummaryRows.length === 0 ? (
-                    <tr><td colSpan={2} className="text-center py-12 text-gray-400">কোনো রেকর্ড নেই</td></tr>
-                  ) : collectionSummaryRows.map(r => (
-                    <tr key={r.date} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium whitespace-nowrap">{format(new Date(r.date), 'dd/MM/yyyy')}</td>
-                      <td className="px-4 py-3 text-green-600 font-semibold whitespace-nowrap">৳{Number(r.collected).toLocaleString()}</td>
-                    </tr>
-                  ))}
-                  {collectionSummaryRows.length > 0 && (() => {
-                    const total = collectionSummaryRows.reduce((s, r) => s + r.collected, 0);
-                    return (
-                      <tr className="bg-green-50 font-bold border-t-2 border-green-100">
-                        <td className="px-4 py-3 text-green-700">মোট</td>
-                        <td className="px-4 py-3 text-green-700 whitespace-nowrap">৳{Number(total).toLocaleString()}</td>
                       </tr>
                     );
                   })()}
