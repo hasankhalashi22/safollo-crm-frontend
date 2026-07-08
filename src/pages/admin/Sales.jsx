@@ -327,17 +327,37 @@ const fetchSales = (f = filters) => {
     if (dailyFilters.date_to) filtered = filtered.filter(s => s.created_at.split('T')[0] <= dailyFilters.date_to);
     if (dailyFilters.month && !dailyFilters.date_from && !dailyFilters.date_to)
       filtered = filtered.filter(s => s.created_at.startsWith(dailyFilters.month));
-    if (dailyFilters.payment_method)
-      filtered = filtered.filter(s => (s.payment_history || []).some(p => p.payment_method === dailyFilters.payment_method));
     const map = {};
     filtered.forEach(s => {
-      const d = s.created_at.split('T')[0];
-      if (!map[d]) map[d] = { date: d, count: 0, gross: 0, collected: 0, due: 0 };
-      map[d].count++;
-      map[d].gross += Number(s.course_price) || 0;
-      map[d].collected += Number(s.total_collected) || 0;
-      map[d].due += Number(s.due_amount) || 0;
+      const approvedPayments = (s.payment_history || []).filter(p => p.approval_status === 'approved');
+      const methodPayments = dailyFilters.payment_method
+        ? approvedPayments.filter(p => p.payment_method === dailyFilters.payment_method)
+        : approvedPayments;
+      methodPayments.forEach(p => {
+        const d = (p.created_at || '').split('T')[0];
+        if (!d) return;
+        if (!map[d]) map[d] = { date: d, count: 0, gross: 0, collected: 0, due: 0 };
+        map[d].collected += Number(p.amount) || 0;
+      });
+      if (!dailyFilters.payment_method) {
+        const enrollDate = s.created_at.split('T')[0];
+        if (!map[enrollDate]) map[enrollDate] = { date: enrollDate, count: 0, gross: 0, collected: 0, due: 0 };
+        map[enrollDate].count++;
+        map[enrollDate].gross += Number(s.course_price) || 0;
+        map[enrollDate].due += Number(s.due_amount) || 0;
+      }
     });
+    if (dailyFilters.payment_method) {
+      filtered.forEach(s => {
+        const approvedPayments = (s.payment_history || []).filter(p => p.approval_status === 'approved' && p.payment_method === dailyFilters.payment_method);
+        if (approvedPayments.length === 0) return;
+        const enrollDate = s.created_at.split('T')[0];
+        if (!map[enrollDate]) map[enrollDate] = { date: enrollDate, count: 0, gross: 0, collected: 0, due: 0 };
+        map[enrollDate].count++;
+        map[enrollDate].gross += Number(s.course_price) || 0;
+        map[enrollDate].due += Number(s.due_amount) || 0;
+      });
+    }
     return Object.values(map).sort((a, b) => b.date.localeCompare(a.date));
   })();
 
