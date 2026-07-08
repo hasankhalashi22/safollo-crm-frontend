@@ -164,7 +164,10 @@ export default function Transactions() {
                   <tr key={t.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">{(currentPage - 1) * PAGE_SIZE + idx + 1}</td>
                     <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{format(new Date(t.transaction_date), 'dd/MM/yy')}</td>
-                    <td className="px-4 py-3 text-gray-600">{t.description || '—'}</td>
+                    <td className="px-4 py-3 text-gray-600">
+                      <div>{t.description || '—'}</div>
+                      {t.source === 'crm_sync' && <span className="text-xs bg-blue-50 text-blue-500 px-1.5 py-0.5 rounded mt-0.5 inline-block">CRM</span>}
+                    </td>
                     <td className="px-4 py-3 text-gray-500">
                       <p className="text-xs">{t.debit_account_name}</p>
                       <p className="text-xs text-gray-400">← {t.credit_account_name}</p>
