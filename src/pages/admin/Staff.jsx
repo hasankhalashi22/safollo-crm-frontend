@@ -114,14 +114,14 @@ const handleExport = () => {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b">
             <tr>
-              {['নাম', 'ফোন', 'Role', 'ম্যানেজার', 'স্ট্যাটাস', 'অ্যাকশন'].map(h => (
+              {['নাম', 'ফোন', 'Role', 'ম্যানেজার', 'স্ট্যাটাস', ...(currentUser?.role === 'super_admin' ? ['PIN'] : []), 'অ্যাকশন'].map(h => (
                 <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
             {loading ? (
-              <tr><td colSpan={6} className="text-center py-12 text-gray-400">লোড হচ্ছে...</td></tr>
+              <tr><td colSpan={currentUser?.role === 'super_admin' ? 7 : 6} className="text-center py-12 text-gray-400">লোড হচ্ছে...</td></tr>
             ) : users.map(u => (
               <tr key={u.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3">
@@ -146,6 +146,14 @@ const handleExport = () => {
                     {u.is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়'}
                   </span>
                 </td>
+                {currentUser?.role === 'super_admin' && (
+                  <td className="px-4 py-3">
+                    <span className={`font-mono text-sm px-2 py-0.5 rounded ${u.pin_changed ? 'text-gray-700' : 'bg-yellow-50 text-yellow-700'}`}>
+                      {u.pin || '0000'}
+                    </span>
+                    {!u.pin_changed && <span className="ml-1 text-yellow-500 text-xs">ডিফল্ট</span>}
+                  </td>
+                )}
                 <td className="px-4 py-3 flex items-center gap-1">
                   <button onClick={() => setViewProfile(u)} className="p-1.5 hover:bg-primary-50 rounded-lg" title="প্রোফাইল দেখুন">
                     <Eye size={18} className="text-primary-500" />

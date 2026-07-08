@@ -60,10 +60,6 @@ function ProtectedRoute({ children, allowedLevels, moduleKey }) {
   if (loading) return <div className="flex items-center justify-center h-screen"><div className="spinner w-10 h-10" /></div>;
   if (!user) return <Navigate to="/login" replace />;
 
-  if (user.is_first_login) {
-    return <Navigate to="/change-password" replace />;
-  }
-
   const needsProfile = user.role === 'manager' || (user.role !== 'super_admin' && user.role !== 'advisor' && user.role_level >= 4);
   if (needsProfile && !user.is_profile_complete) {
     return <Navigate to="/complete-profile" replace />;
@@ -113,7 +109,7 @@ useNotifications();
       <Route path="/portal/notices" element={<ProtectedRoute><UnifiedLayout><Notices /></UnifiedLayout></ProtectedRoute>} />
 
 
-<Route path="/change-password" element={<ForceChangePassword />} />
+<Route path="/change-password" element={<Navigate to="/login" replace />} />
 
       <Route path="/executive" element={<ProtectedRoute allowedLevels={[4, 5]}><UnifiedLayout><ExecutiveDashboard /></UnifiedLayout></ProtectedRoute>} />
       <Route path="/executive/new-sale" element={<ProtectedRoute allowedLevels={[4, 5]}><UnifiedLayout><NewSale /></UnifiedLayout></ProtectedRoute>} />

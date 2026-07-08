@@ -26,13 +26,9 @@ api.interceptors.response.use(
 );
 
 export const authApi = {
-  sendOtp:          (phone) => api.post('/api/auth/send-otp', { phone }),
-  verifyOtp:        (phone, code) => api.post('/api/auth/verify-otp', { phone, code }),
-  verifyOtpFirst:   (phone, code) => api.post('/api/auth/verify-otp-first', { phone, code }),
-  setPassword:      (phone, password) => api.post('/api/auth/set-password', { phone, password }),
-  loginWithPassword:(phone, password) => api.post('/api/auth/login', { phone, password }),
-  changePassword:   (old_password, new_password) => api.post('/api/auth/change-password', { old_password, new_password }),
-  resetPassword:    (userId) => api.post(`/api/auth/reset-password/${userId}`),
+  loginWithPassword:(phone, pin) => api.post('/api/auth/login', { phone, pin }),
+  changePassword:   (old_pin, new_pin) => api.post('/api/auth/change-pin', { old_pin, new_pin }),
+  resetPassword:    (userId) => api.post(`/api/auth/reset-pin/${userId}`),
   logout:           () => api.post('/api/auth/logout'),
   getMe:            () => api.get('/api/auth/me'),
 };
