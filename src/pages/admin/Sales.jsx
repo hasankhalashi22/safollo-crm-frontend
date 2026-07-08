@@ -626,14 +626,31 @@ const fetchSales = (f = filters) => {
 
           <div className="card overflow-hidden p-0">
             <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
-              <p className="text-xs text-gray-400">গ্রস সেল ও এনরোলমেন্ট = enrollment তারিখ ভিত্তিক · সংগৃহীত ও পেমেন্ট = payment approved তারিখ ভিত্তিক · বিস্তারিত দেখতে রো-তে ক্লিক করুন</p>
+              <p className="text-xs text-gray-400">বিস্তারিত দেখতে রো-তে ক্লিক করুন</p>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b border-gray-100">
                   <tr>
-                    {['তারিখ', 'এনরোলমেন্ট', 'গ্রস সেল', 'পেমেন্ট', 'সংগৃহীত', 'বকেয়া'].map(h => (
-                      <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
+                    {[
+                      { label: 'তারিখ', tip: null },
+                      { label: 'এনরোলমেন্ট', tip: 'Enrollment তারিখ অনুযায়ী — কোন দিনে কতজন ভর্তি হয়েছে' },
+                      { label: 'গ্রস সেল', tip: 'Enrollment তারিখ অনুযায়ী — ভর্তির সময় কোর্সের মোট মূল্য। পরে পরিশোধ হলেও এখানে কমে না।' },
+                      { label: 'পেমেন্ট', tip: 'Payment approved তারিখ অনুযায়ী — কোন দিনে কতটি payment অনুমোদিত হয়েছে। আগের enrollment-এর বকেয়া payment-ও অন্তর্ভুক্ত।' },
+                      { label: 'সংগৃহীত', tip: 'Payment approved তারিখ অনুযায়ী — কোন দিনে মোট কত টাকা সংগ্রহ হয়েছে। আগের enrollment-এর বকেয়া payment-ও অন্তর্ভুক্ত। Reconciliation-এর সাথে মিলবে।' },
+                      { label: 'বকেয়া', tip: 'Enrollment তারিখ অনুযায়ী — ভর্তির দিন কতটা বাকি ছিল। পরে পরিশোধ করলেও এখানে কমে না। Reconciliation AR-এর সাথে মিলবে না।' },
+                    ].map(({ label, tip }) => (
+                      <th key={label} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">
+                        {tip ? (
+                          <span className="flex items-center gap-1 group relative">
+                            {label}
+                            <span className="text-gray-300 cursor-help text-xs">ⓘ</span>
+                            <span className="absolute top-5 left-0 z-50 hidden group-hover:block bg-gray-800 text-white text-xs rounded-lg px-3 py-2 w-64 font-normal normal-case leading-relaxed shadow-lg">
+                              {tip}
+                            </span>
+                          </span>
+                        ) : label}
+                      </th>
                     ))}
                   </tr>
                 </thead>
