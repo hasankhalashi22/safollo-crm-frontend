@@ -34,7 +34,7 @@ export default function Login() {
     setLoading(true);
     try {
       const res = await authApi.loginWithPassword(phone, pin);
-      if (!res.user.pin_changed) {
+      if (res.user.is_first_login) {
         setLoggedInUser({ token: res.token, user: res.user });
         setStep('change-pin');
         toast('প্রথমবার লগইন — নতুন PIN সেট করুন');
