@@ -94,6 +94,7 @@ export const paymentsApi = {
   }),
   cancel: (id) => api.delete(`/api/payments/${id}`),
   updateAmount: (id, amount) => api.patch(`/api/payments/${id}/amount`, { amount }),
+  adminDelete: (id) => api.delete(`/api/payments/${id}/admin`),
 };
 
 export const reportsApi = {

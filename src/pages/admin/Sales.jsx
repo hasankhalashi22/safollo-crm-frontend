@@ -91,7 +91,17 @@ function PaymentHistoryItem({ payment: p, isSuperAdmin, onUpdated }) {
             <div className="flex items-center gap-2">
               <span className="font-medium">৳{Number(p.amount).toLocaleString()}</span>
               {isSuperAdmin && p.id && (
-                <button onClick={handleEdit} className="text-xs text-blue-400 hover:text-blue-600 underline">এডিট</button>
+                <>
+                  <button onClick={handleEdit} className="text-xs text-blue-400 hover:text-blue-600 underline">এডিট</button>
+                  <button onClick={async () => {
+                    if (!window.confirm('এই payment মুছে ফেলবেন?')) return;
+                    try {
+                      await paymentsApi.adminDelete(p.id);
+                      toast.success('Payment মুছে ফেলা হয়েছে');
+                      onUpdated();
+                    } catch (e) { toast.error(e?.message || 'মুছতে ব্যর্থ হয়েছে'); }
+                  }} className="text-xs text-red-400 hover:text-red-600 underline">ডিলিট</button>
+                </>
               )}
             </div>
           )}
