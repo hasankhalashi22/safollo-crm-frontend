@@ -202,6 +202,11 @@ export default function Employees() {
               </div>
 
               <div className="flex items-center gap-2 flex-shrink-0" onClick={e => e.stopPropagation()}>
+                {isSuperAdmin && emp.crm_pin != null && (
+                  <span className={`font-mono text-xs px-2 py-1 rounded-lg ${emp.crm_pin_changed ? 'bg-gray-100 text-gray-600' : 'bg-yellow-50 text-yellow-700'}`}>
+                    PIN: {emp.crm_pin || '0000'}
+                  </span>
+                )}
                 {emp.user_id && (
                   <button onClick={(e) => handleResetPassword(e, emp)}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-600 rounded-lg text-xs font-medium hover:bg-amber-100 transition-colors">
