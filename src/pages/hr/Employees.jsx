@@ -203,8 +203,8 @@ export default function Employees() {
 
               <div className="flex items-center gap-2 flex-shrink-0" onClick={e => e.stopPropagation()}>
                 {isSuperAdmin && emp.crm_pin != null && (
-                  <span className={`font-mono text-xs px-2 py-1 rounded-lg ${emp.crm_pin_changed ? 'bg-gray-100 text-gray-600' : 'bg-yellow-50 text-yellow-700'}`}>
-                    PIN: {emp.crm_pin || '0000'}
+                  <span className={`group font-mono text-xs px-2 py-1 rounded-lg cursor-default select-none ${emp.crm_pin_changed ? 'bg-gray-100 text-gray-600' : 'bg-yellow-50 text-yellow-700'}`}>
+                    PIN: <span className="blur-sm group-hover:blur-none transition-all">{emp.crm_pin || '0000'}</span>
                   </span>
                 )}
                 {emp.user_id && (
