@@ -211,7 +211,7 @@ export default function Employees() {
                     {shownPins.has(emp.id) ? (
                       <><EyeOff size={12} /> {emp.crm_pin || '0000'}</>
                     ) : (
-                      <><Eye size={12} /> PIN</>
+                      <Eye size={12} />
                     )}
                   </button>
                 )}
