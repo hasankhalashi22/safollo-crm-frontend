@@ -185,14 +185,17 @@ export function AdminLayout({ children }) {
     { to: '/admin/due', icon: Clock, label: 'বকেয়া তালিকা' },
     { to: '/admin/courses', icon: BookOpen, label: 'কোর্স ম্যানেজমেন্ট' },
     { to: '/admin/profile', icon: User, label: 'আমার প্রোফাইল' },
-    ...(isSuperAdmin ? [{
-      group: 'system_settings', label: 'Settings', icon: Settings,
-      children: [
-        { to: '/admin/roles', icon: Shield, label: 'Role Management' },
-        { to: '/admin/audit', icon: Activity, label: 'Activity Log' },
-        { to: '/admin/settings', icon: Settings, label: 'সিস্টেম সেটিংস' },
-      ],
-    }] : []),
+    ...(isSuperAdmin ? [
+      { to: '/admin/staff', icon: Users, label: 'স্টাফ ম্যানেজমেন্ট' },
+      {
+        group: 'system_settings', label: 'Settings', icon: Settings,
+        children: [
+          { to: '/admin/roles', icon: Shield, label: 'Role Management' },
+          { to: '/admin/audit', icon: Activity, label: 'Activity Log' },
+          { to: '/admin/settings', icon: Settings, label: 'সিস্টেম সেটিংস' },
+        ],
+      }
+    ] : []),
   ];
 
   let navItems;
