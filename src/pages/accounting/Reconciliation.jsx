@@ -26,6 +26,8 @@ export default function Reconciliation() {
 
   const mismatched = data?.rows?.filter(r => !r.matched) || [];
   const matched = data?.rows?.filter(r => r.matched) || [];
+  const arMismatched = data?.arReconciliation?.filter(r => !r.matched) || [];
+  const arMatched = data?.arReconciliation?.filter(r => r.matched) || [];
 
   return (
     <div className="p-6 space-y-6">
@@ -149,6 +151,99 @@ export default function Reconciliation() {
           {data.rows.length === 0 && (
             <div className="card text-center py-12 text-gray-400">এই সময়ে কোনো data নেই</div>
           )}
+
+          {/* AR vs CRM Dues Section */}
+          <div>
+            <h2 className="text-lg font-bold text-gray-700 mb-3">Accounts Receivable vs CRM বকেয়া</h2>
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-4">
+              <div className="card text-center py-4">
+                <p className="text-xl font-bold text-gray-800">Tk {Number(data.arSummary?.total_crm_due || 0).toLocaleString()}</p>
+                <p className="text-xs text-gray-400 mt-1">CRM মোট বকেয়া</p>
+              </div>
+              <div className="card text-center py-4">
+                <p className="text-xl font-bold text-gray-800">Tk {Number(data.arSummary?.total_acc_ar || 0).toLocaleString()}</p>
+                <p className="text-xs text-gray-400 mt-1">Accounting AR Balance</p>
+              </div>
+              <div className={`card text-center py-4 ${data.arSummary?.mismatch_count > 0 ? 'bg-red-50' : 'bg-green-50'}`}>
+                <p className={`text-xl font-bold ${data.arSummary?.mismatch_count > 0 ? 'text-red-600' : 'text-green-600'}`}>{data.arSummary?.mismatch_count}</p>
+                <p className="text-xs text-gray-500 mt-1">Mismatch</p>
+              </div>
+              <div className="card text-center py-4 bg-green-50">
+                <p className="text-xl font-bold text-green-600">{data.arSummary?.matched_count}</p>
+                <p className="text-xs text-gray-500 mt-1">Matched</p>
+              </div>
+            </div>
+
+            {arMismatched.length > 0 && (
+              <div className="mb-4">
+                <h3 className="font-semibold text-red-600 flex items-center gap-2 mb-2">
+                  <AlertTriangle size={15} /> Mismatch ({arMismatched.length}টি)
+                </h3>
+                <div className="card p-0 overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead className="bg-red-50 border-b border-red-100">
+                      <tr>
+                        {['ছাত্র', 'ফোন', 'কোর্স', 'কোর্স মূল্য', 'সংগ্রহ', 'CRM বকেয়া', 'ACC AR', 'পার্থক্য'].map(h => (
+                          <th key={h} className="text-left px-3 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {arMismatched.map((r, i) => (
+                        <tr key={i} className="hover:bg-red-50">
+                          <td className="px-3 py-2 font-medium">{r.student_name}</td>
+                          <td className="px-3 py-2 text-gray-500">{r.student_phone}</td>
+                          <td className="px-3 py-2">{r.course_name}</td>
+                          <td className="px-3 py-2 whitespace-nowrap">Tk {r.course_price.toLocaleString()}</td>
+                          <td className="px-3 py-2 whitespace-nowrap">Tk {r.total_collected.toLocaleString()}</td>
+                          <td className="px-3 py-2 font-medium text-blue-600 whitespace-nowrap">Tk {r.crm_due.toLocaleString()}</td>
+                          <td className="px-3 py-2 font-medium text-blue-600 whitespace-nowrap">Tk {r.acc_ar_balance.toLocaleString()}</td>
+                          <td className="px-3 py-2 font-bold text-red-600 whitespace-nowrap">
+                            {r.diff > 0 ? '+' : ''}{r.diff.toLocaleString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {arMatched.length > 0 && (
+              <div>
+                <h3 className="font-semibold text-green-600 flex items-center gap-2 mb-2">
+                  <CheckCircle size={15} /> Matched ({arMatched.length}টি)
+                </h3>
+                <div className="card p-0 overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead className="bg-green-50 border-b border-green-100">
+                      <tr>
+                        {['ছাত্র', 'ফোন', 'কোর্স', 'কোর্স মূল্য', 'সংগ্রহ', 'বকেয়া'].map(h => (
+                          <th key={h} className="text-left px-3 py-3 text-xs font-semibold text-gray-500 whitespace-nowrap">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {arMatched.map((r, i) => (
+                        <tr key={i} className="hover:bg-green-50">
+                          <td className="px-3 py-2 font-medium">{r.student_name}</td>
+                          <td className="px-3 py-2 text-gray-500">{r.student_phone}</td>
+                          <td className="px-3 py-2">{r.course_name}</td>
+                          <td className="px-3 py-2 whitespace-nowrap">Tk {r.course_price.toLocaleString()}</td>
+                          <td className="px-3 py-2 whitespace-nowrap">Tk {r.total_collected.toLocaleString()}</td>
+                          <td className="px-3 py-2 font-medium whitespace-nowrap">Tk {r.crm_due.toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {data.arReconciliation?.length === 0 && (
+              <div className="card text-center py-8 text-gray-400">কোনো বকেয়া নেই</div>
+            )}
+          </div>
         </>
       )}
     </div>
