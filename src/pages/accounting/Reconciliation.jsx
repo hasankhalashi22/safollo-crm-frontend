@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { accountingApi } from '../../api/client';
-import { format } from 'date-fns';
-import { CheckCircle, AlertTriangle, Search, RefreshCw } from 'lucide-react';
+import { CheckCircle, AlertTriangle, Search, RefreshCw, DatabaseZap } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const METHOD_LABEL = {
   bkash: 'bKash', nagad: 'Nagad', rocket: 'Rocket',
@@ -14,6 +14,7 @@ export default function Reconciliation() {
   const [filters, setFilters] = useState({ date_from: firstOfMonth, date_to: today });
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [backfilling, setBackfilling] = useState(false);
 
   const fetch = async () => {
     setLoading(true);
@@ -22,6 +23,19 @@ export default function Reconciliation() {
       setData(r);
     } catch (e) { }
     setLoading(false);
+  };
+
+  const handleBackfill = async () => {
+    if (!window.confirm('সব missing CRM payments accounting এ sync করবেন?')) return;
+    setBackfilling(true);
+    try {
+      const r = await accountingApi.backfillPayments();
+      toast.success(r.message || 'Backfill সম্পন্ন');
+      if (data) fetch();
+    } catch (e) {
+      toast.error('Backfill ব্যর্থ হয়েছে');
+    }
+    setBackfilling(false);
   };
 
   const mismatched = data?.rows?.filter(r => !r.matched) || [];
@@ -50,11 +64,18 @@ export default function Reconciliation() {
               onChange={e => setFilters(p => ({ ...p, date_to: e.target.value }))} />
           </div>
         </div>
-        <button onClick={fetch} disabled={loading}
-          className="btn-primary py-2 px-6 flex items-center gap-2">
-          {loading ? <RefreshCw size={16} className="animate-spin" /> : <Search size={16} />}
-          {loading ? 'চেক করছে...' : 'চেক করুন'}
-        </button>
+        <div className="flex gap-3">
+          <button onClick={fetch} disabled={loading}
+            className="btn-primary py-2 px-6 flex items-center gap-2">
+            {loading ? <RefreshCw size={16} className="animate-spin" /> : <Search size={16} />}
+            {loading ? 'চেক করছে...' : 'চেক করুন'}
+          </button>
+          <button onClick={handleBackfill} disabled={backfilling}
+            className="btn-secondary py-2 px-6 flex items-center gap-2">
+            {backfilling ? <RefreshCw size={16} className="animate-spin" /> : <DatabaseZap size={16} />}
+            {backfilling ? 'Sync হচ্ছে...' : 'Missing Sync করুন'}
+          </button>
+        </div>
       </div>
 
       {data && (
