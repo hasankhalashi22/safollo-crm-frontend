@@ -688,6 +688,11 @@ const fetchSales = (f = filters) => {
                                             <td className="py-1.5 text-right text-red-500">৳{Number(e.due_amount).toLocaleString()}</td>
                                           </tr>
                                         ))}
+                                        <tr className="border-t-2 border-gray-200 font-bold bg-blue-50">
+                                          <td className="py-1.5 pr-2 text-gray-600" colSpan={2}>মোট</td>
+                                          <td className="py-1.5 text-right text-blue-700">৳{r.enrollments.reduce((s, e) => s + (Number(e.course_price) || 0), 0).toLocaleString()}</td>
+                                          <td className="py-1.5 text-right text-red-600">৳{r.enrollments.reduce((s, e) => s + (Number(e.due_amount) || 0), 0).toLocaleString()}</td>
+                                        </tr>
                                       </tbody>
                                     </table>
                                   )}
@@ -715,6 +720,10 @@ const fetchSales = (f = filters) => {
                                             <td className="py-1.5 text-right text-green-600 font-medium">৳{Number(p.amount).toLocaleString()}</td>
                                           </tr>
                                         ))}
+                                        <tr className="border-t-2 border-gray-200 font-bold bg-green-50">
+                                          <td className="py-1.5 pr-2 text-gray-600" colSpan={2}>মোট</td>
+                                          <td className="py-1.5 text-right text-green-700">৳{r.payments.reduce((s, p) => s + (Number(p.amount) || 0), 0).toLocaleString()}</td>
+                                        </tr>
                                       </tbody>
                                     </table>
                                   )}
