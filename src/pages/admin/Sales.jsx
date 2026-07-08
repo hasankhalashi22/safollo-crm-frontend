@@ -142,7 +142,7 @@ export default function AdminSales() {
   const PAGE_SIZE = 30;
   const [revenueFilters, setRevenueFilters] = useState(EMPTY_REVENUE_FILTERS);
   const [subTab, setSubTab] = useState('details');
-  const [dailyFilters, setDailyFilters] = useState({ month: format(new Date(), 'yyyy-MM'), date_from: '', date_to: '', executive_id: '', course_id: '' });
+  const [dailyFilters, setDailyFilters] = useState({ month: format(new Date(), 'yyyy-MM'), date_from: '', date_to: '', executive_id: '', course_id: '', payment_method: '' });
   const [courseFilters, setCourseFilters] = useState({ month: format(new Date(), 'yyyy-MM'), date_from: '', date_to: '', executive_id: '', selected: [] });
   const [execFilters, setExecFilters] = useState({ month: format(new Date(), 'yyyy-MM'), date_from: '', date_to: '', course_id: '', selected: [] });
 
@@ -327,6 +327,8 @@ const fetchSales = (f = filters) => {
     if (dailyFilters.date_to) filtered = filtered.filter(s => s.created_at.split('T')[0] <= dailyFilters.date_to);
     if (dailyFilters.month && !dailyFilters.date_from && !dailyFilters.date_to)
       filtered = filtered.filter(s => s.created_at.startsWith(dailyFilters.month));
+    if (dailyFilters.payment_method)
+      filtered = filtered.filter(s => (s.payment_history || []).some(p => p.payment_method === dailyFilters.payment_method));
     const map = {};
     filtered.forEach(s => {
       const d = s.created_at.split('T')[0];
@@ -552,7 +554,16 @@ const fetchSales = (f = filters) => {
                 <option value="">সব কোর্স</option>
                 {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
-              <button onClick={() => setDailyFilters({ month: format(new Date(), 'yyyy-MM'), date_from: '', date_to: '', executive_id: '', course_id: '' })}
+              <select className="input-field" value={dailyFilters.payment_method}
+                onChange={e => setDailyFilters(p => ({ ...p, payment_method: e.target.value }))}>
+                <option value="">সব পেমেন্ট পদ্ধতি</option>
+                <option value="bkash">bKash</option>
+                <option value="nagad">Nagad</option>
+                <option value="rocket">Rocket</option>
+                <option value="cash">Cash</option>
+                <option value="cod">COD (Steadfast)</option>
+              </select>
+              <button onClick={() => setDailyFilters({ month: format(new Date(), 'yyyy-MM'), date_from: '', date_to: '', executive_id: '', course_id: '', payment_method: '' })}
                 className="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl text-sm font-medium self-end">
                 রিসেট
               </button>
