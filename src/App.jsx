@@ -14,6 +14,7 @@ import CreditCards from './pages/accounting/CreditCards';
 import Investors from './pages/accounting/Investors';
 import Shareholders from './pages/accounting/Shareholders';
 import Journal from './pages/accounting/Journal';
+import Reconciliation from './pages/accounting/Reconciliation';
 
 import HrDashboard from './pages/hr/Dashboard';
 import Notices from './pages/hr/Notices';
@@ -165,6 +166,7 @@ useNotifications();
 <Route path="/accounting/shareholders" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><UnifiedLayout><Shareholders /></UnifiedLayout></ProtectedRoute>} />
 
 <Route path="/accounting/journal" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><UnifiedLayout><Journal /></UnifiedLayout></ProtectedRoute>} />
+<Route path="/accounting/reconciliation" element={<ProtectedRoute allowedLevels={[1]} moduleKey="accounting"><UnifiedLayout><Reconciliation /></UnifiedLayout></ProtectedRoute>} />
 
 <Route path="/hr" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><UnifiedLayout><HrDashboard /></UnifiedLayout></ProtectedRoute>} />
 
