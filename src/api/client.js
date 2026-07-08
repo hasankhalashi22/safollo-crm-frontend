@@ -93,6 +93,7 @@ export const paymentsApi = {
     headers: { 'Content-Type': 'multipart/form-data' }
   }),
   cancel: (id) => api.delete(`/api/payments/${id}`),
+  updateAmount: (id, amount) => api.patch(`/api/payments/${id}/amount`, { amount }),
 };
 
 export const reportsApi = {

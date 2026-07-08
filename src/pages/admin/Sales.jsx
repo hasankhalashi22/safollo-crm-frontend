@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { salesApi, coursesApi, usersApi } from '../../api/client';
+import { salesApi, coursesApi, usersApi, paymentsApi } from '../../api/client';
 import { format } from 'date-fns';
 import { Search, Filter, Download, ChevronDown, X } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -48,6 +48,60 @@ function MultiSelect({ options, selected, onChange, placeholder }) {
             </label>
           ))}
         </div>
+      )}
+    </div>
+  );
+}
+
+function PaymentHistoryItem({ payment: p, isSuperAdmin, onUpdated }) {
+  const [editing, setEditing] = useState(false);
+  const [amount, setAmount] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const handleEdit = () => { setAmount(p.amount); setEditing(true); };
+  const handleSave = async () => {
+    if (!amount || Number(amount) <= 0) return;
+    setSaving(true);
+    try {
+      await paymentsApi.updateAmount(p.id, Number(amount));
+      toast.success('Payment আপডেট হয়েছে');
+      setEditing(false);
+      onUpdated();
+    } catch (e) {
+      toast.error(e?.message || 'আপডেট ব্যর্থ হয়েছে');
+    }
+    setSaving(false);
+  };
+
+  return (
+    <div className="bg-gray-50 rounded-xl p-3 mb-2">
+      <div className="flex justify-between items-start">
+        <div>
+          {editing ? (
+            <div className="flex items-center gap-2">
+              <input type="number" className="input-field py-1 px-2 text-sm w-28" value={amount}
+                onChange={e => setAmount(e.target.value)} autoFocus />
+              <button onClick={handleSave} disabled={saving}
+                className="text-xs bg-primary-500 text-white px-2 py-1 rounded-lg">
+                {saving ? '...' : 'সেভ'}
+              </button>
+              <button onClick={() => setEditing(false)} className="text-xs text-gray-400">বাতিল</button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="font-medium">৳{Number(p.amount).toLocaleString()}</span>
+              {isSuperAdmin && p.id && (
+                <button onClick={handleEdit} className="text-xs text-blue-400 hover:text-blue-600 underline">এডিট</button>
+              )}
+            </div>
+          )}
+        </div>
+        <span className="text-gray-400 text-xs">{format(new Date(p.created_at), 'dd/MM/yy HH:mm')}</span>
+      </div>
+      <p className="text-xs text-gray-500">{p.payment_method} {p.transaction_id ? '• ' + p.transaction_id : ''}</p>
+      {p.sender_number && <p className="text-xs text-gray-500">পেমেন্ট নম্বর: {p.sender_number}</p>}
+      {p.payment_proof_url && (
+        <a href={p.payment_proof_url} target="_blank" rel="noreferrer" className="text-xs text-primary-500 underline">প্রুফ দেখুন</a>
       )}
     </div>
   );
@@ -1190,17 +1244,12 @@ const fetchSales = (f = filters) => {
                 <div>
                   <p className="font-semibold text-gray-700 mb-2">পেমেন্ট ইতিহাস</p>
                   {selected.payment_history.map((p, i) => (
-                    <div key={i} className="bg-gray-50 rounded-xl p-3 mb-2">
-                      <div className="flex justify-between">
-                        <span className="font-medium">৳{Number(p.amount).toLocaleString()}</span>
-                        <span className="text-gray-400 text-xs">{format(new Date(p.created_at), 'dd/MM/yy HH:mm')}</span>
-                      </div>
-                      <p className="text-xs text-gray-500">{p.payment_method} {p.transaction_id ? '• ' + p.transaction_id : ''}</p>
-                      {p.sender_number && <p className="text-xs text-gray-500">পেমেন্ট নম্বর: {p.sender_number}</p>}
-                      {p.payment_proof_url && (
-                        <a href={p.payment_proof_url} target="_blank" rel="noreferrer" className="text-xs text-primary-500 underline">প্রুফ দেখুন</a>
-                      )}
-                    </div>
+                    <PaymentHistoryItem
+                      key={p.id || i}
+                      payment={p}
+                      isSuperAdmin={user?.role === 'super_admin'}
+                      onUpdated={() => { fetchSales(); setSelected(prev => ({ ...prev, _refresh: Date.now() })); }}
+                    />
                   ))}
                 </div>
               )}</div>
