@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { salesApi, coursesApi, usersApi } from '../../api/client';
 import { format } from 'date-fns';
@@ -143,6 +143,7 @@ export default function AdminSales() {
   const [revenueFilters, setRevenueFilters] = useState(EMPTY_REVENUE_FILTERS);
   const [subTab, setSubTab] = useState('details');
   const [dailyFilters, setDailyFilters] = useState({ month: format(new Date(), 'yyyy-MM'), date_from: '', date_to: '', executive_id: '', course_id: '', payment_method: '' });
+  const [expandedDailyDate, setExpandedDailyDate] = useState(null);
   const [courseFilters, setCourseFilters] = useState({ month: format(new Date(), 'yyyy-MM'), date_from: '', date_to: '', executive_id: '', selected: [] });
   const [execFilters, setExecFilters] = useState({ month: format(new Date(), 'yyyy-MM'), date_from: '', date_to: '', course_id: '', selected: [] });
 
@@ -318,32 +319,26 @@ const fetchSales = (f = filters) => {
     exportPdf(headers, rows, `Enrollment_Report_${format(new Date(), 'dd-MM-yyyy')}.pdf`, 'Enrollment Report - Safollo Academy', filterInfo);
   };
 
-  // Table 1: Enrollment Summary — grouped by enrollment date
-  const enrollmentSummaryRows = (() => {
+  // Daily Summary: merged enrollment + collection data with raw records for drill-down
+  const dailySummaryRows = (() => {
     let filtered = [...sales];
     if (dailyFilters.course_id) filtered = filtered.filter(s => String(s.course_id) === String(dailyFilters.course_id));
     if (dailyFilters.executive_id) filtered = filtered.filter(s => String(s.executive_id) === String(dailyFilters.executive_id));
-    if (dailyFilters.date_from) filtered = filtered.filter(s => s.created_at.split('T')[0] >= dailyFilters.date_from);
-    if (dailyFilters.date_to) filtered = filtered.filter(s => s.created_at.split('T')[0] <= dailyFilters.date_to);
-    if (dailyFilters.month && !dailyFilters.date_from && !dailyFilters.date_to)
-      filtered = filtered.filter(s => s.created_at.startsWith(dailyFilters.month));
-    const map = {};
+
+    const enrollMap = {};
     filtered.forEach(s => {
       const d = s.created_at.split('T')[0];
-      if (!map[d]) map[d] = { date: d, count: 0, gross: 0, due: 0 };
-      map[d].count++;
-      map[d].gross += Number(s.course_price) || 0;
-      map[d].due += Number(s.due_amount) || 0;
+      if (dailyFilters.date_from && d < dailyFilters.date_from) return;
+      if (dailyFilters.date_to && d > dailyFilters.date_to) return;
+      if (dailyFilters.month && !dailyFilters.date_from && !d.startsWith(dailyFilters.month)) return;
+      if (!enrollMap[d]) enrollMap[d] = { count: 0, gross: 0, due: 0, enrollments: [] };
+      enrollMap[d].count++;
+      enrollMap[d].gross += Number(s.course_price) || 0;
+      enrollMap[d].due += Number(s.due_amount) || 0;
+      enrollMap[d].enrollments.push(s);
     });
-    return Object.values(map).sort((a, b) => b.date.localeCompare(a.date));
-  })();
 
-  // Table 2: Collection Summary — grouped by payment date
-  const collectionSummaryRows = (() => {
-    let filtered = [...sales];
-    if (dailyFilters.course_id) filtered = filtered.filter(s => String(s.course_id) === String(dailyFilters.course_id));
-    if (dailyFilters.executive_id) filtered = filtered.filter(s => String(s.executive_id) === String(dailyFilters.executive_id));
-    const map = {};
+    const collectMap = {};
     filtered.forEach(s => {
       const approvedPayments = (s.payment_history || []).filter(p => p.approval_status === 'approved');
       const methodPayments = dailyFilters.payment_method
@@ -355,24 +350,24 @@ const fetchSales = (f = filters) => {
         if (dailyFilters.date_from && d < dailyFilters.date_from) return;
         if (dailyFilters.date_to && d > dailyFilters.date_to) return;
         if (dailyFilters.month && !dailyFilters.date_from && !d.startsWith(dailyFilters.month)) return;
-        if (!map[d]) map[d] = { date: d, collected: 0 };
-        map[d].collected += Number(p.amount) || 0;
+        if (!collectMap[d]) collectMap[d] = { collected: 0, payment_count: 0, payments: [] };
+        collectMap[d].collected += Number(p.amount) || 0;
+        collectMap[d].payment_count++;
+        collectMap[d].payments.push({ ...p, student_name: s.student_name, student_phone: s.student_phone, course_name: s.course_name });
       });
     });
-    return Object.values(map).sort((a, b) => b.date.localeCompare(a.date));
-  })();
 
-  // Merged table: union of all dates from both summaries
-  const dailySummaryRows = (() => {
-    const map = {};
-    enrollmentSummaryRows.forEach(r => {
-      map[r.date] = { date: r.date, count: r.count, gross: r.gross, due: r.due, collected: 0 };
-    });
-    collectionSummaryRows.forEach(r => {
-      if (map[r.date]) map[r.date].collected = r.collected;
-      else map[r.date] = { date: r.date, count: 0, gross: 0, due: 0, collected: r.collected };
-    });
-    return Object.values(map).sort((a, b) => b.date.localeCompare(a.date));
+    const allDates = new Set([...Object.keys(enrollMap), ...Object.keys(collectMap)]);
+    return [...allDates].sort((a, b) => b.localeCompare(a)).map(d => ({
+      date: d,
+      count: enrollMap[d]?.count || 0,
+      gross: enrollMap[d]?.gross || 0,
+      due: enrollMap[d]?.due || 0,
+      collected: collectMap[d]?.collected || 0,
+      payment_count: collectMap[d]?.payment_count || 0,
+      enrollments: enrollMap[d]?.enrollments || [],
+      payments: collectMap[d]?.payments || [],
+    }));
   })();
 
   const courseRows = useMemo(() => {
@@ -631,41 +626,118 @@ const fetchSales = (f = filters) => {
 
           <div className="card overflow-hidden p-0">
             <div className="px-4 py-2 bg-gray-50 border-b border-gray-100">
-              <p className="text-xs text-gray-400">গ্রস সেল ও এনরোলমেন্ট = enrollment তারিখ ভিত্তিক · সংগৃহীত = payment approved তারিখ ভিত্তিক</p>
+              <p className="text-xs text-gray-400">গ্রস সেল ও এনরোলমেন্ট = enrollment তারিখ ভিত্তিক · সংগৃহীত ও পেমেন্ট = payment approved তারিখ ভিত্তিক · বিস্তারিত দেখতে রো-তে ক্লিক করুন</p>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b border-gray-100">
                   <tr>
-                    {['তারিখ', 'এনরোলমেন্ট', 'গ্রস সেল', 'সংগৃহীত', 'বকেয়া'].map(h => (
+                    {['তারিখ', 'এনরোলমেন্ট', 'গ্রস সেল', 'পেমেন্ট', 'সংগৃহীত', 'বকেয়া'].map(h => (
                       <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody>
                   {loading ? (
-                    <tr><td colSpan={5} className="text-center py-12 text-gray-400">লোড হচ্ছে...</td></tr>
+                    <tr><td colSpan={6} className="text-center py-12 text-gray-400">লোড হচ্ছে...</td></tr>
                   ) : dailySummaryRows.length === 0 ? (
-                    <tr><td colSpan={5} className="text-center py-12 text-gray-400">কোনো রেকর্ড নেই</td></tr>
-                  ) : dailySummaryRows.map(r => (
-                    <tr key={r.date} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium whitespace-nowrap">{format(new Date(r.date), 'dd/MM/yyyy')}</td>
-                      <td className="px-4 py-3 text-center font-medium">{r.count || '—'}</td>
-                      <td className="px-4 py-3 text-blue-600 font-semibold whitespace-nowrap">{r.gross ? `৳${Number(r.gross).toLocaleString()}` : '—'}</td>
-                      <td className="px-4 py-3 text-green-600 font-semibold whitespace-nowrap">{r.collected ? `৳${Number(r.collected).toLocaleString()}` : '—'}</td>
-                      <td className="px-4 py-3 text-red-500 whitespace-nowrap">{r.due ? `৳${Number(r.due).toLocaleString()}` : '—'}</td>
-                    </tr>
-                  ))}
+                    <tr><td colSpan={6} className="text-center py-12 text-gray-400">কোনো রেকর্ড নেই</td></tr>
+                  ) : dailySummaryRows.map(r => {
+                    const isExpanded = expandedDailyDate === r.date;
+                    return (
+                      <React.Fragment key={r.date}>
+                        <tr
+                          className={`border-b border-gray-50 cursor-pointer transition-colors ${isExpanded ? 'bg-primary-50' : 'hover:bg-gray-50'}`}
+                          onClick={() => setExpandedDailyDate(isExpanded ? null : r.date)}>
+                          <td className="px-4 py-3 font-medium whitespace-nowrap flex items-center gap-1.5">
+                            <ChevronDown size={14} className={`text-gray-400 transition-transform flex-shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
+                            {format(new Date(r.date), 'dd/MM/yyyy')}
+                          </td>
+                          <td className="px-4 py-3 text-center font-medium">{r.count || '—'}</td>
+                          <td className="px-4 py-3 text-blue-600 font-semibold whitespace-nowrap">{r.gross ? `৳${Number(r.gross).toLocaleString()}` : '—'}</td>
+                          <td className="px-4 py-3 text-center font-medium text-purple-600">{r.payment_count || '—'}</td>
+                          <td className="px-4 py-3 text-green-600 font-semibold whitespace-nowrap">{r.collected ? `৳${Number(r.collected).toLocaleString()}` : '—'}</td>
+                          <td className="px-4 py-3 text-red-500 whitespace-nowrap">{r.due ? `৳${Number(r.due).toLocaleString()}` : '—'}</td>
+                        </tr>
+                        {isExpanded && (
+                          <tr>
+                            <td colSpan={6} className="bg-gray-50 px-6 py-4 border-b border-gray-100">
+                              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                                {/* Enrollments */}
+                                <div>
+                                  <p className="text-xs font-semibold text-blue-600 mb-2 uppercase">এনরোলমেন্ট ({r.enrollments.length}টি)</p>
+                                  {r.enrollments.length === 0 ? (
+                                    <p className="text-xs text-gray-400">এই তারিখে কোনো enrollment নেই</p>
+                                  ) : (
+                                    <table className="w-full text-xs">
+                                      <thead><tr className="text-gray-400 border-b border-gray-200">
+                                        <th className="text-left pb-1.5">শিক্ষার্থী</th>
+                                        <th className="text-left pb-1.5">কোর্স</th>
+                                        <th className="text-right pb-1.5">মূল্য</th>
+                                        <th className="text-right pb-1.5">বকেয়া</th>
+                                      </tr></thead>
+                                      <tbody className="divide-y divide-gray-100">
+                                        {r.enrollments.map(e => (
+                                          <tr key={e.id}>
+                                            <td className="py-1.5 pr-2">
+                                              <p className="font-medium">{e.student_name || '—'}</p>
+                                              <p className="text-gray-400">{e.student_phone}</p>
+                                            </td>
+                                            <td className="py-1.5 pr-2 text-gray-600">{e.course_name}</td>
+                                            <td className="py-1.5 text-right text-blue-600 font-medium">৳{Number(e.course_price).toLocaleString()}</td>
+                                            <td className="py-1.5 text-right text-red-500">৳{Number(e.due_amount).toLocaleString()}</td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  )}
+                                </div>
+                                {/* Payments */}
+                                <div>
+                                  <p className="text-xs font-semibold text-green-600 mb-2 uppercase">সংগৃহীত পেমেন্ট ({r.payments.length}টি)</p>
+                                  {r.payments.length === 0 ? (
+                                    <p className="text-xs text-gray-400">এই তারিখে কোনো payment নেই</p>
+                                  ) : (
+                                    <table className="w-full text-xs">
+                                      <thead><tr className="text-gray-400 border-b border-gray-200">
+                                        <th className="text-left pb-1.5">শিক্ষার্থী</th>
+                                        <th className="text-left pb-1.5">পদ্ধতি</th>
+                                        <th className="text-right pb-1.5">পরিমাণ</th>
+                                      </tr></thead>
+                                      <tbody className="divide-y divide-gray-100">
+                                        {r.payments.map((p, i) => (
+                                          <tr key={i}>
+                                            <td className="py-1.5 pr-2">
+                                              <p className="font-medium">{p.student_name || '—'}</p>
+                                              <p className="text-gray-400">{p.student_phone}</p>
+                                            </td>
+                                            <td className="py-1.5 pr-2 text-gray-600 capitalize">{p.payment_method}</td>
+                                            <td className="py-1.5 text-right text-green-600 font-medium">৳{Number(p.amount).toLocaleString()}</td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
                   {dailySummaryRows.length > 0 && (() => {
                     const t = dailySummaryRows.reduce((acc, r) => ({
                       count: acc.count + (r.count || 0), gross: acc.gross + (r.gross || 0),
+                      payment_count: acc.payment_count + (r.payment_count || 0),
                       collected: acc.collected + (r.collected || 0), due: acc.due + (r.due || 0)
-                    }), { count: 0, gross: 0, collected: 0, due: 0 });
+                    }), { count: 0, gross: 0, payment_count: 0, collected: 0, due: 0 });
                     return (
                       <tr className="bg-primary-50 font-bold border-t-2 border-primary-100">
-                        <td className="px-4 py-3 text-primary-700">মোট</td>
+                        <td className="px-4 py-3 text-primary-700 pl-9">মোট</td>
                         <td className="px-4 py-3 text-center text-primary-700">{t.count}</td>
                         <td className="px-4 py-3 text-blue-700 whitespace-nowrap">৳{Number(t.gross).toLocaleString()}</td>
+                        <td className="px-4 py-3 text-center text-purple-700">{t.payment_count}</td>
                         <td className="px-4 py-3 text-green-700 whitespace-nowrap">৳{Number(t.collected).toLocaleString()}</td>
                         <td className="px-4 py-3 text-red-600 whitespace-nowrap">৳{Number(t.due).toLocaleString()}</td>
                       </tr>
