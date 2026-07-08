@@ -706,6 +706,7 @@ const fetchSales = (f = filters) => {
                                     <table className="w-full text-xs">
                                       <thead><tr className="text-gray-400 border-b border-gray-200">
                                         <th className="text-left pb-1.5">শিক্ষার্থী</th>
+                                        <th className="text-left pb-1.5">কোর্স / বিবরণ</th>
                                         <th className="text-left pb-1.5">পদ্ধতি</th>
                                         <th className="text-right pb-1.5">পরিমাণ</th>
                                       </tr></thead>
@@ -716,12 +717,18 @@ const fetchSales = (f = filters) => {
                                               <p className="font-medium">{p.student_name || '—'}</p>
                                               <p className="text-gray-400">{p.student_phone}</p>
                                             </td>
+                                            <td className="py-1.5 pr-2">
+                                              <p className="text-gray-600">{p.course_name}</p>
+                                              <span className={`text-xs px-1.5 py-0.5 rounded ${p.is_due_payment ? 'bg-orange-50 text-orange-500' : 'bg-blue-50 text-blue-500'}`}>
+                                                {p.is_due_payment ? 'বকেয়া পরিশোধ' : 'নতুন ভর্তি'}
+                                              </span>
+                                            </td>
                                             <td className="py-1.5 pr-2 text-gray-600 capitalize">{p.payment_method}</td>
                                             <td className="py-1.5 text-right text-green-600 font-medium">৳{Number(p.amount).toLocaleString()}</td>
                                           </tr>
                                         ))}
                                         <tr className="border-t-2 border-gray-200 font-bold bg-green-50">
-                                          <td className="py-1.5 pr-2 text-gray-600" colSpan={2}>মোট</td>
+                                          <td className="py-1.5 pr-2 text-gray-600" colSpan={3}>মোট</td>
                                           <td className="py-1.5 text-right text-green-700">৳{r.payments.reduce((s, p) => s + (Number(p.amount) || 0), 0).toLocaleString()}</td>
                                         </tr>
                                       </tbody>
