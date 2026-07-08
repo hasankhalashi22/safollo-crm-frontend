@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { hrApi, usersApi, leaveApi, payrollApi, authApi } from '../../api/client';
 import { MODULES } from '../../config/modules';
 import toast from 'react-hot-toast';
-import { Trash2, User, Plus, Eye, Download, Key, Link, Unlink, ShieldCheck, Search } from 'lucide-react';
+import { Trash2, User, Plus, Eye, EyeOff, Download, Key, Link, Unlink, ShieldCheck, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -46,6 +46,8 @@ export default function Employees() {
   const isSuperAdmin = currentUser?.role === 'super_admin';
 
   const [activeTab, setActiveTab] = useState('running');
+  const [shownPins, setShownPins] = useState(new Set());
+  const togglePin = (id) => setShownPins(prev => { const s = new Set(prev); s.has(id) ? s.delete(id) : s.add(id); return s; });
   const [employees, setEmployees] = useState([]);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -203,9 +205,15 @@ export default function Employees() {
 
               <div className="flex items-center gap-2 flex-shrink-0" onClick={e => e.stopPropagation()}>
                 {isSuperAdmin && emp.crm_pin != null && (
-                  <span className={`group font-mono text-xs px-2 py-1 rounded-lg cursor-default select-none ${emp.crm_pin_changed ? 'bg-gray-100 text-gray-600' : 'bg-yellow-50 text-yellow-700'}`}>
-                    PIN: <span className="blur-sm group-hover:blur-none transition-all">{emp.crm_pin || '0000'}</span>
-                  </span>
+                  <button onClick={e => { e.stopPropagation(); togglePin(emp.id); }}
+                    className={`flex items-center gap-1.5 font-mono text-xs px-2 py-1 rounded-lg transition-colors ${emp.crm_pin_changed ? 'bg-gray-100 text-gray-500 hover:bg-gray-200' : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'}`}
+                    title="PIN দেখুন">
+                    {shownPins.has(emp.id) ? (
+                      <><EyeOff size={12} /> {emp.crm_pin || '0000'}</>
+                    ) : (
+                      <><Eye size={12} /> PIN</>
+                    )}
+                  </button>
                 )}
                 {emp.user_id && (
                   <button onClick={(e) => handleResetPassword(e, emp)}
