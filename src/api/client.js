@@ -92,6 +92,7 @@ export const paymentsApi = {
   updateAmount: (id, amount) => api.patch(`/api/payments/${id}/amount`, { amount }),
   updateMethod: (id, payment_method) => api.patch(`/api/payments/${id}/method`, { payment_method }),
   adminDelete: (id) => api.delete(`/api/payments/${id}/admin`),
+  updateDetails: (id, data) => api.patch(`/api/payments/${id}/details`, data),
 };
 
 export const reportsApi = {

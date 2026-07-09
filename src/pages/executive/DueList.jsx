@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { salesApi, paymentsApi, bookApi } from '../../api/client';
+import { salesApi, paymentsApi, bookApi, usersApi } from '../../api/client';
 import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
@@ -368,6 +368,9 @@ function PaymentHistoryModal({ due, onClose, onPay }) {
   const [editingId, setEditingId] = useState(null);
   const [editAmount, setEditAmount] = useState('');
   const [editMethod, setEditMethod] = useState('');
+  const [editDate, setEditDate] = useState('');
+  const [editExecutiveId, setEditExecutiveId] = useState('');
+  const [executives, setExecutives] = useState([]);
   const [saving, setSaving] = useState(false);
 
   const loadDetail = () => {
@@ -380,15 +383,38 @@ function PaymentHistoryModal({ due, onClose, onPay }) {
     });
   };
 
-  useEffect(() => { loadDetail(); }, [due.id]);
+  useEffect(() => {
+    loadDetail();
+    if (isSuperAdmin) {
+      usersApi.getAll().then(res => {
+        const list = res?.data || res || [];
+        setExecutives(Array.isArray(list) ? list : []);
+      }).catch(() => {});
+    }
+  }, [due.id]);
 
-  const handleEdit = (p) => { setEditingId(p.id); setEditAmount(p.amount); setEditMethod(p.payment_method); };
+  const handleEdit = (p) => {
+    setEditingId(p.id);
+    setEditAmount(p.amount);
+    setEditMethod(p.payment_method);
+    setEditDate(p.created_at ? p.created_at.split('T')[0] : '');
+    setEditExecutiveId(p.executive_id || '');
+  };
 
   const handleSave = async (p) => {
     setSaving(true);
     try {
       if (Number(editAmount) !== Number(p.amount)) await paymentsApi.updateAmount(p.id, Number(editAmount));
       if (editMethod !== p.payment_method) await paymentsApi.updateMethod(p.id, editMethod);
+      const origDate = p.created_at ? p.created_at.split('T')[0] : '';
+      const dateChanged = editDate && editDate !== origDate;
+      const execChanged = editExecutiveId && editExecutiveId !== p.executive_id;
+      if (dateChanged || execChanged) {
+        await paymentsApi.updateDetails(p.id, {
+          ...(dateChanged ? { payment_date: editDate } : {}),
+          ...(execChanged ? { executive_id: editExecutiveId } : {}),
+        });
+      }
       toast.success('আপডেট হয়েছে ✅');
       setEditingId(null);
       loadDetail();
@@ -476,6 +502,16 @@ function PaymentHistoryModal({ due, onClose, onPay }) {
                                 onChange={e => setEditAmount(e.target.value)} placeholder="পরিমাণ" />
                               <select className="input-field py-1.5 text-sm" value={editMethod} onChange={e => setEditMethod(e.target.value)}>
                                 {PAYMENT_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
+                              </select>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <input type="date" className="input-field py-1.5 text-sm" value={editDate}
+                                onChange={e => setEditDate(e.target.value)} />
+                              <select className="input-field py-1.5 text-sm" value={editExecutiveId} onChange={e => setEditExecutiveId(e.target.value)}>
+                                <option value="">— এক্সিকিউটিভ —</option>
+                                {executives.map(ex => (
+                                  <option key={ex.id} value={ex.id}>{ex.phone}{ex.full_name ? ` (${ex.full_name})` : ''}</option>
+                                ))}
                               </select>
                             </div>
                             <div className="flex gap-2">
