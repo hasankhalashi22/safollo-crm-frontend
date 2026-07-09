@@ -71,10 +71,16 @@ export default function Ledger() {
         <div className="flex justify-center py-12"><div className="spinner w-8 h-8" /></div>
       ) : ledger ? (
         <>
-          <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="grid grid-cols-3 gap-3 mb-4">
             <div className="card bg-gray-50">
               <p className="text-sm text-gray-500 mb-1">Opening Balance</p>
               <p className="text-xl font-bold">Tk {Number(ledger.opening_balance).toLocaleString()}</p>
+            </div>
+            <div className={`card ${(ledger.closing_balance - ledger.opening_balance) >= 0 ? 'bg-green-50' : 'bg-red-50'}`}>
+              <p className="text-sm text-gray-500 mb-1">Net Change</p>
+              <p className={`text-xl font-bold ${(ledger.closing_balance - ledger.opening_balance) >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                {(ledger.closing_balance - ledger.opening_balance) >= 0 ? '+' : ''}Tk {Number(ledger.closing_balance - ledger.opening_balance).toLocaleString()}
+              </p>
             </div>
             <div className="card bg-primary-50">
               <p className="text-sm text-gray-500 mb-1">Closing Balance</p>
