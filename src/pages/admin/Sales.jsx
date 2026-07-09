@@ -1285,9 +1285,12 @@ const fetchSales = (f = filters) => {
                   ))}
                 </div>
               )}
-              {user?.role === 'super_admin' && Number(selected.due_amount || 0) > 0 && (
-                <AddPaymentInline enrollmentId={selected.id} maxAmount={Number(selected.due_amount)} onSuccess={() => { fetchSales(); setSelected(null); }} />
-              )}</div>
+              {user?.role === 'super_admin' && Number(selected.due_amount || 0) > 0 && (() => {
+                const hasPending = selected.payment_history?.some(p => p.approval_status === 'pending');
+                return hasPending
+                  ? <p className="text-xs text-orange-500 bg-orange-50 px-3 py-2 rounded-xl mt-2">⏳ একটি পেমেন্ট approval-এর অপেক্ষায় আছে</p>
+                  : <AddPaymentInline enrollmentId={selected.id} maxAmount={Number(selected.due_amount)} onSuccess={() => { fetchSales(); setSelected(null); }} />;
+              })()}</div>
           </div>
         </div>,
         document.body
