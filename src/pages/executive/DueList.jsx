@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { salesApi, paymentsApi, bookApi } from '../../api/client';
+import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
-import { Phone, ChevronDown, ChevronUp, Search, Download, X, ZoomIn } from 'lucide-react';
+import { Phone, ChevronDown, ChevronUp, Search, Download, X, ZoomIn, Pencil, Trash2 } from 'lucide-react';
+
+const PAYMENT_METHODS = ['bkash', 'nagad', 'rocket', 'cash', 'cod'];
 
 export default function DueList() {
   const [dues, setDues] = useState([]);
@@ -357,19 +360,50 @@ function BookDeliveryModal({ due, onClose, onSuccess }) {
   );
 }
 function PaymentHistoryModal({ due, onClose, onPay }) {
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === 'super_admin';
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [zoomImg, setZoomImg] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+  const [editAmount, setEditAmount] = useState('');
+  const [editMethod, setEditMethod] = useState('');
+  const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
+  const loadDetail = () => {
     salesApi.getById(due.id).then(res => {
       setDetail(res.data || res);
       setLoading(false);
-    }).catch(err => {
+    }).catch(() => {
       toast.error('লোড হয়নি, আবার চেষ্টা করুন');
       setLoading(false);
     });
-  }, [due.id]);
+  };
+
+  useEffect(() => { loadDetail(); }, [due.id]);
+
+  const handleEdit = (p) => { setEditingId(p.id); setEditAmount(p.amount); setEditMethod(p.payment_method); };
+
+  const handleSave = async (p) => {
+    setSaving(true);
+    try {
+      if (Number(editAmount) !== Number(p.amount)) await paymentsApi.updateAmount(p.id, Number(editAmount));
+      if (editMethod !== p.payment_method) await paymentsApi.updateMethod(p.id, editMethod);
+      toast.success('আপডেট হয়েছে ✅');
+      setEditingId(null);
+      loadDetail();
+    } catch (e) { toast.error(e?.message || 'সমস্যা হয়েছে'); }
+    setSaving(false);
+  };
+
+  const handleDelete = async (p) => {
+    if (!window.confirm('এই পেমেন্ট মুছে ফেলবেন?')) return;
+    try {
+      await paymentsApi.adminDelete(p.id);
+      toast.success('মুছে ফেলা হয়েছে');
+      loadDetail();
+    } catch (e) { toast.error(e?.message || 'সমস্যা হয়েছে'); }
+  };
 
   const history = detail?.payment_history || [];
 
@@ -424,23 +458,51 @@ function PaymentHistoryModal({ due, onClose, onPay }) {
                       <div key={p.id || i} className="border border-gray-100 rounded-2xl p-3 space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="font-bold text-green-600">৳{Number(p.amount).toLocaleString()}</span>
-                          <span className="text-xs text-gray-400">{p.created_at ? format(new Date(p.created_at), 'dd MMM yyyy, hh:mm a') : ''}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-400">{p.created_at ? format(new Date(p.created_at), 'dd MMM yy') : ''}</span>
+                            {isSuperAdmin && p.id && editingId !== p.id && (
+                              <>
+                                <button onClick={() => handleEdit(p)} className="p-1 text-blue-400 hover:text-blue-600"><Pencil size={13} /></button>
+                                <button onClick={() => handleDelete(p)} className="p-1 text-red-400 hover:text-red-600"><Trash2 size={13} /></button>
+                              </>
+                            )}
+                          </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-gray-500">
-                          {p.payment_method && <span>পদ্ধতি: <strong className="text-gray-700">{p.payment_method}</strong></span>}
-                          {p.sender_number && <span>নম্বর: <strong className="text-gray-700">{p.sender_number}</strong></span>}
-                          {p.transaction_id && <span className="col-span-2">TxnID: <strong className="text-gray-700">{p.transaction_id}</strong></span>}
-                          {p.due_date && <span className="col-span-2 text-orange-600">পরবর্তী পরিশোধ: <strong>{format(new Date(p.due_date), 'dd MMM yyyy')}</strong></span>}
-                          {p.collected_by_name && <span className="col-span-2">এন্ট্রি: <strong className="text-gray-700">{p.collected_by_name}</strong></span>}
-                          {p.notes && <span className="col-span-2 text-blue-600">নোট: {p.notes}</span>}
-                        </div>
+
+                        {editingId === p.id ? (
+                          <div className="space-y-2">
+                            <div className="grid grid-cols-2 gap-2">
+                              <input type="number" className="input-field py-1.5 text-sm" value={editAmount}
+                                onChange={e => setEditAmount(e.target.value)} placeholder="পরিমাণ" />
+                              <select className="input-field py-1.5 text-sm" value={editMethod} onChange={e => setEditMethod(e.target.value)}>
+                                {PAYMENT_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
+                              </select>
+                            </div>
+                            <div className="flex gap-2">
+                              <button onClick={() => handleSave(p)} disabled={saving}
+                                className="flex-1 py-1.5 text-sm bg-primary-600 text-white rounded-lg disabled:opacity-50">
+                                {saving ? '...' : 'সেভ'}
+                              </button>
+                              <button onClick={() => setEditingId(null)} className="px-4 py-1.5 text-sm bg-gray-100 rounded-lg">বাতিল</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-gray-500">
+                            {p.payment_method && <span>পদ্ধতি: <strong className="text-gray-700">{p.payment_method}</strong></span>}
+                            {p.sender_number && <span>নম্বর: <strong className="text-gray-700">{p.sender_number}</strong></span>}
+                            {p.transaction_id && <span className="col-span-2">TxnID: <strong className="text-gray-700">{p.transaction_id}</strong></span>}
+                            {p.due_date && <span className="col-span-2 text-orange-600">পরবর্তী পরিশোধ: <strong>{format(new Date(p.due_date), 'dd MMM yyyy')}</strong></span>}
+                            {p.collected_by_name && <span className="col-span-2">এন্ট্রি: <strong className="text-gray-700">{p.collected_by_name}</strong></span>}
+                            {p.notes && <span className="col-span-2 text-blue-600">নোট: {p.notes}</span>}
+                          </div>
+                        )}
+
                         {p.payment_proof_url && (
                           <button onClick={(e) => { e.stopPropagation(); setZoomImg(p.payment_proof_url); }}
                             className="flex items-center gap-1.5 text-xs text-primary-600 bg-primary-50 px-3 py-1.5 rounded-xl">
                             <ZoomIn size={14} /> পেমেন্ট প্রুফ দেখুন
                           </button>
                         )}
-
                       </div>
                     ))}
                   </div>
