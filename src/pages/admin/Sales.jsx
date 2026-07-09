@@ -53,17 +53,23 @@ function MultiSelect({ options, selected, onChange, placeholder }) {
   );
 }
 
+const PAYMENT_METHODS = ['bkash', 'nagad', 'rocket', 'cash', 'cod'];
+
 function PaymentHistoryItem({ payment: p, isSuperAdmin, onUpdated }) {
   const [editing, setEditing] = useState(false);
   const [amount, setAmount] = useState('');
+  const [method, setMethod] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const handleEdit = () => { setAmount(p.amount); setEditing(true); };
+  const handleEdit = () => { setAmount(p.amount); setMethod(p.payment_method); setEditing(true); };
   const handleSave = async () => {
     if (!amount || Number(amount) <= 0) return;
     setSaving(true);
     try {
-      await paymentsApi.updateAmount(p.id, Number(amount));
+      const amountChanged = Number(amount) !== Number(p.amount);
+      const methodChanged = method !== p.payment_method;
+      if (amountChanged) await paymentsApi.updateAmount(p.id, Number(amount));
+      if (methodChanged) await paymentsApi.updateMethod(p.id, method);
       toast.success('Payment আপডেট হয়েছে');
       setEditing(false);
       onUpdated();
@@ -78,14 +84,21 @@ function PaymentHistoryItem({ payment: p, isSuperAdmin, onUpdated }) {
       <div className="flex justify-between items-start">
         <div>
           {editing ? (
-            <div className="flex items-center gap-2">
-              <input type="number" className="input-field py-1 px-2 text-sm w-28" value={amount}
-                onChange={e => setAmount(e.target.value)} autoFocus />
-              <button onClick={handleSave} disabled={saving}
-                className="text-xs bg-primary-500 text-white px-2 py-1 rounded-lg">
-                {saving ? '...' : 'সেভ'}
-              </button>
-              <button onClick={() => setEditing(false)} className="text-xs text-gray-400">বাতিল</button>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <input type="number" className="input-field py-1 px-2 text-sm w-28" value={amount}
+                  onChange={e => setAmount(e.target.value)} autoFocus />
+                <select className="input-field py-1 px-2 text-sm" value={method} onChange={e => setMethod(e.target.value)}>
+                  {PAYMENT_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={handleSave} disabled={saving}
+                  className="text-xs bg-primary-500 text-white px-2 py-1 rounded-lg">
+                  {saving ? '...' : 'সেভ'}
+                </button>
+                <button onClick={() => setEditing(false)} className="text-xs text-gray-400">বাতিল</button>
+              </div>
             </div>
           ) : (
             <div className="flex items-center gap-2">

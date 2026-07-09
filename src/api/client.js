@@ -90,6 +90,7 @@ export const paymentsApi = {
   }),
   cancel: (id) => api.delete(`/api/payments/${id}`),
   updateAmount: (id, amount) => api.patch(`/api/payments/${id}/amount`, { amount }),
+  updateMethod: (id, payment_method) => api.patch(`/api/payments/${id}/method`, { payment_method }),
   adminDelete: (id) => api.delete(`/api/payments/${id}/admin`),
 };
 
