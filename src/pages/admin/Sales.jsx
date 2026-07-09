@@ -198,7 +198,7 @@ const STATUS_LABELS = {
   partial: { label: 'আংশিক', cls: 'badge-partial' }
 };
 
-const EMPTY_ENROLLMENT_FILTERS = { search: '', course_id: '', payment_status: '', date_from: '', date_to: '', executive_id: '' };
+const EMPTY_ENROLLMENT_FILTERS = { search: '', course_id: '', payment_status: '', date_from: '', date_to: '', executive_id: '', payment_method: '' };
 const EMPTY_REVENUE_FILTERS = { search: '', course_id: '', date_from: '', date_to: '', executive_id: '', payment_method: '' };
 
 export default function AdminSales() {
@@ -233,6 +233,7 @@ const fetchSales = (f = filters) => {
     if (f.date_from) params.date_from = f.date_from;
     if (f.date_to) params.date_to = f.date_to;
     if (f.executive_id) params.executive_id = f.executive_id;
+    if (f.payment_method) params.payment_method = f.payment_method;
     salesApi.getAll(params).then(res => {
       setSales(res.data || []);
       setTotal(res.total || 0);
@@ -1055,6 +1056,14 @@ const fetchSales = (f = filters) => {
               <select className="input-field" value={filters.executive_id} onChange={e => setFilter('executive_id', e.target.value)}>
                 <option value="">সব Executive</option>
                 {executives.map(e => <option key={e.id} value={e.id}>{e.full_name || e.phone}</option>)}
+              </select>
+              <select className="input-field" value={filters.payment_method} onChange={e => setFilter('payment_method', e.target.value)}>
+                <option value="">সব পেমেন্ট পদ্ধতি</option>
+                <option value="bkash">bKash</option>
+                <option value="nagad">Nagad</option>
+                <option value="rocket">Rocket</option>
+                <option value="cash">Cash</option>
+                <option value="cod">COD (Steadfast)</option>
               </select>
               <input type="date" className="input-field" value={filters.date_from} onChange={e => setFilter('date_from', e.target.value)} />
               <input type="date" className="input-field" value={filters.date_to} onChange={e => setFilter('date_to', e.target.value)} />
