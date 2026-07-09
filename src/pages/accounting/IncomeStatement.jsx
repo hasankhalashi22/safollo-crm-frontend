@@ -5,11 +5,28 @@ import { exportAccountingPdf } from '../../utils/accountingPdf';
 import { Download } from 'lucide-react';
 import SignatoryModal from '../../components/SignatoryModal';
 
+const getFiscalYears = () => {
+  const now = new Date();
+  const currentFYStart = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1;
+  return Array.from({ length: 4 }, (_, i) => {
+    const s = currentFYStart - i;
+    return { label: `${s}-${String(s + 1).slice(-2)}`, from: `${s}-07-01`, to: `${s + 1}-06-30` };
+  });
+};
+const FISCAL_YEARS = getFiscalYears();
+
 export default function IncomeStatement() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [dateFrom, setDateFrom] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
-  const [dateTo, setDateTo] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [fiscalYear, setFiscalYear] = useState(FISCAL_YEARS[0].label);
+  const [dateFrom, setDateFrom] = useState(FISCAL_YEARS[0].from);
+  const [dateTo, setDateTo] = useState(FISCAL_YEARS[0].to);
+
+  const handleFYChange = (label) => {
+    setFiscalYear(label);
+    const fy = FISCAL_YEARS.find(f => f.label === label);
+    if (fy) { setDateFrom(fy.from); setDateTo(fy.to); }
+  };
   const [showSignModal, setShowSignModal] = useState(false);
 
   const fetchData = () => {
@@ -56,12 +73,18 @@ export default function IncomeStatement() {
 
       <div className="card mb-4 flex flex-wrap items-end gap-3">
         <div>
+          <label className="block text-sm font-medium mb-1.5">অর্থবছর</label>
+          <select className="input-field" value={fiscalYear} onChange={e => handleFYChange(e.target.value)}>
+            {FISCAL_YEARS.map(fy => <option key={fy.label} value={fy.label}>FY {fy.label}</option>)}
+          </select>
+        </div>
+        <div>
           <label className="block text-sm font-medium mb-1.5">Start Date</label>
-          <input type="date" className="input-field" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
+          <input type="date" className="input-field" value={dateFrom} onChange={e => { setDateFrom(e.target.value); setFiscalYear(''); }} />
         </div>
         <div>
           <label className="block text-sm font-medium mb-1.5">End Date</label>
-          <input type="date" className="input-field" value={dateTo} onChange={e => setDateTo(e.target.value)} />
+          <input type="date" className="input-field" value={dateTo} onChange={e => { setDateTo(e.target.value); setFiscalYear(''); }} />
         </div>
         <button onClick={fetchData} className="btn-primary py-2.5 px-6">View</button>
         <button onClick={() => setShowSignModal(true)} className="flex items-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-xl text-sm font-medium ml-auto">
