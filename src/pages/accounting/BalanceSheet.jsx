@@ -5,10 +5,19 @@ import { exportAccountingPdf } from '../../utils/accountingPdf';
 import { Download } from 'lucide-react';
 import SignatoryModal from '../../components/SignatoryModal';
 
+const getFiscalYears = () => {
+  const now = new Date();
+  const s = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1;
+  return Array.from({ length: 4 }, (_, i) => ({ label: `${s - i}-${String(s - i + 1).slice(-2)}`, asOf: `${s - i + 1}-06-30` }));
+};
+const FISCAL_YEARS = getFiscalYears();
+
 export default function BalanceSheet() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [asOfDate, setAsOfDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [fiscalYear, setFiscalYear] = useState(FISCAL_YEARS[0].label);
+  const [asOfDate, setAsOfDate] = useState(FISCAL_YEARS[0].asOf);
+  const handleFYChange = (label) => { setFiscalYear(label); const fy = FISCAL_YEARS.find(f => f.label === label); if (fy) setAsOfDate(fy.asOf); };
   const [showSignModal, setShowSignModal] = useState(false);
 
   const fetchData = (date = asOfDate) => {
@@ -61,8 +70,14 @@ export default function BalanceSheet() {
 
       <div className="card mb-4 flex flex-wrap items-end gap-3">
         <div>
+          <label className="block text-sm font-medium mb-1.5">অর্থবছর</label>
+          <select className="input-field" value={fiscalYear} onChange={e => handleFYChange(e.target.value)}>
+            {FISCAL_YEARS.map(fy => <option key={fy.label} value={fy.label}>FY {fy.label}</option>)}
+          </select>
+        </div>
+        <div>
           <label className="block text-sm font-medium mb-1.5">As of Date</label>
-          <input type="date" className="input-field" value={asOfDate} onChange={e => setAsOfDate(e.target.value)} />
+          <input type="date" className="input-field" value={asOfDate} onChange={e => { setAsOfDate(e.target.value); setFiscalYear(''); }} />
         </div>
         <button onClick={() => fetchData()} className="btn-primary py-2.5 px-6">View</button>
         <button onClick={() => setShowSignModal(true)} className="flex items-center gap-2 px-4 py-2.5 bg-red-500 text-white rounded-xl text-sm font-medium ml-auto">
