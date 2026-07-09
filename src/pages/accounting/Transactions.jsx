@@ -35,7 +35,7 @@ export default function Transactions() {
   const [editTxn, setEditTxn] = useState(null);
   const [proofModal, setProofModal] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [filters, setFilters] = useState({ date_from: '', date_to: '', transaction_type: '', account_id: '' });
+  const [filters, setFilters] = useState({ date_from: '', date_to: '', transaction_type: '', account_id: '', student_phone: '' });
 
   const fetchTransactions = (f = filters) => {
     setLoading(true);
@@ -44,6 +44,7 @@ export default function Transactions() {
     if (f.date_to) params.date_to = f.date_to;
     if (f.transaction_type) params.transaction_type = f.transaction_type;
     if (f.account_id) params.account_id = f.account_id;
+    if (f.student_phone) params.student_phone = f.student_phone;
     accountingApi.getTransactions(params).then(r => {
       setTransactions(r.data || []);
       setTotal(r.total || 0);
@@ -121,9 +122,10 @@ export default function Transactions() {
             {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
           </select>
         </div>
+        <input type="text" className="input-field" placeholder="মোবাইল নম্বর দিয়ে খুঁজুন (student)" value={filters.student_phone} onChange={e => setFilter('student_phone', e.target.value)} />
         <div className="flex gap-2">
           <button onClick={() => fetchTransactions()} className="btn-primary py-2 px-6">Search</button>
-          <button onClick={() => { setFilters({ date_from: '', date_to: '', transaction_type: '', account_id: '' }); fetchTransactions({ date_from: '', date_to: '', transaction_type: '', account_id: '' }); }}
+          <button onClick={() => { const empty = { date_from: '', date_to: '', transaction_type: '', account_id: '', student_phone: '' }; setFilters(empty); fetchTransactions(empty); }}
             className="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl text-sm font-medium">Reset</button>
         </div>
       </div>
@@ -167,6 +169,7 @@ export default function Transactions() {
                     <td className="px-4 py-3 text-gray-600">
                       <div>{t.description || '—'}</div>
                       {t.source === 'crm_sync' && <span className="text-xs bg-blue-50 text-blue-500 px-1.5 py-0.5 rounded mt-0.5 inline-block">CRM</span>}
+                      {t.student_name && <div className="text-xs text-gray-400 mt-0.5">{t.student_name} · {t.student_phone}</div>}
                     </td>
                     <td className="px-4 py-3 text-gray-500">
                       <p className="text-xs">{t.debit_account_name}</p>
