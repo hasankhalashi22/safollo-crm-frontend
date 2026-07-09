@@ -1284,6 +1284,9 @@ const fetchSales = (f = filters) => {
                     />
                   ))}
                 </div>
+              )}
+              {user?.role === 'super_admin' && Number(selected.due_amount || 0) > 0 && (
+                <AddPaymentInline enrollmentId={selected.id} maxAmount={Number(selected.due_amount)} onSuccess={() => { fetchSales(); setSelected(null); }} />
               )}</div>
           </div>
         </div>,
@@ -1299,6 +1302,68 @@ const fetchSales = (f = filters) => {
         />,
         document.body
       )}
+    </div>
+  );
+}
+
+function AddPaymentInline({ enrollmentId, maxAmount, onSuccess }) {
+  const [open, setOpen] = useState(false);
+  const [amount, setAmount] = useState('');
+  const [method, setMethod] = useState('bkash');
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!amount || Number(amount) <= 0) return toast.error('সঠিক পরিমাণ দিন');
+    if (Number(amount) > maxAmount) return toast.error(`সর্বোচ্চ ৳${maxAmount} দেওয়া যাবে`);
+    setSaving(true);
+    try {
+      const fd = new FormData();
+      fd.append('enrollment_id', enrollmentId);
+      fd.append('amount', amount);
+      fd.append('payment_method', method);
+      fd.append('is_due_payment', 'true');
+      await paymentsApi.add(fd);
+      toast.success('পেমেন্ট যোগ হয়েছে ✅');
+      setOpen(false);
+      setAmount('');
+      onSuccess();
+    } catch (e) {
+      toast.error(e?.message || 'সমস্যা হয়েছে');
+    }
+    setSaving(false);
+  };
+
+  if (!open) return (
+    <button onClick={() => setOpen(true)}
+      className="w-full mt-2 py-2 text-sm font-medium bg-primary-50 text-primary-600 rounded-xl border border-primary-100 hover:bg-primary-100 transition-colors">
+      + পেমেন্ট যোগ করুন
+    </button>
+  );
+
+  return (
+    <div className="mt-2 p-3 bg-primary-50 rounded-xl border border-primary-100 space-y-2">
+      <p className="text-sm font-medium text-primary-700">নতুন পেমেন্ট (বাকি: ৳{maxAmount.toLocaleString()})</p>
+      <div className="grid grid-cols-2 gap-2">
+        <input type="number" className="input-field py-1.5 text-sm" placeholder="পরিমাণ"
+          value={amount} onChange={e => setAmount(e.target.value)} max={maxAmount} />
+        <select className="input-field py-1.5 text-sm" value={method} onChange={e => setMethod(e.target.value)}>
+          <option value="bkash">bKash</option>
+          <option value="nagad">Nagad</option>
+          <option value="rocket">Rocket</option>
+          <option value="cash">Cash</option>
+          <option value="cod">COD</option>
+        </select>
+      </div>
+      <div className="flex gap-2">
+        <button onClick={handleSave} disabled={saving}
+          className="flex-1 py-1.5 text-sm font-medium bg-primary-600 text-white rounded-lg disabled:opacity-50">
+          {saving ? 'সেভ হচ্ছে...' : 'সেভ করুন'}
+        </button>
+        <button onClick={() => { setOpen(false); setAmount(''); }}
+          className="px-4 py-1.5 text-sm text-gray-500 bg-white rounded-lg border border-gray-200">
+          বাতিল
+        </button>
+      </div>
     </div>
   );
 }
