@@ -1289,7 +1289,7 @@ const fetchSales = (f = filters) => {
                 const hasPending = selected.payment_history?.some(p => p.approval_status === 'pending');
                 return hasPending
                   ? <p className="text-xs text-orange-500 bg-orange-50 px-3 py-2 rounded-xl mt-2">⏳ একটি পেমেন্ট approval-এর অপেক্ষায় আছে</p>
-                  : <AddPaymentInline enrollmentId={selected.id} maxAmount={Number(selected.due_amount)} onSuccess={() => { fetchSales(); setSelected(null); }} />;
+                  : <AddPaymentInline enrollmentId={selected.id} maxAmount={Number(selected.due_amount)} executives={executives} onSuccess={() => { fetchSales(); setSelected(null); }} />;
               })()}</div>
           </div>
         </div>,
@@ -1309,10 +1309,12 @@ const fetchSales = (f = filters) => {
   );
 }
 
-function AddPaymentInline({ enrollmentId, maxAmount, onSuccess }) {
+function AddPaymentInline({ enrollmentId, maxAmount, executives = [], onSuccess }) {
   const [open, setOpen] = useState(false);
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState('bkash');
+  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
+  const [executiveId, setExecutiveId] = useState('');
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
@@ -1325,7 +1327,16 @@ function AddPaymentInline({ enrollmentId, maxAmount, onSuccess }) {
       fd.append('amount', amount);
       fd.append('payment_method', method);
       fd.append('is_due_payment', 'true');
-      await paymentsApi.add(fd);
+      if (executiveId) fd.append('override_executive_id', executiveId);
+      const res = await paymentsApi.add(fd);
+
+      // date পরিবর্তন হলে re-set করো
+      const today = new Date().toISOString().split('T')[0];
+      if (paymentDate && paymentDate !== today) {
+        const paymentId = res?.data?.payment?.id || res?.payment?.id;
+        if (paymentId) await paymentsApi.updateDetails(paymentId, { payment_date: paymentDate });
+      }
+
       toast.success('পেমেন্ট যোগ হয়েছে ✅');
       setOpen(false);
       setAmount('');
@@ -1355,6 +1366,16 @@ function AddPaymentInline({ enrollmentId, maxAmount, onSuccess }) {
           <option value="rocket">Rocket</option>
           <option value="cash">Cash</option>
           <option value="cod">COD</option>
+        </select>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <input type="date" className="input-field py-1.5 text-sm" value={paymentDate}
+          onChange={e => setPaymentDate(e.target.value)} />
+        <select className="input-field py-1.5 text-sm" value={executiveId} onChange={e => setExecutiveId(e.target.value)}>
+          <option value="">— এক্সিকিউটিভ —</option>
+          {executives.map(ex => (
+            <option key={ex.id} value={ex.id}>{ex.full_name || ex.phone}</option>
+          ))}
         </select>
       </div>
       <div className="flex gap-2">
