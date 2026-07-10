@@ -123,8 +123,10 @@ function AccountModal({ account, onClose, onSuccess, isSuperAdmin }) {
   const isEdit = !!account;
   const isCreditCard = account?.account_subtype === 'credit_card';
   const isInvestorLoan = account?.account_subtype === 'investor_loan';
+  const isBankOrWallet = ['bank', 'mobile_wallet', 'cash'].includes(account?.account_subtype);
   const [openingBalance, setOpeningBalance] = useState('');
   const [openingBalanceUsd, setOpeningBalanceUsd] = useState('');
+  const [openingBalanceDate, setOpeningBalanceDate] = useState('');
   const [form, setForm] = useState({
     code: account?.code || '',
     name: account?.name || '',
@@ -153,8 +155,8 @@ function AccountModal({ account, onClose, onSuccess, isSuperAdmin }) {
     try {
       if (isEdit) {
         await accountingApi.updateAccount(account.id, form);
-        if ((isCreditCard || isInvestorLoan) && openingBalance !== '') {
-          await accountingApi.setOpeningBalance(account.id, parseFloat(openingBalance) || 0, parseFloat(openingBalanceUsd) || 0);
+        if ((isCreditCard || isInvestorLoan || isBankOrWallet) && openingBalance !== '') {
+          await accountingApi.setOpeningBalance(account.id, parseFloat(openingBalance) || 0, parseFloat(openingBalanceUsd) || 0, openingBalanceDate || null);
         }
         toast.success('Account updated ✅');
       } else {
@@ -283,6 +285,10 @@ function AccountModal({ account, onClose, onSuccess, isSuperAdmin }) {
           {isEdit && isCreditCard && isSuperAdmin && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2">
               <p className="text-sm font-medium">Set Opening Balance</p>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">তারিখ *</label>
+                <input type="date" className="input-field" value={openingBalanceDate} onChange={e => setOpeningBalanceDate(e.target.value)} />
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">BDT Outstanding (৳)</label>
@@ -303,11 +309,31 @@ function AccountModal({ account, onClose, onSuccess, isSuperAdmin }) {
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2">
               <p className="text-sm font-medium">Set Opening Balance</p>
               <div>
+                <label className="block text-xs text-gray-500 mb-1">তারিখ *</label>
+                <input type="date" className="input-field" value={openingBalanceDate} onChange={e => setOpeningBalanceDate(e.target.value)} />
+              </div>
+              <div>
                 <label className="block text-xs text-gray-500 mb-1">Outstanding Principal (৳)</label>
                 <input type="number" className="input-field" placeholder="0"
                   value={openingBalance} onChange={e => setOpeningBalance(e.target.value)} />
               </div>
               <p className="text-xs text-amber-600">⚠️ Save করলে এই investor এর আগের সব ডাটা মুছে যাবে। খালি রাখলে কিছু হবে না।</p>
+            </div>
+          )}
+
+          {isEdit && isBankOrWallet && isSuperAdmin && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2">
+              <p className="text-sm font-medium">Set Opening Balance</p>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">তারিখ *</label>
+                <input type="date" className="input-field" value={openingBalanceDate} onChange={e => setOpeningBalanceDate(e.target.value)} />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Balance (৳)</label>
+                <input type="number" className="input-field" placeholder="0"
+                  value={openingBalance} onChange={e => setOpeningBalance(e.target.value)} />
+              </div>
+              <p className="text-xs text-amber-600">⚠️ Save করলে এই একাউন্টের আগের opening balance মুছে যাবে। খালি রাখলে কিছু হবে না।</p>
             </div>
           )}
 
