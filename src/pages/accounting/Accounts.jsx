@@ -119,6 +119,8 @@ export default function Accounts() {
 
 function AccountModal({ account, onClose, onSuccess }) {
   const isEdit = !!account;
+  const isCreditCard = account?.account_subtype === 'credit_card';
+  const [openingBalance, setOpeningBalance] = useState('');
   const [form, setForm] = useState({
     code: account?.code || '',
     name: account?.name || '',
@@ -147,6 +149,9 @@ function AccountModal({ account, onClose, onSuccess }) {
     try {
       if (isEdit) {
         await accountingApi.updateAccount(account.id, form);
+        if (isCreditCard && openingBalance !== '') {
+          await accountingApi.setOpeningBalance(account.id, parseFloat(openingBalance) || 0);
+        }
         toast.success('Account updated ✅');
       } else {
         await accountingApi.createAccount(form);
@@ -276,6 +281,15 @@ function AccountModal({ account, onClose, onSuccess }) {
                 </div>
               </div>
             </>
+          )}
+
+          {isEdit && isCreditCard && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
+              <label className="block text-sm font-medium mb-1">Set Opening Balance (Outstanding)</label>
+              <input type="number" className="input-field" placeholder="বর্তমান actual বকেয়া লিখুন"
+                value={openingBalance} onChange={e => setOpeningBalance(e.target.value)} />
+              <p className="text-xs text-amber-600 mt-1.5">⚠️ Save করলে এই কার্ডের আগের সব ডাটা মুছে যাবে এবং এই amount দিয়ে নতুন করে শুরু হবে। খালি রাখলে কিছু হবে না।</p>
+            </div>
           )}
 
           {isEdit && (
