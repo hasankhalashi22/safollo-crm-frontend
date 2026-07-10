@@ -132,6 +132,7 @@ export const accountingApi = {
   updateAccount: (id, data) => api.patch(`/api/accounting/accounts/${id}`, data),
   deleteAccount: (id) => api.delete(`/api/accounting/accounts/${id}`),
   setOpeningBalance: (id, amount, usd_amount) => api.post(`/api/accounting/accounts/${id}/opening-balance`, { amount, usd_amount }),
+  setAccruedProfitOverride: (id, amount) => api.post(`/api/accounting/accounts/${id}/accrued-profit-override`, { amount }),
   getAccountBalance: (id) => api.get(`/api/accounting/accounts/${id}/balance`),
 getDashboard: () => api.get('/api/accounting/dashboard'),
 getLedger: (id, params) => api.get(`/api/accounting/accounts/${id}/ledger`, { params }),

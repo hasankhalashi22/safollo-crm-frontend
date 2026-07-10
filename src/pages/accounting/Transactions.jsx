@@ -122,16 +122,6 @@ export default function Transactions() {
           </div>
         </div>
         <div className="relative group">
-          <button onClick={() => setEntryMode('investor_profit')}
-            className="w-full flex flex-col items-center gap-2 p-4 bg-amber-50 text-amber-600 rounded-2xl border-2 border-amber-100 active:scale-95 transition-all">
-            <TrendingUp size={28} />
-            <span className="font-semibold text-sm">Investor Profit</span>
-          </button>
-          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 bg-gray-800 text-white text-xs rounded-xl p-3 hidden group-hover:block z-50 leading-relaxed">
-            চুক্তি অনুযায়ী বিনিয়োগকারীর মুনাফা অর্জিত হলে নথিভুক্ত করতে। মূল বিনিয়োগ নয়।<br />• মাসিক বা মেয়াদ-শেষের মুনাফা accrual<br />• প্রকৃত টাকা পরিশোধ এখানে নয়, Shareholder Profit থেকে
-          </div>
-        </div>
-        <div className="relative group">
           <button onClick={() => setEntryMode('distribute_profit')}
             className="w-full flex flex-col items-center gap-2 p-4 bg-teal-50 text-teal-600 rounded-2xl border-2 border-teal-100 active:scale-95 transition-all">
             <Users size={28} />
@@ -379,7 +369,9 @@ function EntryModal({ mode, onClose, onSuccess }) {
       credit_account_id = form.account_id;
       const paidFromIsCard = creditCardAccounts.some(a => a.id === form.account_id);
       const categoryIsCard = creditCardAccounts.some(a => a.id === form.category_id);
-      if (categoryIsCard) transaction_type = 'credit_card_payment';
+      const categoryIsInvestor = investorAccounts.some(a => a.id === form.category_id);
+      if (categoryIsInvestor) transaction_type = 'investor_profit_payment';
+      else if (categoryIsCard) transaction_type = 'credit_card_payment';
       else if (paidFromIsCard) transaction_type = 'credit_card_charge';
       else transaction_type = 'expense';
     } else if (mode === 'transfer') {
@@ -412,6 +404,7 @@ function EntryModal({ mode, onClose, onSuccess }) {
       formData.append('description', form.party ? `${form.party}${form.description ? ' — ' + form.description : ''}` : form.description);
       formData.append('proof_type', form.proof_type);
       if (mode === 'investor_profit' && form.investor_id) formData.append('related_account_id', form.investor_id);
+      if (transaction_type === 'investor_profit_payment' && form.category_id) formData.append('related_account_id', form.category_id);
       if (form.proof) formData.append('proof', form.proof);
       if (usdMode && usdAmount) formData.append('usd_amount', usdAmount);
 

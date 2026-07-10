@@ -3,15 +3,20 @@ import { accountingApi } from '../../api/client';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import { createPortal } from 'react-dom';
-import { TrendingUp, X, Download } from 'lucide-react';
+import { TrendingUp, X, Download, Edit2 } from 'lucide-react';
 import { exportAccountingPdf } from '../../utils/accountingPdf';
 import SignatoryModal from '../../components/SignatoryModal';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function Investors() {
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === 'super_admin';
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [historyModal, setHistoryModal] = useState(null);
   const [showSignModal, setShowSignModal] = useState(false);
+  const [editingProfit, setEditingProfit] = useState(null);
+  const [profitInput, setProfitInput] = useState('');
 
   const fetchData = () => {
     setLoading(true);
@@ -27,6 +32,18 @@ export default function Investors() {
     try {
       await accountingApi.toggleInvestorAccrual(inv.id, !inv.is_accruing);
       toast.success(!inv.is_accruing ? 'Accrual enabled ✅' : 'Accrual stopped');
+      fetchData();
+    } catch (err) {
+      toast.error(err.message || 'Something went wrong');
+    }
+  };
+
+  const handleSaveProfitOverride = async (inv) => {
+    try {
+      const val = profitInput === '' ? null : parseFloat(profitInput);
+      await accountingApi.setAccruedProfitOverride(inv.id, val);
+      toast.success('Accrued profit updated ✅');
+      setEditingProfit(null);
       fetchData();
     } catch (err) {
       toast.error(err.message || 'Something went wrong');
@@ -114,8 +131,27 @@ const handleDownloadPdf = ({ mdName, ceoName }) => {
                     <p className="font-bold text-orange-600">Tk {Number(inv.principal).toLocaleString()}</p>
                   </div>
                   <div className="bg-amber-50 rounded-xl p-3">
-                    <p className="text-xs text-gray-500 mb-1">Accrued Profit (Due)</p>
-                    <p className="font-bold text-amber-600">Tk {Number(inv.accrued_profit).toLocaleString()}</p>
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-xs text-gray-500">Accrued Profit (Due)</p>
+                      {isSuperAdmin && editingProfit !== inv.id && (
+                        <button onClick={e => { e.stopPropagation(); setEditingProfit(inv.id); setProfitInput(inv.accrued_profit || ''); }}
+                          className="p-0.5 text-amber-400 hover:text-amber-600">
+                          <Edit2 size={11} />
+                        </button>
+                      )}
+                    </div>
+                    {isSuperAdmin && editingProfit === inv.id ? (
+                      <div className="flex gap-1" onClick={e => e.stopPropagation()}>
+                        <input type="number" className="input-field py-0.5 text-xs flex-1" value={profitInput}
+                          onChange={e => setProfitInput(e.target.value)} autoFocus />
+                        <button onClick={() => handleSaveProfitOverride(inv)}
+                          className="px-2 py-0.5 bg-amber-500 text-white rounded text-xs">✓</button>
+                        <button onClick={() => setEditingProfit(null)}
+                          className="px-2 py-0.5 bg-gray-200 rounded text-xs">✕</button>
+                      </div>
+                    ) : (
+                      <p className="font-bold text-amber-600">Tk {Number(inv.accrued_profit).toLocaleString()}</p>
+                    )}
                   </div>
                   <div className="bg-blue-50 rounded-xl p-3">
                     <p className="text-xs text-gray-500 mb-1">Total Profit Paid</p>
