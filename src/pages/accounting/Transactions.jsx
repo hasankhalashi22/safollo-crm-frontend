@@ -364,7 +364,8 @@ function EntryModal({ mode, onClose, onSuccess }) {
       if (!form.category_id) return toast.error('Select expense category');
       debit_account_id = form.category_id;
       credit_account_id = form.account_id;
-      transaction_type = 'expense';
+      const isCreditCard = creditCardAccounts.some(a => a.id === form.account_id);
+      transaction_type = isCreditCard ? 'credit_card_charge' : 'expense';
     } else if (mode === 'transfer') {
       if (!form.category_id) return toast.error('Select destination account');
       if (form.account_id === form.category_id) return toast.error('From and To accounts cannot be the same');
@@ -460,7 +461,12 @@ function EntryModal({ mode, onClose, onSuccess }) {
                   <select className="input-field" value={form.account_id}
                     onChange={e => set('account_id', e.target.value)}>
                     <option value="">-- Select --</option>
-                    {assetAccounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                    {assetAccounts.length > 0 && <optgroup label="Cash / Bank / Wallet">
+                      {assetAccounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                    </optgroup>}
+                    {creditCardAccounts.length > 0 && <optgroup label="Credit Card">
+                      {creditCardAccounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                    </optgroup>}
                   </select>
                 </div>
                 <div>
