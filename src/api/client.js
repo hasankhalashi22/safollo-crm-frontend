@@ -130,6 +130,7 @@ export const accountingApi = {
   getAllAccounts: () => api.get('/api/accounting/accounts/all'),
   createAccount: (data) => api.post('/api/accounting/accounts', data),
   updateAccount: (id, data) => api.patch(`/api/accounting/accounts/${id}`, data),
+  deleteAccount: (id) => api.delete(`/api/accounting/accounts/${id}`),
   getAccountBalance: (id) => api.get(`/api/accounting/accounts/${id}/balance`),
 getDashboard: () => api.get('/api/accounting/dashboard'),
 getLedger: (id, params) => api.get(`/api/accounting/accounts/${id}/ledger`, { params }),

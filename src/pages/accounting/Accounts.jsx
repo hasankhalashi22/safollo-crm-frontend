@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { accountingApi } from '../../api/client';
+import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
-import { Plus, Edit2 } from 'lucide-react';
+import { Plus, Edit2, Trash2 } from 'lucide-react';
 
 const TYPE_LABELS = {
   asset: 'Asset',
@@ -14,10 +15,23 @@ const TYPE_LABELS = {
 const TYPE_ORDER = ['asset', 'liability', 'equity', 'revenue', 'expense'];
 
 export default function Accounts() {
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === 'super_admin';
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [createModal, setCreateModal] = useState(null);
   const [editModal, setEditModal] = useState(null);
+
+  const handleDelete = async (acc) => {
+    if (!window.confirm(`"${acc.name}" একাউন্ট মুছে ফেলবেন?`)) return;
+    try {
+      await accountingApi.deleteAccount(acc.id);
+      toast.success('একাউন্ট মুছে ফেলা হয়েছে');
+      fetchAccounts();
+    } catch (e) {
+      toast.error(e?.message || 'সমস্যা হয়েছে');
+    }
+  };
 
   const fetchAccounts = () => {
     setLoading(true);
@@ -67,10 +81,18 @@ export default function Accounts() {
                     {acc.account_subtype && <p className="text-xs text-gray-400">{acc.account_subtype}</p>}
                     {!acc.is_active && <span className="text-xs text-red-500">Inactive</span>}
                   </div>
-                  <button onClick={() => setEditModal(acc)}
-                    className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium">
-                    <Edit2 size={14} />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setEditModal(acc)}
+                      className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium">
+                      <Edit2 size={14} />
+                    </button>
+                    {isSuperAdmin && (
+                      <button onClick={() => handleDelete(acc)}
+                        className="px-2 py-1 bg-red-50 text-red-500 rounded-lg text-xs font-medium">
+                        <Trash2 size={14} />
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
