@@ -120,6 +120,7 @@ export default function Accounts() {
 function AccountModal({ account, onClose, onSuccess }) {
   const isEdit = !!account;
   const isCreditCard = account?.account_subtype === 'credit_card';
+  const isInvestorLoan = account?.account_subtype === 'investor_loan';
   const [openingBalance, setOpeningBalance] = useState('');
   const [openingBalanceUsd, setOpeningBalanceUsd] = useState('');
   const [form, setForm] = useState({
@@ -150,7 +151,7 @@ function AccountModal({ account, onClose, onSuccess }) {
     try {
       if (isEdit) {
         await accountingApi.updateAccount(account.id, form);
-        if (isCreditCard && (openingBalance !== '' || openingBalanceUsd !== '')) {
+        if ((isCreditCard || isInvestorLoan) && openingBalance !== '') {
           await accountingApi.setOpeningBalance(account.id, parseFloat(openingBalance) || 0, parseFloat(openingBalanceUsd) || 0);
         }
         toast.success('Account updated ✅');
@@ -300,6 +301,18 @@ function AccountModal({ account, onClose, onSuccess }) {
                 </div>
               </div>
               <p className="text-xs text-amber-600">⚠️ Save করলে এই কার্ডের আগের সব ডাটা মুছে যাবে। খালি রাখলে কিছু হবে না।</p>
+            </div>
+          )}
+
+          {isEdit && isInvestorLoan && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2">
+              <p className="text-sm font-medium">Set Opening Balance</p>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Outstanding Principal (৳)</label>
+                <input type="number" className="input-field" placeholder="0"
+                  value={openingBalance} onChange={e => setOpeningBalance(e.target.value)} />
+              </div>
+              <p className="text-xs text-amber-600">⚠️ Save করলে এই investor এর আগের সব ডাটা মুছে যাবে। খালি রাখলে কিছু হবে না।</p>
             </div>
           )}
 
