@@ -529,9 +529,13 @@ function EntryModal({ mode, onClose, onSuccess }) {
                   </button>
                 </div>
               ) : (
-                <label className="flex items-center gap-3 p-3 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer">
+                <label className="flex items-center gap-3 p-3 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer"
+                  onPaste={e => {
+                    const item = Array.from(e.clipboardData.items).find(i => i.type.startsWith('image/'));
+                    if (item) { const file = item.getAsFile(); set('proof', file); setProofPreview(URL.createObjectURL(file)); }
+                  }}>
                   <Camera size={20} className="text-gray-400" />
-                  <span className="text-sm text-gray-400">Upload image (optional)</span>
+                  <span className="text-sm text-gray-400">Upload image or Ctrl+V to paste (optional)</span>
                   <input type="file" accept="image/*" className="hidden" onChange={e => {
                     const file = e.target.files[0];
                     if (file) { set('proof', file); setProofPreview(URL.createObjectURL(file)); }
@@ -797,9 +801,13 @@ function EditModal({ txn, onClose, onSuccess }) {
                   </button>
                 </div>
               ) : (
-                <label className="flex items-center gap-3 p-3 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer">
+                <label className="flex items-center gap-3 p-3 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer"
+                  onPaste={e => {
+                    const item = Array.from(e.clipboardData.items).find(i => i.type.startsWith('image/'));
+                    if (item) { const file = item.getAsFile(); set('proof', file); setProofPreview(URL.createObjectURL(file)); }
+                  }}>
                   <Camera size={20} className="text-gray-400" />
-                  <span className="text-sm text-gray-400">Upload new image</span>
+                  <span className="text-sm text-gray-400">Upload new image or Ctrl+V to paste</span>
                   <input type="file" accept="image/*" className="hidden" onChange={e => {
                     const file = e.target.files[0];
                     if (file) { set('proof', file); setProofPreview(URL.createObjectURL(file)); }
