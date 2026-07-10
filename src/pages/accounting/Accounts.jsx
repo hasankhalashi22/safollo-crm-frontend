@@ -260,17 +260,10 @@ function AccountModal({ account, onClose, onSuccess, isSuperAdmin }) {
                 <input type="text" className="input-field" value={form.investor_name}
                   onChange={e => set('investor_name', e.target.value)} />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium mb-1.5">Principal Amount</label>
-                  <input type="number" className="input-field" value={form.principal_amount}
-                    onChange={e => set('principal_amount', e.target.value)} />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1.5">Profit Rate %</label>
-                  <input type="number" className="input-field" value={form.profit_rate}
-                    onChange={e => set('profit_rate', e.target.value)} />
-                </div>
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Profit Rate %</label>
+                <input type="number" className="input-field" value={form.profit_rate}
+                  onChange={e => set('profit_rate', e.target.value)} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
