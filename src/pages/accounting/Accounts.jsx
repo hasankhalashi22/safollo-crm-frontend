@@ -102,6 +102,7 @@ export default function Accounts() {
 
       {createModal && (
         <AccountModal
+          isSuperAdmin={isSuperAdmin}
           onClose={() => setCreateModal(null)}
           onSuccess={() => { setCreateModal(null); fetchAccounts(); }}
         />
@@ -109,6 +110,7 @@ export default function Accounts() {
       {editModal && (
         <AccountModal
           account={editModal}
+          isSuperAdmin={isSuperAdmin}
           onClose={() => setEditModal(null)}
           onSuccess={() => { setEditModal(null); fetchAccounts(); }}
         />
@@ -117,7 +119,7 @@ export default function Accounts() {
   );
 }
 
-function AccountModal({ account, onClose, onSuccess }) {
+function AccountModal({ account, onClose, onSuccess, isSuperAdmin }) {
   const isEdit = !!account;
   const isCreditCard = account?.account_subtype === 'credit_card';
   const isInvestorLoan = account?.account_subtype === 'investor_loan';
@@ -285,7 +287,7 @@ function AccountModal({ account, onClose, onSuccess }) {
             </>
           )}
 
-          {isEdit && isCreditCard && (
+          {isEdit && isCreditCard && isSuperAdmin && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2">
               <p className="text-sm font-medium">Set Opening Balance</p>
               <div className="grid grid-cols-2 gap-2">
@@ -304,7 +306,7 @@ function AccountModal({ account, onClose, onSuccess }) {
             </div>
           )}
 
-          {isEdit && isInvestorLoan && (
+          {isEdit && isInvestorLoan && isSuperAdmin && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2">
               <p className="text-sm font-medium">Set Opening Balance</p>
               <div>
