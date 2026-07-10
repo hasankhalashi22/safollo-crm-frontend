@@ -144,9 +144,11 @@ export default function Transactions() {
       </div>
 
       <div className="card mb-4 space-y-3">
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
           <input type="date" className="input-field" value={filters.date_from} onChange={e => setFilter('date_from', e.target.value)} />
           <input type="date" className="input-field" value={filters.date_to} onChange={e => setFilter('date_to', e.target.value)} />
+        </div>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
           <select className="input-field" value={filters.transaction_type} onChange={e => setFilter('transaction_type', e.target.value)}>
             <option value="">সব Type</option>
             <option value="revenue">Cash In</option>
@@ -155,6 +157,10 @@ export default function Transactions() {
             <option value="credit_card_charge">Card Interest</option>
             <option value="credit_card_payment">Card Payment</option>
             <option value="investor_profit_payment">Investor Profit</option>
+          </select>
+          <select className="input-field" value={filters.account_id} onChange={e => setFilter('account_id', e.target.value)}>
+            <option value="">সব Account</option>
+            {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
           </select>
         </div>
         <input type="text" className="input-field" placeholder="মোবাইল নম্বর দিয়ে খুঁজুন (student)" value={filters.student_phone} onChange={e => setFilter('student_phone', e.target.value)} />
