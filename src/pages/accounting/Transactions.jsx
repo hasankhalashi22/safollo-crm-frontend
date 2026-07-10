@@ -87,7 +87,7 @@ export default function Transactions() {
             <ArrowDownCircle size={28} />
             <span className="font-semibold text-sm">Cash In</span>
           </button>
-          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 bg-gray-800 text-white text-xs rounded-xl p-3 hidden group-hover:block z-50 leading-relaxed">
+          <div className="absolute top-full left-0 mt-2 w-72 bg-gray-800 text-white text-xs rounded-xl p-3 hidden group-hover:block z-50 leading-relaxed">
             ব্যবসায় নগদ অর্থ প্রবেশ করলে।<br />• বিনিয়োগ গ্রহণ<br />• ব্যাংক ঋণ গ্রহণ<br />• অন্য উৎস থেকে আয়
           </div>
         </div>
