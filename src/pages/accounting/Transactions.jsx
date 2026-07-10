@@ -108,7 +108,7 @@ export default function Transactions() {
             <span className="font-semibold text-sm">Transfer</span>
           </button>
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 bg-gray-800 text-white text-xs rounded-xl p-3 hidden group-hover:block z-50 leading-relaxed">
-            এক একাউন্ট থেকে অন্য একাউন্টে টাকা সরানো — আয় বা ব্যয় নয়, শুধু স্থানান্তর।<br />• ব্যাংক থেকে Personal A/C (CEO)-তে<br />• bKash থেকে ব্যাংকে<br />• Petty Cash থেকে Nagad-এ
+            এক একাউন্ট থেকে অন্য একাউন্টে টাকা সরানো। আয় বা ব্যয় নয়, শুধু স্থানান্তর।<br />• ব্যাংক থেকে Personal A/C (CEO)-তে<br />• bKash থেকে ব্যাংকে<br />• Petty Cash থেকে Nagad-এ
           </div>
         </div>
         <div className="relative group">
@@ -118,7 +118,7 @@ export default function Transactions() {
             <span className="font-semibold text-sm">Card Interest</span>
           </button>
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 bg-gray-800 text-white text-xs rounded-xl p-3 hidden group-hover:block z-50 leading-relaxed">
-            ক্রেডিট কার্ডের সুদ বা চার্জ রেকর্ড করতে। নগদ বের হয় না — কার্ডের দেনা বাড়ে।<br />• মাসিক ব্যাংক সুদ<br />• লেট পেমেন্ট ফি<br />• USD সুদও এখান থেকে যোগ করা যায়
+            ক্রেডিট কার্ডের সুদ বা চার্জ রেকর্ড করতে। নগদ বের হয় না, কার্ডের দেনা বাড়ে।<br />• মাসিক কার্ড সুদ<br />• লেট কার্ড পেমেন্ট ফি<br />• USD সুদও এখান থেকে যোগ করা যায়
           </div>
         </div>
         <div className="relative group">
@@ -128,7 +128,7 @@ export default function Transactions() {
             <span className="font-semibold text-sm">Investor Profit</span>
           </button>
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 bg-gray-800 text-white text-xs rounded-xl p-3 hidden group-hover:block z-50 leading-relaxed">
-            চুক্তি অনুযায়ী বিনিয়োগকারীর মুনাফা অর্জিত হলে নথিভুক্ত করতে। মূল বিনিয়োগ নয়।<br />• মাসিক বা মেয়াদ-শেষের মুনাফা accrual<br />• প্রকৃত টাকা পরিশোধ এখানে নয় — Distribute Profit থেকে
+            চুক্তি অনুযায়ী বিনিয়োগকারীর মুনাফা অর্জিত হলে নথিভুক্ত করতে। মূল বিনিয়োগ নয়।<br />• মাসিক বা মেয়াদ-শেষের মুনাফা accrual<br />• প্রকৃত টাকা পরিশোধ এখানে নয়, Distribute Profit থেকে
           </div>
         </div>
         <div className="relative group">
