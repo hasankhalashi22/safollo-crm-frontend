@@ -147,9 +147,14 @@ export default function Transactions() {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-3">
           <input type="date" className="input-field" value={filters.date_from} onChange={e => setFilter('date_from', e.target.value)} />
           <input type="date" className="input-field" value={filters.date_to} onChange={e => setFilter('date_to', e.target.value)} />
-          <select className="input-field" value={filters.account_id} onChange={e => setFilter('account_id', e.target.value)}>
-            <option value="">সব Account</option>
-            {accounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+          <select className="input-field" value={filters.transaction_type} onChange={e => setFilter('transaction_type', e.target.value)}>
+            <option value="">সব Type</option>
+            <option value="revenue">Cash In</option>
+            <option value="expense">Cash Out</option>
+            <option value="fund_transfer">Transfer</option>
+            <option value="credit_card_charge">Card Interest</option>
+            <option value="credit_card_payment">Card Payment</option>
+            <option value="investor_profit_payment">Investor Profit</option>
           </select>
         </div>
         <input type="text" className="input-field" placeholder="মোবাইল নম্বর দিয়ে খুঁজুন (student)" value={filters.student_phone} onChange={e => setFilter('student_phone', e.target.value)} />
@@ -177,7 +182,7 @@ export default function Transactions() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                {['#', 'Date', 'Description', 'Account', 'Cash In', 'Cash Out', 'Created By', 'Action'].map(h => (
+                {['#', 'Date', 'Description', 'Account', 'Cash In', 'Cash Out / Transfer', 'Created By', 'Action'].map(h => (
                   <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -211,7 +216,7 @@ export default function Transactions() {
                       {isCashIn ? `Tk ${Number(t.amount).toLocaleString()}` : '—'}
                     </td>
                     <td className="px-4 py-3 font-medium whitespace-nowrap text-red-600">
-                      {isCashOut ? `Tk ${Number(t.amount).toLocaleString()}` : '—'}
+                      {isCashOut ? `Tk ${Number(t.amount).toLocaleString()}` : isTransfer ? <span className="text-blue-600">Tk {Number(t.amount).toLocaleString()}</span> : '—'}
                     </td>
                     <td className="px-4 py-3 text-gray-500">{t.created_by_name || t.created_by_phone || '—'}</td>
                     <td className="px-4 py-3">
