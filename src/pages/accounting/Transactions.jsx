@@ -87,7 +87,7 @@ export default function Transactions() {
             <ArrowDownCircle size={28} />
             <span className="font-semibold text-sm">Cash In</span>
           </button>
-          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 bg-gray-800 text-white text-xs rounded-xl p-3 hidden group-hover:block z-50 leading-relaxed">
+          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 bg-gray-800 text-white text-xs rounded-xl p-3 hidden group-hover:block z-50 leading-relaxed">
             ব্যবসায় নগদ অর্থ প্রবেশ করলে।<br />• বিনিয়োগ গ্রহণ<br />• ব্যাংক ঋণ গ্রহণ<br />• অন্য উৎস থেকে আয়
           </div>
         </div>
@@ -97,7 +97,7 @@ export default function Transactions() {
             <ArrowUpCircle size={28} />
             <span className="font-semibold text-sm">Cash Out</span>
           </button>
-          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 bg-gray-800 text-white text-xs rounded-xl p-3 hidden group-hover:block z-50 leading-relaxed">
+          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 bg-gray-800 text-white text-xs rounded-xl p-3 hidden group-hover:block z-50 leading-relaxed">
             ব্যবসা থেকে অর্থ বের হলে বা দেনা পরিশোধ করলে।<br />• অফিস খরচ, সরবরাহকারীকে পেমেন্ট<br />• ক্রেডিট কার্ডের মাসিক বিল পরিশোধ<br />• ক্রেডিট কার্ড দিয়ে কেনাকাটা (৳ বা $)<br />• বিনিয়োগকারীর মূল বিনিয়োগ ফেরত
           </div>
         </div>
@@ -107,7 +107,7 @@ export default function Transactions() {
             <ArrowLeftRight size={28} />
             <span className="font-semibold text-sm">Transfer</span>
           </button>
-          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 bg-gray-800 text-white text-xs rounded-xl p-3 hidden group-hover:block z-50 leading-relaxed">
+          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 bg-gray-800 text-white text-xs rounded-xl p-3 hidden group-hover:block z-50 leading-relaxed">
             এক একাউন্ট থেকে অন্য একাউন্টে টাকা সরানো। আয় বা ব্যয় নয়, শুধু স্থানান্তর।<br />• ব্যাংক থেকে Personal A/C (CEO)-তে<br />• bKash থেকে ব্যাংকে<br />• Petty Cash থেকে Nagad-এ
           </div>
         </div>
@@ -117,7 +117,7 @@ export default function Transactions() {
             <CreditCard size={28} />
             <span className="font-semibold text-sm">Card Interest</span>
           </button>
-          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 bg-gray-800 text-white text-xs rounded-xl p-3 hidden group-hover:block z-50 leading-relaxed">
+          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 bg-gray-800 text-white text-xs rounded-xl p-3 hidden group-hover:block z-50 leading-relaxed">
             ক্রেডিট কার্ডের সুদ বা চার্জ রেকর্ড করতে। নগদ বের হয় না, কার্ডের দেনা বাড়ে।<br />• মাসিক কার্ড সুদ<br />• লেট কার্ড পেমেন্ট ফি<br />• USD সুদও এখান থেকে যোগ করা যায়
           </div>
         </div>
@@ -127,7 +127,7 @@ export default function Transactions() {
             <TrendingUp size={28} />
             <span className="font-semibold text-sm">Investor Profit</span>
           </button>
-          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 bg-gray-800 text-white text-xs rounded-xl p-3 hidden group-hover:block z-50 leading-relaxed">
+          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 bg-gray-800 text-white text-xs rounded-xl p-3 hidden group-hover:block z-50 leading-relaxed">
             চুক্তি অনুযায়ী বিনিয়োগকারীর মুনাফা অর্জিত হলে নথিভুক্ত করতে। মূল বিনিয়োগ নয়।<br />• মাসিক বা মেয়াদ-শেষের মুনাফা accrual<br />• প্রকৃত টাকা পরিশোধ এখানে নয়, Distribute Profit থেকে
           </div>
         </div>
@@ -137,7 +137,7 @@ export default function Transactions() {
             <Users size={28} />
             <span className="font-semibold text-sm">Distribute Profit</span>
           </button>
-          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 bg-gray-800 text-white text-xs rounded-xl p-3 hidden group-hover:block z-50 leading-relaxed">
+          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 bg-gray-800 text-white text-xs rounded-xl p-3 hidden group-hover:block z-50 leading-relaxed">
             অর্জিত মুনাফা বিনিয়োগকারীদের মধ্যে প্রকৃত টাকা বিতরণ করলে।<br />• শেয়ার অনুযায়ী স্বয়ংক্রিয় ভাগ হয়<br />• Investor Profit-এ accrual করার পর এখান থেকে পরিশোধ
           </div>
         </div>
