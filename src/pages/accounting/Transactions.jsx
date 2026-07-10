@@ -366,8 +366,11 @@ function EntryModal({ mode, onClose, onSuccess }) {
       if (!form.category_id) return toast.error('Select expense category');
       debit_account_id = form.category_id;
       credit_account_id = form.account_id;
-      const isCreditCard = creditCardAccounts.some(a => a.id === form.account_id);
-      transaction_type = isCreditCard ? 'credit_card_charge' : 'expense';
+      const paidFromIsCard = creditCardAccounts.some(a => a.id === form.account_id);
+      const categoryIsCard = creditCardAccounts.some(a => a.id === form.category_id);
+      if (categoryIsCard) transaction_type = 'credit_card_payment';
+      else if (paidFromIsCard) transaction_type = 'credit_card_charge';
+      else transaction_type = 'expense';
     } else if (mode === 'transfer') {
       if (!form.category_id) return toast.error('Select destination account');
       if (form.account_id === form.category_id) return toast.error('From and To accounts cannot be the same');
@@ -464,7 +467,7 @@ function EntryModal({ mode, onClose, onSuccess }) {
                 <div>
                   <label className="block text-sm font-medium mb-1.5">Paid from? *</label>
                   <select className="input-field" value={form.account_id}
-                    onChange={e => { set('account_id', e.target.value); setUsdMode(false); setUsdAmount(''); }}>
+                    onChange={e => { set('account_id', e.target.value); set('category_id', ''); setUsdMode(false); setUsdAmount(''); }}>
                     <option value="">-- Select --</option>
                     {assetAccounts.length > 0 && <optgroup label="Cash / Bank / Wallet">
                       {assetAccounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
@@ -474,46 +477,74 @@ function EntryModal({ mode, onClose, onSuccess }) {
                     </optgroup>}
                   </select>
                 </div>
-                {mode === 'out' && (() => {
-                  const selectedCard = creditCardAccounts.find(a => a.id === form.account_id);
-                  return selectedCard?.usd_outstanding > 0 ? (
+                {/* USD purchase option — when paid from a credit card */}
+                {(() => {
+                  const paidFromCard = creditCardAccounts.find(a => a.id === form.account_id);
+                  if (!paidFromCard) return null;
+                  return (
+                    <div className="flex items-center gap-2 text-sm">
+                      <input type="checkbox" id="usd-purchase" checked={usdMode}
+                        onChange={e => { setUsdMode(e.target.checked); setUsdAmount(''); }} />
+                      <label htmlFor="usd-purchase" className="cursor-pointer">USD-তে কিনছেন? (ডলারে ক্রয়)</label>
+                    </div>
+                  );
+                })()}
+                {usdMode && creditCardAccounts.some(a => a.id === form.account_id) && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">USD Amount ($)</label>
+                      <input type="number" className="input-field" value={usdAmount}
+                        onChange={e => setUsdAmount(e.target.value)} placeholder="0.00" />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1">BDT Equivalent (৳)</label>
+                      <input type="number" className="input-field" value={form.amount}
+                        onChange={e => set('amount', e.target.value)} placeholder="0" />
+                    </div>
+                  </div>
+                )}
+                <div>
+                  <label className="block text-sm font-medium mb-1.5">Expense category? *</label>
+                  <select className="input-field" value={form.category_id}
+                    onChange={e => { set('category_id', e.target.value); setUsdMode(false); setUsdAmount(''); }}>
+                    <option value="">-- Select --</option>
+                    {outCategoryOptions.map(a => <option key={a.id} value={a.id}>{a.name}{a.account_type === 'liability' ? ' (Payment)' : ''}</option>)}
+                  </select>
+                </div>
+                {/* USD payment option — when paying off a credit card bill */}
+                {(() => {
+                  const categoryCard = creditCardAccounts.find(a => a.id === form.category_id);
+                  if (!categoryCard || categoryCard.usd_outstanding <= 0) return null;
+                  return (
                     <div className="bg-blue-50 rounded-xl p-3 space-y-2">
-                      <p className="text-xs font-medium text-blue-700">এই কার্ডে USD ও BDT outstanding আছে — কোনটা পরিশোধ করছেন?</p>
+                      <p className="text-xs font-medium text-blue-700">এই কার্ডে USD outstanding আছে — কোন অংশ পরিশোধ করছেন?</p>
                       <div className="flex gap-4 text-sm">
                         <label className="flex items-center gap-2 cursor-pointer">
                           <input type="radio" checked={!usdMode} onChange={() => { setUsdMode(false); setUsdAmount(''); }} />
-                          <span>BDT (৳{Number(selectedCard.outstanding_balance || 0).toLocaleString()})</span>
+                          <span>BDT (৳)</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer">
                           <input type="radio" checked={usdMode} onChange={() => setUsdMode(true)} />
-                          <span>USD (${Number(selectedCard.usd_outstanding || 0).toLocaleString()})</span>
+                          <span>USD ($)</span>
                         </label>
                       </div>
                       {usdMode && (
                         <div className="grid grid-cols-2 gap-2 pt-1">
                           <div>
-                            <label className="block text-xs text-gray-500 mb-1">USD Amount ($)</label>
+                            <label className="block text-xs text-gray-500 mb-1">USD পরিশোধ ($)</label>
                             <input type="number" className="input-field" value={usdAmount}
                               onChange={e => setUsdAmount(e.target.value)} placeholder="0.00" />
                           </div>
                           <div>
-                            <label className="block text-xs text-gray-500 mb-1">BDT Paid (৳)</label>
+                            <label className="block text-xs text-gray-500 mb-1">BDT সমতুল্য (৳)</label>
                             <input type="number" className="input-field" value={form.amount}
                               onChange={e => set('amount', e.target.value)} placeholder="0" />
                           </div>
                         </div>
                       )}
                     </div>
-                  ) : null;
+                  );
                 })()}
-                <div>
-                  <label className="block text-sm font-medium mb-1.5">Expense category? *</label>
-                  <select className="input-field" value={form.category_id}
-                    onChange={e => set('category_id', e.target.value)}>
-                    <option value="">-- Select --</option>
-                    {outCategoryOptions.map(a => <option key={a.id} value={a.id}>{a.name}{a.account_type === 'liability' ? ' (Payment)' : ''}</option>)}
-                  </select>
-                </div>
                 <div>
                   <label className="block text-sm font-medium mb-1.5">Paid to? (optional)</label>
                   <input type="text" className="input-field" value={form.party}
