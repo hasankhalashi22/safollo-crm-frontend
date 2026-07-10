@@ -112,6 +112,12 @@ export default function CreditCards() {
                   </div>
                 </div>
 
+                {card.usd_outstanding > 0 && (
+                  <div className="mt-3 bg-green-50 rounded-xl p-3 flex justify-between items-center">
+                    <p className="text-xs text-gray-500">USD Outstanding</p>
+                    <p className="font-bold text-green-700">${Number(card.usd_outstanding).toLocaleString()}</p>
+                  </div>
+                )}
                 {card.interest_rate && (
                   <p className="text-xs text-gray-400 mt-3">Interest Rate: {card.interest_rate}%</p>
                 )}

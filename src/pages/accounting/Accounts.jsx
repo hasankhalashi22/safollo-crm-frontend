@@ -121,6 +121,7 @@ function AccountModal({ account, onClose, onSuccess }) {
   const isEdit = !!account;
   const isCreditCard = account?.account_subtype === 'credit_card';
   const [openingBalance, setOpeningBalance] = useState('');
+  const [openingBalanceUsd, setOpeningBalanceUsd] = useState('');
   const [form, setForm] = useState({
     code: account?.code || '',
     name: account?.name || '',
@@ -149,8 +150,8 @@ function AccountModal({ account, onClose, onSuccess }) {
     try {
       if (isEdit) {
         await accountingApi.updateAccount(account.id, form);
-        if (isCreditCard && openingBalance !== '') {
-          await accountingApi.setOpeningBalance(account.id, parseFloat(openingBalance) || 0);
+        if (isCreditCard && (openingBalance !== '' || openingBalanceUsd !== '')) {
+          await accountingApi.setOpeningBalance(account.id, parseFloat(openingBalance) || 0, parseFloat(openingBalanceUsd) || 0);
         }
         toast.success('Account updated ✅');
       } else {
@@ -284,11 +285,21 @@ function AccountModal({ account, onClose, onSuccess }) {
           )}
 
           {isEdit && isCreditCard && (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
-              <label className="block text-sm font-medium mb-1">Set Opening Balance (Outstanding)</label>
-              <input type="number" className="input-field" placeholder="বর্তমান actual বকেয়া লিখুন"
-                value={openingBalance} onChange={e => setOpeningBalance(e.target.value)} />
-              <p className="text-xs text-amber-600 mt-1.5">⚠️ Save করলে এই কার্ডের আগের সব ডাটা মুছে যাবে এবং এই amount দিয়ে নতুন করে শুরু হবে। খালি রাখলে কিছু হবে না।</p>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-2">
+              <p className="text-sm font-medium">Set Opening Balance</p>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">BDT Outstanding (৳)</label>
+                  <input type="number" className="input-field" placeholder="0"
+                    value={openingBalance} onChange={e => setOpeningBalance(e.target.value)} />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">USD Outstanding ($)</label>
+                  <input type="number" className="input-field" placeholder="0"
+                    value={openingBalanceUsd} onChange={e => setOpeningBalanceUsd(e.target.value)} />
+                </div>
+              </div>
+              <p className="text-xs text-amber-600">⚠️ Save করলে এই কার্ডের আগের সব ডাটা মুছে যাবে। খালি রাখলে কিছু হবে না।</p>
             </div>
           )}
 

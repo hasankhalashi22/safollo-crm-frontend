@@ -311,6 +311,8 @@ function EntryModal({ mode, onClose, onSuccess }) {
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [proofPreview, setProofPreview] = useState(null);
+  const [usdMode, setUsdMode] = useState(false);
+  const [usdAmount, setUsdAmount] = useState('');
   const [form, setForm] = useState({
     transaction_date: format(new Date(), 'yyyy-MM-dd'),
     amount: '',
@@ -397,6 +399,7 @@ function EntryModal({ mode, onClose, onSuccess }) {
       formData.append('proof_type', form.proof_type);
       if (mode === 'investor_profit' && form.investor_id) formData.append('related_account_id', form.investor_id);
       if (form.proof) formData.append('proof', form.proof);
+      if (usdMode && usdAmount) formData.append('usd_amount', usdAmount);
 
       await accountingApi.createTransaction(formData);
       toast.success('Entry saved ✅');
@@ -422,11 +425,13 @@ function EntryModal({ mode, onClose, onSuccess }) {
                 onChange={e => set('transaction_date', e.target.value)} />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1.5">Amount (Tk) *</label>
-              <input type="number" className="input-field" value={form.amount}
-                onChange={e => set('amount', e.target.value)} />
-            </div>
+            {!usdMode && (
+              <div>
+                <label className="block text-sm font-medium mb-1.5">Amount (Tk) *</label>
+                <input type="number" className="input-field" value={form.amount}
+                  onChange={e => set('amount', e.target.value)} />
+              </div>
+            )}
 
             {mode === 'in' && (
               <>
@@ -459,7 +464,7 @@ function EntryModal({ mode, onClose, onSuccess }) {
                 <div>
                   <label className="block text-sm font-medium mb-1.5">Paid from? *</label>
                   <select className="input-field" value={form.account_id}
-                    onChange={e => set('account_id', e.target.value)}>
+                    onChange={e => { set('account_id', e.target.value); setUsdMode(false); setUsdAmount(''); }}>
                     <option value="">-- Select --</option>
                     {assetAccounts.length > 0 && <optgroup label="Cash / Bank / Wallet">
                       {assetAccounts.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
@@ -469,6 +474,38 @@ function EntryModal({ mode, onClose, onSuccess }) {
                     </optgroup>}
                   </select>
                 </div>
+                {mode === 'out' && (() => {
+                  const selectedCard = creditCardAccounts.find(a => a.id === form.account_id);
+                  return selectedCard?.usd_outstanding > 0 ? (
+                    <div className="bg-blue-50 rounded-xl p-3 space-y-2">
+                      <p className="text-xs font-medium text-blue-700">এই কার্ডে USD ও BDT outstanding আছে — কোনটা পরিশোধ করছেন?</p>
+                      <div className="flex gap-4 text-sm">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input type="radio" checked={!usdMode} onChange={() => { setUsdMode(false); setUsdAmount(''); }} />
+                          <span>BDT (৳{Number(selectedCard.outstanding_balance || 0).toLocaleString()})</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input type="radio" checked={usdMode} onChange={() => setUsdMode(true)} />
+                          <span>USD (${Number(selectedCard.usd_outstanding || 0).toLocaleString()})</span>
+                        </label>
+                      </div>
+                      {usdMode && (
+                        <div className="grid grid-cols-2 gap-2 pt-1">
+                          <div>
+                            <label className="block text-xs text-gray-500 mb-1">USD Amount ($)</label>
+                            <input type="number" className="input-field" value={usdAmount}
+                              onChange={e => setUsdAmount(e.target.value)} placeholder="0.00" />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-gray-500 mb-1">BDT Paid (৳)</label>
+                            <input type="number" className="input-field" value={form.amount}
+                              onChange={e => set('amount', e.target.value)} placeholder="0" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : null;
+                })()}
                 <div>
                   <label className="block text-sm font-medium mb-1.5">Expense category? *</label>
                   <select className="input-field" value={form.category_id}
@@ -511,11 +548,40 @@ function EntryModal({ mode, onClose, onSuccess }) {
                 <div>
                   <label className="block text-sm font-medium mb-1.5">Which Card? *</label>
                   <select className="input-field" value={form.account_id}
-                    onChange={e => set('account_id', e.target.value)}>
+                    onChange={e => { set('account_id', e.target.value); setUsdMode(false); setUsdAmount(''); }}>
                     <option value="">-- Select --</option>
                     {creditCardAccounts.map(a => <option key={a.id} value={a.id}>{a.name}{a.bank_name ? ` (${a.bank_name})` : ''}</option>)}
                   </select>
                 </div>
+                {form.account_id && (() => {
+                  const card = creditCardAccounts.find(a => a.id === form.account_id);
+                  return card?.usd_outstanding > 0 ? (
+                    <div className="flex gap-4 text-sm">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" checked={!usdMode} onChange={() => { setUsdMode(false); setUsdAmount(''); }} />
+                        <span>BDT Interest (৳)</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" checked={usdMode} onChange={() => setUsdMode(true)} />
+                        <span>USD Interest ($)</span>
+                      </label>
+                    </div>
+                  ) : null;
+                })()}
+                {usdMode && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium mb-1.5">USD Amount ($) *</label>
+                      <input type="number" className="input-field" value={usdAmount}
+                        onChange={e => setUsdAmount(e.target.value)} placeholder="0.00" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1.5">BDT Equivalent (৳) *</label>
+                      <input type="number" className="input-field" value={form.amount}
+                        onChange={e => set('amount', e.target.value)} placeholder="0" />
+                    </div>
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-medium mb-1.5">Expense Category *</label>
                   <select className="input-field" value={form.category_id}
