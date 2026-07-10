@@ -81,36 +81,66 @@ export default function Transactions() {
       </div>
 
       <div className="grid grid-cols-2 xl:grid-cols-6 gap-3 mb-6">
-        <button onClick={() => setEntryMode('in')}
-          className="flex flex-col items-center gap-2 p-4 bg-green-50 text-green-600 rounded-2xl border-2 border-green-100 active:scale-95 transition-all">
-          <ArrowDownCircle size={28} />
-          <span className="font-semibold text-sm">Cash In</span>
-        </button>
-        <button onClick={() => setEntryMode('out')}
-          className="flex flex-col items-center gap-2 p-4 bg-red-50 text-red-600 rounded-2xl border-2 border-red-100 active:scale-95 transition-all">
-          <ArrowUpCircle size={28} />
-          <span className="font-semibold text-sm">Cash Out</span>
-        </button>
-        <button onClick={() => setEntryMode('transfer')}
-          className="flex flex-col items-center gap-2 p-4 bg-blue-50 text-blue-600 rounded-2xl border-2 border-blue-100 active:scale-95 transition-all">
-          <ArrowLeftRight size={28} />
-          <span className="font-semibold text-sm">Transfer</span>
-        </button>
-        <button onClick={() => setEntryMode('card_charge')}
-          className="flex flex-col items-center gap-2 p-4 bg-purple-50 text-purple-600 rounded-2xl border-2 border-purple-100 active:scale-95 transition-all">
-          <CreditCard size={28} />
-          <span className="font-semibold text-sm">Card Charge</span>
-        </button>
-        <button onClick={() => setEntryMode('investor_profit')}
-          className="flex flex-col items-center gap-2 p-4 bg-amber-50 text-amber-600 rounded-2xl border-2 border-amber-100 active:scale-95 transition-all">
-          <TrendingUp size={28} />
-          <span className="font-semibold text-sm">Investor Profit</span>
-        </button>
-        <button onClick={() => setEntryMode('distribute_profit')}
-          className="flex flex-col items-center gap-2 p-4 bg-teal-50 text-teal-600 rounded-2xl border-2 border-teal-100 active:scale-95 transition-all">
-          <Users size={28} />
-          <span className="font-semibold text-sm">Distribute Profit</span>
-        </button>
+        <div className="relative group">
+          <button onClick={() => setEntryMode('in')}
+            className="w-full flex flex-col items-center gap-2 p-4 bg-green-50 text-green-600 rounded-2xl border-2 border-green-100 active:scale-95 transition-all">
+            <ArrowDownCircle size={28} />
+            <span className="font-semibold text-sm">Cash In</span>
+          </button>
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-gray-800 text-white text-xs rounded-xl p-3 hidden group-hover:block z-50 leading-relaxed">
+            ব্যবসায় নগদ অর্থ প্রবেশ করলে। যেমন: বিনিয়োগ গ্রহণ, ঋণ গ্রহণ, অন্য উৎস থেকে আয়।
+          </div>
+        </div>
+        <div className="relative group">
+          <button onClick={() => setEntryMode('out')}
+            className="w-full flex flex-col items-center gap-2 p-4 bg-red-50 text-red-600 rounded-2xl border-2 border-red-100 active:scale-95 transition-all">
+            <ArrowUpCircle size={28} />
+            <span className="font-semibold text-sm">Cash Out</span>
+          </button>
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 bg-gray-800 text-white text-xs rounded-xl p-3 hidden group-hover:block z-50 leading-relaxed">
+            ব্যবসা থেকে নগদ অর্থ বের হলে। যেমন: খরচ পরিশোধ, ঋণ পরিশোধ, সরবরাহকারীকে পেমেন্ট, ক্রেডিট কার্ডের কিস্তি পরিশোধ, বিনিয়োগকারীর মূল বিনিয়োগ ফেরত দিলেও এখান থেকে।
+          </div>
+        </div>
+        <div className="relative group">
+          <button onClick={() => setEntryMode('transfer')}
+            className="w-full flex flex-col items-center gap-2 p-4 bg-blue-50 text-blue-600 rounded-2xl border-2 border-blue-100 active:scale-95 transition-all">
+            <ArrowLeftRight size={28} />
+            <span className="font-semibold text-sm">Transfer</span>
+          </button>
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 bg-gray-800 text-white text-xs rounded-xl p-3 hidden group-hover:block z-50 leading-relaxed">
+            এক একাউন্ট থেকে অন্য একাউন্টে টাকা সরানো — আয় বা ব্যয় নয়, শুধু স্থানান্তর। যেমন: ব্যাংক থেকে উঠিয়ে Personal A/C (CEO)-তে রাখা, bKash থেকে ব্যাংকে, Petty Cash থেকে Nagad এ।
+          </div>
+        </div>
+        <div className="relative group">
+          <button onClick={() => setEntryMode('card_charge')}
+            className="w-full flex flex-col items-center gap-2 p-4 bg-purple-50 text-purple-600 rounded-2xl border-2 border-purple-100 active:scale-95 transition-all">
+            <CreditCard size={28} />
+            <span className="font-semibold text-sm">Card Charge</span>
+          </button>
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 bg-gray-800 text-white text-xs rounded-xl p-3 hidden group-hover:block z-50 leading-relaxed">
+            কার্ড দিয়ে ব্যয় করলে বা কার্ডের বিল পরিশোধ করলে। যেমন: ক্রেডিট কার্ডে অফিস সরঞ্জাম কেনা, কার্ডের মাসিক বিল পেমেন্ট, কার্ডে সফটওয়্যার সাবস্ক্রিপশন।
+          </div>
+        </div>
+        <div className="relative group">
+          <button onClick={() => setEntryMode('investor_profit')}
+            className="w-full flex flex-col items-center gap-2 p-4 bg-amber-50 text-amber-600 rounded-2xl border-2 border-amber-100 active:scale-95 transition-all">
+            <TrendingUp size={28} />
+            <span className="font-semibold text-sm">Investor Profit</span>
+          </button>
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 bg-gray-800 text-white text-xs rounded-xl p-3 hidden group-hover:block z-50 leading-relaxed">
+            চুক্তি অনুযায়ী বিনিয়োগকারীর প্রাপ্য লভ্যাংশ (মুনাফা) অর্জিত হলে। মূল বিনিয়োগ নয় — শুধু মুনাফার হিসাব নথিভুক্ত করতে (accrual)।
+          </div>
+        </div>
+        <div className="relative group">
+          <button onClick={() => setEntryMode('distribute_profit')}
+            className="w-full flex flex-col items-center gap-2 p-4 bg-teal-50 text-teal-600 rounded-2xl border-2 border-teal-100 active:scale-95 transition-all">
+            <Users size={28} />
+            <span className="font-semibold text-sm">Distribute Profit</span>
+          </button>
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-gray-800 text-white text-xs rounded-xl p-3 hidden group-hover:block z-50 leading-relaxed">
+            অর্জিত মুনাফা বিনিয়োগকারীদের মধ্যে শেয়ার অনুযায়ী প্রকৃত টাকা বিতরণ করলে।
+          </div>
+        </div>
       </div>
 
       <div className="card mb-4 space-y-3">
