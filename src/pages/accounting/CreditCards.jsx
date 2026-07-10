@@ -7,6 +7,17 @@ import toast from 'react-hot-toast';
 import { exportAccountingPdf } from '../../utils/accountingPdf';
 import SignatoryModal from '../../components/SignatoryModal';
 
+const BORDER_COLORS = [
+  'border-indigo-600',
+  'border-rose-600',
+  'border-emerald-600',
+  'border-amber-600',
+  'border-cyan-600',
+  'border-purple-700',
+  'border-teal-600',
+  'border-orange-600',
+];
+
 export default function CreditCards() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -66,9 +77,9 @@ export default function CreditCards() {
       ) : (
         <>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-            {data.cards.map(card => (
+            {data.cards.map((card, idx) => (
               <div key={card.id} onClick={() => setSelectedCard(card)}
-                className="card cursor-pointer hover:shadow-md transition-shadow active:scale-[0.99]">
+                className={`card cursor-pointer hover:shadow-md transition-shadow active:scale-[0.99] border-l-[10px] ${BORDER_COLORS[idx % BORDER_COLORS.length]}`}>
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center">
                     <CreditCard size={20} />
