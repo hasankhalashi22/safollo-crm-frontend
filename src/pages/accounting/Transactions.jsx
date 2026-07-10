@@ -80,7 +80,7 @@ export default function Transactions() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 xl:grid-cols-6 gap-3 mb-6">
+      <div className="grid grid-cols-2 xl:grid-cols-5 gap-3 mb-6">
         <div className="relative group">
           <button onClick={() => setEntryMode('in')}
             className="w-full flex flex-col items-center gap-2 p-4 bg-green-50 text-green-600 rounded-2xl border-2 border-green-100 active:scale-95 transition-all">
