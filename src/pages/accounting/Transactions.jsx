@@ -128,14 +128,14 @@ export default function Transactions() {
             <span className="font-semibold text-sm">Investor Profit</span>
           </button>
           <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 bg-gray-800 text-white text-xs rounded-xl p-3 hidden group-hover:block z-50 leading-relaxed">
-            চুক্তি অনুযায়ী বিনিয়োগকারীর মুনাফা অর্জিত হলে নথিভুক্ত করতে। মূল বিনিয়োগ নয়।<br />• মাসিক বা মেয়াদ-শেষের মুনাফা accrual<br />• প্রকৃত টাকা পরিশোধ এখানে নয়, Distribute Profit থেকে
+            চুক্তি অনুযায়ী বিনিয়োগকারীর মুনাফা অর্জিত হলে নথিভুক্ত করতে। মূল বিনিয়োগ নয়।<br />• মাসিক বা মেয়াদ-শেষের মুনাফা accrual<br />• প্রকৃত টাকা পরিশোধ এখানে নয়, Shareholder Profit থেকে
           </div>
         </div>
         <div className="relative group">
           <button onClick={() => setEntryMode('distribute_profit')}
             className="w-full flex flex-col items-center gap-2 p-4 bg-teal-50 text-teal-600 rounded-2xl border-2 border-teal-100 active:scale-95 transition-all">
             <Users size={28} />
-            <span className="font-semibold text-sm">Distribute Profit</span>
+            <span className="font-semibold text-sm">Shareholder Profit</span>
           </button>
           <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 bg-gray-800 text-white text-xs rounded-xl p-3 hidden group-hover:block z-50 leading-relaxed">
             অর্জিত মুনাফা বিনিয়োগকারীদের মধ্যে প্রকৃত টাকা বিতরণ করলে।<br />• শেয়ার অনুযায়ী স্বয়ংক্রিয় ভাগ হয়<br />• Investor Profit-এ accrual করার পর এখান থেকে পরিশোধ
@@ -749,7 +749,7 @@ function DistributeProfitModal({ onClose, onSuccess }) {
       <div className="min-h-screen flex items-end lg:items-center justify-center p-4">
         <div className="bg-white w-full lg:max-w-lg rounded-t-3xl lg:rounded-2xl">
           <div className="p-5 border-b border-gray-100 flex justify-between items-center">
-            <h3 className="font-bold text-lg">Distribute Profit to Shareholders</h3>
+            <h3 className="font-bold text-lg">Shareholder Profit to Shareholders</h3>
             <button onClick={onClose} className="p-1.5 bg-gray-100 rounded-full">✕</button>
           </div>
 
@@ -799,7 +799,7 @@ function DistributeProfitModal({ onClose, onSuccess }) {
             )}
 
             <button type="submit" className="btn-primary" disabled={loading || shareholders.length === 0}>
-              {loading ? 'Saving...' : '✅ Distribute Profit'}
+              {loading ? 'Saving...' : '✅ Shareholder Profit'}
             </button>
           </form>
         </div>
