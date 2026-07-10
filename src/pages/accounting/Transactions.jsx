@@ -115,10 +115,10 @@ export default function Transactions() {
           <button onClick={() => setEntryMode('card_charge')}
             className="w-full flex flex-col items-center gap-2 p-4 bg-purple-50 text-purple-600 rounded-2xl border-2 border-purple-100 active:scale-95 transition-all">
             <CreditCard size={28} />
-            <span className="font-semibold text-sm">Card Charge</span>
+            <span className="font-semibold text-sm">Card Interest</span>
           </button>
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 bg-gray-800 text-white text-xs rounded-xl p-3 hidden group-hover:block z-50 leading-relaxed">
-            কার্ড দিয়ে ব্যয় করলে বা কার্ডের বিল পরিশোধ করলে। যেমন: ক্রেডিট কার্ডে অফিস সরঞ্জাম কেনা, কার্ডের মাসিক বিল পেমেন্ট, কার্ডে সফটওয়্যার সাবস্ক্রিপশন।
+            ক্রেডিট কার্ডের মাসিক সুদ বা চার্জ রেকর্ড করতে। কোনো নগদ বের হয় না — কার্ডের দেনা বাড়ে এবং ব্যয় হিসাবে রেকর্ড হয়। যেমন: ব্যাংকের মাসিক সুদ, লেট পেমেন্ট ফি।
           </div>
         </div>
         <div className="relative group">
@@ -205,7 +205,7 @@ export default function Transactions() {
                       <p className="text-xs">{t.debit_account_name}</p>
                       <p className="text-xs text-gray-400">← {t.credit_account_name}</p>
                       {isTransfer && <span className="text-xs bg-blue-50 text-blue-500 px-1.5 py-0.5 rounded">Transfer</span>}
-                      {t.transaction_type === 'credit_card_charge' && <span className="text-xs bg-purple-50 text-purple-500 px-1.5 py-0.5 rounded">Card Charge</span>}
+                      {t.transaction_type === 'credit_card_charge' && <span className="text-xs bg-purple-50 text-purple-500 px-1.5 py-0.5 rounded">Card Interest</span>}
                     </td>
                     <td className="px-4 py-3 font-medium whitespace-nowrap text-green-600">
                       {isCashIn ? `Tk ${Number(t.amount).toLocaleString()}` : '—'}
@@ -344,7 +344,7 @@ function EntryModal({ mode, onClose, onSuccess }) {
     in: 'Cash In',
     out: 'Cash Out',
     transfer: 'Transfer',
-    card_charge: 'Credit Card Charge',
+    card_charge: 'Credit Card Interest',
     investor_profit: 'Investor Profit Payment',
   };
 
