@@ -73,7 +73,7 @@ export default function CreditCards() {
       {loading ? (
         <div className="flex justify-center py-12"><div className="spinner w-8 h-8" /></div>
       ) : !data || data.cards.length === 0 ? (
-        <div className="card text-center py-12 text-gray-400">কোনো ক্রেডিট কার্ড অ্যাকাউন্ট যোগ করা হয়নি</div>
+        <div className="card text-center py-12 text-gray-400">No credit cards added yet</div>
       ) : (
         <>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
@@ -88,50 +88,50 @@ export default function CreditCards() {
                     <p className="font-semibold">{card.name}</p>
                     {card.bank_name && <p className="text-xs text-gray-400">{card.bank_name}</p>}
                   </div>
-                  <span className="ml-auto text-xs text-gray-400">ক্লিক করুন →</span>
+                  <span className="ml-auto text-xs text-gray-400">View History →</span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-gray-50 rounded-xl p-3">
-                    <p className="text-xs text-gray-500 mb-1">কার্ড লিমিট</p>
+                    <p className="text-xs text-gray-500 mb-1">Credit Limit</p>
                     <p className="font-bold text-gray-700">
                       {card.credit_limit > 0 ? `Tk ${Number(card.credit_limit).toLocaleString()}` : '—'}
                     </p>
                   </div>
                   <div className="bg-orange-50 rounded-xl p-3">
-                    <p className="text-xs text-gray-500 mb-1">বকেয়া (Outstanding)</p>
+                    <p className="text-xs text-gray-500 mb-1">Outstanding</p>
                     <p className="font-bold text-orange-600">Tk {Number(card.outstanding_balance).toLocaleString()}</p>
                   </div>
                   <div className="bg-purple-50 rounded-xl p-3">
-                    <p className="text-xs text-gray-500 mb-1">মোট ব্যবহার</p>
+                    <p className="text-xs text-gray-500 mb-1">Total Used</p>
                     <p className="font-bold text-purple-600">Tk {Number(card.total_credit_used).toLocaleString()}</p>
                   </div>
                   <div className="bg-blue-50 rounded-xl p-3">
-                    <p className="text-xs text-gray-500 mb-1">মোট পরিশোধ</p>
+                    <p className="text-xs text-gray-500 mb-1">Total Paid</p>
                     <p className="font-bold text-blue-600">Tk {Number(card.total_paid).toLocaleString()}</p>
                   </div>
                 </div>
 
                 {card.interest_rate && (
-                  <p className="text-xs text-gray-400 mt-3">সুদের হার: {card.interest_rate}%</p>
+                  <p className="text-xs text-gray-400 mt-3">Interest Rate: {card.interest_rate}%</p>
                 )}
               </div>
             ))}
           </div>
 
           <div className="card bg-primary-50">
-            <h3 className="font-semibold text-gray-700 mb-3">সব কার্ডের মোট</h3>
+            <h3 className="font-semibold text-gray-700 mb-3">All Cards Total</h3>
             <div className="grid grid-cols-3 gap-3 text-sm">
               <div>
-                <p className="text-gray-500 mb-1">মোট ব্যবহার</p>
+                <p className="text-gray-500 mb-1">Total Used</p>
                 <p className="font-bold text-purple-600">Tk {Number(data.totals.total_credit_used).toLocaleString()}</p>
               </div>
               <div>
-                <p className="text-gray-500 mb-1">মোট পরিশোধ</p>
+                <p className="text-gray-500 mb-1">Total Paid</p>
                 <p className="font-bold text-blue-600">Tk {Number(data.totals.total_paid).toLocaleString()}</p>
               </div>
               <div>
-                <p className="text-gray-500 mb-1">মোট বকেয়া</p>
+                <p className="text-gray-500 mb-1">Total Outstanding</p>
                 <p className="font-bold text-orange-600">Tk {Number(data.totals.outstanding_balance).toLocaleString()}</p>
               </div>
             </div>
@@ -170,10 +170,10 @@ function CardLedgerModal({ card, onClose }) {
 
   const typeLabel = (entry) => {
     const type = entry.transaction_type;
-    if (type === 'credit_card_charge') return { label: 'সুদ/চার্জ', color: 'text-purple-600 bg-purple-50' };
-    if (type === 'credit_card_payment') return { label: 'পেমেন্ট', color: 'text-blue-600 bg-blue-50' };
-    if (type === 'expense') return { label: 'ব্যয়', color: 'text-red-500 bg-red-50' };
-    return { label: type || 'অন্যান্য', color: 'text-gray-500 bg-gray-100' };
+    if (type === 'credit_card_charge') return { label: 'Interest/Charge', color: 'text-purple-600 bg-purple-50' };
+    if (type === 'credit_card_payment') return { label: 'Payment', color: 'text-blue-600 bg-blue-50' };
+    if (type === 'expense') return { label: 'Expense', color: 'text-red-500 bg-red-50' };
+    return { label: type || 'Other', color: 'text-gray-500 bg-gray-100' };
   };
 
   return (
@@ -189,15 +189,15 @@ function CardLedgerModal({ card, onClose }) {
 
         <div className="grid grid-cols-3 gap-3 p-4 border-b border-gray-100">
           <div className="text-center">
-            <p className="text-xs text-gray-500">বকেয়া</p>
+            <p className="text-xs text-gray-500">Outstanding</p>
             <p className="font-bold text-orange-600">Tk {Number(card.outstanding_balance).toLocaleString()}</p>
           </div>
           <div className="text-center">
-            <p className="text-xs text-gray-500">মোট ব্যবহার</p>
+            <p className="text-xs text-gray-500">Total Used</p>
             <p className="font-bold text-purple-600">Tk {Number(card.total_credit_used).toLocaleString()}</p>
           </div>
           <div className="text-center">
-            <p className="text-xs text-gray-500">মোট পরিশোধ</p>
+            <p className="text-xs text-gray-500">Total Paid</p>
             <p className="font-bold text-blue-600">Tk {Number(card.total_paid).toLocaleString()}</p>
           </div>
         </div>
@@ -206,7 +206,7 @@ function CardLedgerModal({ card, onClose }) {
           {loading ? (
             <div className="flex justify-center py-8"><div className="spinner w-6 h-6" /></div>
           ) : entries.length === 0 ? (
-            <p className="text-center text-gray-400 py-8">কোনো লেনদেন নেই</p>
+            <p className="text-center text-gray-400 py-8">No transactions found</p>
           ) : (
             <div className="space-y-2">
               {entries.map(entry => {
