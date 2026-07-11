@@ -32,7 +32,15 @@ import PayrollSettings from './pages/hr/PayrollSettings';
 import Login from './pages/Login';
 import CompleteProfile from './pages/CompleteProfile';
 import ForceChangePassword from './pages/ForceChangePassword';
-import { AdminLayout, UnifiedLayout } from './components/Layout/AppLayout';
+import { AdminLayout, UnifiedLayout, AcademyLayout } from './components/Layout/AppLayout';
+import AcademyDashboard from './pages/academy/Dashboard';
+import Courses from './pages/academy/Courses';
+import Batches from './pages/academy/Batches';
+import BatchDetail from './pages/academy/BatchDetail';
+import Teachers from './pages/academy/Teachers';
+import TeacherPayments from './pages/academy/TeacherPayments';
+import PaymentRates from './pages/academy/PaymentRates';
+import ZoomAccounts from './pages/academy/ZoomAccounts';
 import PortalHome from './pages/portal/PortalHome';
 import PortalAttendance from './pages/portal/PortalAttendance';
 import PortalLeave from './pages/portal/PortalLeave';
@@ -187,6 +195,15 @@ useNotifications();
 
 <Route path="/hr/notices" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><UnifiedLayout><Notices /></UnifiedLayout></ProtectedRoute>} />
 
+
+      <Route path="/academy" element={<ProtectedRoute allowedLevels={[1]}><AcademyLayout><AcademyDashboard /></AcademyLayout></ProtectedRoute>} />
+      <Route path="/academy/courses" element={<ProtectedRoute allowedLevels={[1]}><AcademyLayout><Courses /></AcademyLayout></ProtectedRoute>} />
+      <Route path="/academy/batches" element={<ProtectedRoute allowedLevels={[1]}><AcademyLayout><Batches /></AcademyLayout></ProtectedRoute>} />
+      <Route path="/academy/batches/:id" element={<ProtectedRoute allowedLevels={[1]}><AcademyLayout><BatchDetail /></AcademyLayout></ProtectedRoute>} />
+      <Route path="/academy/teachers" element={<ProtectedRoute allowedLevels={[1]}><AcademyLayout><Teachers /></AcademyLayout></ProtectedRoute>} />
+      <Route path="/academy/teacher-payments" element={<ProtectedRoute allowedLevels={[1]}><AcademyLayout><TeacherPayments /></AcademyLayout></ProtectedRoute>} />
+      <Route path="/academy/payment-rates" element={<ProtectedRoute allowedLevels={[1]}><AcademyLayout><PaymentRates /></AcademyLayout></ProtectedRoute>} />
+      <Route path="/academy/zoom-accounts" element={<ProtectedRoute allowedLevels={[1]}><AcademyLayout><ZoomAccounts /></AcademyLayout></ProtectedRoute>} />
 
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="*" element={<Navigate to="/login" replace />} />

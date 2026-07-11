@@ -279,4 +279,67 @@ deletePayment: (paymentId) => api.delete(`/api/payroll/payments/${paymentId}`),
 
 };
 
+export const academyApi = {
+  // Zoom Accounts
+  getZoomAccounts: () => api.get('/api/academy/zoom-accounts'),
+  createZoomAccount: (data) => api.post('/api/academy/zoom-accounts', data),
+  updateZoomAccount: (id, data) => api.put(`/api/academy/zoom-accounts/${id}`, data),
+  deleteZoomAccount: (id) => api.delete(`/api/academy/zoom-accounts/${id}`),
+
+  // Payment Rates
+  getPaymentRates: () => api.get('/api/academy/payment-rates'),
+  upsertPaymentRate: (data) => api.post('/api/academy/payment-rates', data),
+  deletePaymentRate: (id) => api.delete(`/api/academy/payment-rates/${id}`),
+
+  // Teachers
+  getTeachers: () => api.get('/api/academy/teachers'),
+  getTeacher: (id) => api.get(`/api/academy/teachers/${id}`),
+  createTeacher: (data) => api.post('/api/academy/teachers', data),
+  updateTeacher: (id, data) => api.put(`/api/academy/teachers/${id}`, data),
+  deleteTeacher: (id) => api.delete(`/api/academy/teachers/${id}`),
+
+  // Courses
+  getCourses: () => api.get('/api/academy/courses'),
+  createCourse: (data) => api.post('/api/academy/courses', data),
+  updateCourse: (id, data) => api.put(`/api/academy/courses/${id}`, data),
+  deleteCourse: (id) => api.delete(`/api/academy/courses/${id}`),
+
+  // Course Plans
+  getCoursePlans: (courseId) => api.get(`/api/academy/courses/${courseId}/plans`),
+  createPlan: (courseId, data) => api.post(`/api/academy/courses/${courseId}/plans`, data),
+  updatePlan: (id, data) => api.put(`/api/academy/plans/${id}`, data),
+  deletePlan: (id) => api.delete(`/api/academy/plans/${id}`),
+
+  // Plan Subjects
+  getPlanSubjects: (planId) => api.get(`/api/academy/plans/${planId}/subjects`),
+  createSubject: (planId, data) => api.post(`/api/academy/plans/${planId}/subjects`, data),
+  updateSubject: (id, data) => api.put(`/api/academy/subjects/${id}`, data),
+  deleteSubject: (id) => api.delete(`/api/academy/subjects/${id}`),
+  saveLectures: (subjectId, lectures) => api.put(`/api/academy/subjects/${subjectId}/lectures`, { lectures }),
+
+  // Batches
+  getBatches: () => api.get('/api/academy/batches'),
+  createBatch: (data) => api.post('/api/academy/batches', data),
+  updateBatch: (id, data) => api.put(`/api/academy/batches/${id}`, data),
+  deleteBatch: (id) => api.delete(`/api/academy/batches/${id}`),
+
+  // Batch Outline
+  getBatchOutline: (batchId) => api.get(`/api/academy/batches/${batchId}/outline`),
+  addOutlineRow: (batchId, data) => api.post(`/api/academy/batches/${batchId}/outline`, data),
+  updateOutlineRow: (id, data) => api.put(`/api/academy/outline/${id}`, data),
+  deleteOutlineRow: (id) => api.delete(`/api/academy/outline/${id}`),
+
+  // Feedback
+  submitFeedback: (outlineId, teacher_id, note) => api.post(`/api/academy/outline/${outlineId}/feedback`, { teacher_id, note }),
+  getPendingFeedbacks: () => api.get('/api/academy/feedbacks/pending'),
+  approveFeedback: (id, approved) => api.post(`/api/academy/feedbacks/${id}/approve`, { approved }),
+
+  // Teacher Payments
+  getTeacherPayments: (teacherId) => api.get(`/api/academy/teacher-payments${teacherId ? `?teacher_id=${teacherId}` : ''}`),
+  payTeacher: (data) => api.post('/api/academy/teacher-payments/pay', data),
+
+  // Reports
+  getScheduleReport: (params) => api.get('/api/academy/reports/schedule', { params }),
+};
+
 export default api;

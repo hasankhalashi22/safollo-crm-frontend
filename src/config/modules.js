@@ -1,4 +1,4 @@
-import { BarChart2, Wallet, FileText, BookText, Landmark, CreditCard, TrendingUp, Users, Activity, CheckSquare, Plus, Clock, Shield, BookOpen, Settings, User, DollarSign, Calendar } from 'lucide-react';
+import { BarChart2, Wallet, FileText, BookText, Landmark, CreditCard, TrendingUp, Users, Activity, CheckSquare, Plus, Clock, Shield, BookOpen, Settings, User, DollarSign, Calendar, GraduationCap, BookMarked, Layers, UserCheck, Banknote, Video } from 'lucide-react';
 
 // Central registry of all modules in the system.
 // Adding a new module = adding one entry here (plus its pages/routes).
@@ -76,6 +76,21 @@ export const MODULES = [
         { to: '/hr/payroll-settings', icon: Settings, label: 'Payroll Settings' },
       ]},
       { to: '/hr/notices', icon: BookText, label: 'Notice Board' },
+    ],
+  },
+  {
+    key: 'academy',
+    label: 'Academy',
+    basePath: '/academy',
+    allowedRoles: ['super_admin'],
+    sidebar: [
+      { to: '/academy', icon: BarChart2, label: 'Dashboard', end: true },
+      { to: '/academy/courses', icon: BookMarked, label: 'Courses & Plans' },
+      { to: '/academy/batches', icon: Layers, label: 'Batches' },
+      { to: '/academy/teachers', icon: UserCheck, label: 'Teachers' },
+      { to: '/academy/teacher-payments', icon: Banknote, label: 'Teacher Payments' },
+      { to: '/academy/payment-rates', icon: DollarSign, label: 'Payment Rates' },
+      { to: '/academy/zoom-accounts', icon: Video, label: 'Zoom Accounts' },
     ],
   },
   // Future modules go here, e.g.:

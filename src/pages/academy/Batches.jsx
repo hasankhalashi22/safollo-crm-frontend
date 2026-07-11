@@ -1,0 +1,129 @@
+import { useState, useEffect } from 'react';
+import { Plus, Edit2, Trash2, Layers, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { academyApi } from '../../api/client';
+import toast from 'react-hot-toast';
+
+const EMPTY = { batch_name: '', course_id: '', plan_id: '', start_date: '', zoom_account_id: '', max_students: '' };
+const STATUS_LABEL = { upcoming: 'আসছে', active: 'সক্রিয়', completed: 'সম্পন্ন', cancelled: 'বাতিল' };
+const STATUS_COLOR = { upcoming: 'bg-blue-100 text-blue-700', active: 'bg-green-100 text-green-700', completed: 'bg-gray-100 text-gray-600', cancelled: 'bg-red-100 text-red-600' };
+
+export default function Batches() {
+  const navigate = useNavigate();
+  const [list, setList] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [plans, setPlans] = useState([]);
+  const [zooms, setZooms] = useState([]);
+  const [form, setForm] = useState(EMPTY);
+  const [editId, setEditId] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+
+  const load = () => academyApi.getBatches().then(r => setList(r.data || []));
+
+  useEffect(() => {
+    load();
+    academyApi.getCourses().then(r => setCourses(r.data || []));
+    academyApi.getZoomAccounts().then(r => setZooms(r.data || []));
+  }, []);
+
+  useEffect(() => {
+    if (form.course_id) academyApi.getCoursePlans(form.course_id).then(r => setPlans(r.data || []));
+    else setPlans([]);
+  }, [form.course_id]);
+
+  const openNew = () => { setForm(EMPTY); setEditId(null); setShowForm(true); };
+  const openEdit = (row) => {
+    setForm({ batch_name: row.batch_name, course_id: row.course_id, plan_id: row.plan_id || '', start_date: row.start_date?.split('T')[0] || '', zoom_account_id: row.zoom_account_id || '', max_students: row.max_students || '' });
+    setEditId(row.id); setShowForm(true);
+  };
+
+  const save = async () => {
+    if (!form.batch_name.trim() || !form.course_id) return toast.error('ব্যাচের নাম ও কোর্স দিন');
+    try {
+      const payload = { ...form, max_students: form.max_students ? Number(form.max_students) : null };
+      if (editId) await academyApi.updateBatch(editId, payload);
+      else await academyApi.createBatch(payload);
+      toast.success('সংরক্ষিত হয়েছে'); setShowForm(false); load();
+    } catch { toast.error('সমস্যা হয়েছে'); }
+  };
+
+  const del = async (id) => {
+    if (!confirm('ব্যাচ মুছে ফেলবেন?')) return;
+    await academyApi.deleteBatch(id); toast.success('মুছে ফেলা হয়েছে'); load();
+  };
+
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  return (
+    <div className="p-6 space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold text-gray-800">ব্যাচ সমূহ</h1>
+        <button onClick={openNew} className="btn-primary flex items-center gap-2"><Plus size={16} /> নতুন ব্যাচ</button>
+      </div>
+
+      {showForm && (
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
+          <h2 className="font-semibold text-gray-700">{editId ? 'ব্যাচ সম্পাদনা' : 'নতুন ব্যাচ'}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div><label className="label">ব্যাচের নাম *</label><input className="input" value={form.batch_name} onChange={e => set('batch_name', e.target.value)} /></div>
+            <div>
+              <label className="label">কোর্স *</label>
+              <select className="input" value={form.course_id} onChange={e => set('course_id', e.target.value)}>
+                <option value="">কোর্স বেছে নিন</option>
+                {courses.map(c => <option key={c.id} value={c.id}>{c.course_name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="label">কোর্স প্ল্যান</label>
+              <select className="input" value={form.plan_id} onChange={e => set('plan_id', e.target.value)} disabled={!form.course_id}>
+                <option value="">প্ল্যান বেছে নিন</option>
+                {plans.map(p => <option key={p.id} value={p.id}>{p.plan_name} (v{p.version})</option>)}
+              </select>
+            </div>
+            <div><label className="label">শুরুর তারিখ</label><input type="date" className="input" value={form.start_date} onChange={e => set('start_date', e.target.value)} /></div>
+            <div>
+              <label className="label">Zoom Account</label>
+              <select className="input" value={form.zoom_account_id} onChange={e => set('zoom_account_id', e.target.value)}>
+                <option value="">বেছে নিন</option>
+                {zooms.map(z => <option key={z.id} value={z.id}>{z.account_name}</option>)}
+              </select>
+            </div>
+            <div><label className="label">সর্বোচ্চ শিক্ষার্থী</label><input type="number" className="input" value={form.max_students} onChange={e => set('max_students', e.target.value)} /></div>
+          </div>
+          <div className="flex gap-3">
+            <button onClick={save} className="btn-primary">সংরক্ষণ</button>
+            <button onClick={() => setShowForm(false)} className="btn-secondary">বাতিল</button>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {list.length === 0 ? (
+          <div className="col-span-3 bg-white rounded-2xl p-12 text-center text-gray-400 shadow-sm border border-gray-100">
+            <Layers size={40} className="mx-auto mb-3 opacity-30" /><p>কোনো ব্যাচ নেই</p>
+          </div>
+        ) : list.map(b => (
+          <div key={b.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <p className="font-semibold text-gray-800">{b.batch_name}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{b.course_name}</p>
+              </div>
+              <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLOR[b.status] || 'bg-gray-100 text-gray-600'}`}>
+                {STATUS_LABEL[b.status] || b.status}
+              </span>
+            </div>
+            <p className="text-xs text-gray-400 mb-4">{b.start_date ? new Date(b.start_date).toLocaleDateString('bn-BD') : '—'} থেকে</p>
+            <div className="flex gap-2">
+              <button onClick={() => navigate(`/academy/batches/${b.id}`)} className="flex-1 flex items-center justify-center gap-1 text-xs text-primary-600 hover:bg-primary-50 py-2 rounded-lg transition-colors">
+                আউটলাইন <ChevronRight size={14} />
+              </button>
+              <button onClick={() => openEdit(b)} className="p-2 hover:bg-blue-50 rounded-lg text-blue-500"><Edit2 size={14} /></button>
+              <button onClick={() => del(b.id)} className="p-2 hover:bg-red-50 rounded-lg text-red-500"><Trash2 size={14} /></button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
