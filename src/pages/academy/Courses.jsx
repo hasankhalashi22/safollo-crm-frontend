@@ -86,7 +86,7 @@ function LecturesModal({ subject, colorIdx, onClose, onSaved }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-start justify-center p-4 pt-12 overflow-y-auto">
-      <div className="bg-white rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden">
+      <div className="bg-white rounded-2xl w-full max-w-3xl shadow-2xl">
 
         {/* Colored header */}
         <div className={`${clr.header} px-6 py-4 flex items-center justify-between`}>
@@ -101,7 +101,7 @@ function LecturesModal({ subject, colorIdx, onClose, onSaved }) {
 
         {/* Table */}
         <div className="p-5">
-          <div className={`rounded-xl border-2 ${clr.border} overflow-hidden`}>
+          <div className={`rounded-xl border-2 ${clr.border}`}>
             <table className="w-full text-sm">
               <thead>
                 <tr>
@@ -117,7 +117,7 @@ function LecturesModal({ subject, colorIdx, onClose, onSaved }) {
                   <tr key={r._key} className={`border-t-2 ${clr.border} ${i % 2 === 0 ? 'bg-white' : clr.stripe}`}>
                     {/* Auto serial */}
                     <td className="px-4 py-3">
-                      <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-bold ${clr.badge}`}>
+                      <span className={`inline-flex items-center justify-center w-9 h-9 rounded-lg text-sm font-bold ${clr.badge}`} style={{lineHeight:'1.7'}}>
                         {i + 1}
                       </span>
                     </td>
@@ -207,7 +207,7 @@ function SubjectRow({ subject, colorIdx, onRefresh, onEditLectures, onImportExce
 
   return (
     <div className={`flex items-center gap-3 px-4 py-3 bg-white border-2 ${clr.border} rounded-xl hover:shadow-sm transition-all group`}>
-      <span className={`min-w-[2rem] h-8 px-2 rounded-lg text-xs font-bold flex items-center justify-center flex-shrink-0 ${clr.badge}`}>
+      <span className={`min-w-[2rem] min-h-[2.25rem] px-2 rounded-lg text-xs font-bold flex items-center justify-center flex-shrink-0 ${clr.badge}`} style={{lineHeight:'1.7'}}>
         {subject.serial_no}
       </span>
 
@@ -311,10 +311,10 @@ function PlanCard({ plan, onRefresh }) {
 
   return (
     <>
-      <div className="border-2 border-gray-100 rounded-2xl overflow-hidden">
+      <div className="border-2 border-gray-100 rounded-2xl">
         {/* Plan header */}
         <div
-          className="flex items-center gap-3 px-4 py-3.5 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors group"
+          className="flex items-center gap-3 px-4 py-3.5 bg-gray-50 rounded-t-2xl cursor-pointer hover:bg-gray-100 transition-colors group"
           onClick={() => setOpen(o => !o)}
         >
           <span className="text-gray-400 flex-shrink-0">
@@ -467,7 +467,7 @@ function CourseCard({ course, onRefresh }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
       {/* Course header */}
       <div className="flex items-center gap-4 px-5 py-4 group">
         <button

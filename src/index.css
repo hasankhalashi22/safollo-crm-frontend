@@ -12,15 +12,23 @@
   }
   h1, h2, h3 { @apply font-display; }
 
-  /* Prevent Bengali text clipping in inputs and small containers */
+  /* Prevent Bengali text clipping in inputs */
   input, textarea, select {
     line-height: 1.7;
-    overflow: visible;
   }
 
-  /* Badge/pill elements — give enough vertical padding for Bengali glyphs */
+  /* Badge/pill elements — enough line-height for Bengali glyphs */
   span, p, label, td, th, li, a, button {
     line-height: 1.7;
+  }
+
+  /* Bengali script needs extra padding so ascenders don't clip */
+  .input, input[type="text"], input[type="search"], input[type="email"],
+  input[type="password"], input[type="number"], input:not([type]) {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    line-height: 1.7;
+    min-height: 2.6rem;
   }
 }
 
@@ -39,9 +47,13 @@
            active:scale-95 transition-all duration-150 w-full;
   }
   .input-field {
-    @apply w-full px-4 py-3 rounded-xl border border-gray-200 bg-white
+    @apply w-full px-4 rounded-xl border border-gray-200 bg-white
            focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent
            transition-all duration-150 text-dark placeholder-gray-400;
+    padding-top: 0.65rem;
+    padding-bottom: 0.65rem;
+    line-height: 1.7;
+    min-height: 2.8rem;
   }
   .card {
     @apply bg-white rounded-2xl shadow-card p-4;
