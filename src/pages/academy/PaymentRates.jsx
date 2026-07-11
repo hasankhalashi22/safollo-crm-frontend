@@ -4,10 +4,12 @@ import toast from 'react-hot-toast';
 import { Save, Plus, Trash2, Info } from 'lucide-react';
 
 const COLS = [
-  { mode: 'offline', cat: 'cadre',     label: 'Offline\nক্যাডার' },
-  { mode: 'offline', cat: 'non_cadre', label: 'Offline\nনন-ক্যাডার' },
-  { mode: 'online',  cat: 'cadre',     label: 'Online\nক্যাডার' },
-  { mode: 'online',  cat: 'non_cadre', label: 'Online\nনন-ক্যাডার' },
+  { mode: 'offline', cat: 'cadre',     label: 'ক্যাডার' },
+  { mode: 'offline', cat: 'non_cadre', label: 'নন-ক্যাডার' },
+  { mode: 'offline', cat: 'others',    label: 'অন্যান্য' },
+  { mode: 'online',  cat: 'cadre',     label: 'ক্যাডার' },
+  { mode: 'online',  cat: 'non_cadre', label: 'নন-ক্যাডার' },
+  { mode: 'online',  cat: 'others',    label: 'অন্যান্য' },
 ];
 
 const DEFAULT_COURSES = ['BCS', '9-10th Non Cadre', 'Primary/NTRCA', '11-20 Grade', 'FB Live', 'Ads Shooting'];
@@ -112,17 +114,17 @@ export default function PaymentRates() {
             <thead>
               {/* Title row */}
               <tr>
-                <th colSpan={6} className="bg-[#1e3a5f] text-white text-center py-3 text-base font-bold tracking-wide">
+                <th colSpan={8} className="bg-[#1e3a5f] text-white text-center py-3 text-base font-bold tracking-wide">
                   Payment Policy
                 </th>
               </tr>
               {/* Mode group row */}
               <tr>
                 <th className="bg-[#1e3a5f] border border-white/20 w-48 py-2"></th>
-                <th colSpan={2} className="bg-[#2d5986] text-white text-center py-2.5 font-bold text-sm border border-white/20">
+                <th colSpan={3} className="bg-[#2d5986] text-white text-center py-2.5 font-bold text-sm border border-white/20">
                   Offline
                 </th>
-                <th colSpan={2} className="bg-[#2d6b45] text-white text-center py-2.5 font-bold text-sm border border-white/20">
+                <th colSpan={3} className="bg-[#2d6b45] text-white text-center py-2.5 font-bold text-sm border border-white/20">
                   Online
                 </th>
                 <th className="bg-[#1e3a5f] border border-white/20 w-10"></th>
@@ -134,8 +136,10 @@ export default function PaymentRates() {
                 </th>
                 <th className="bg-[#3a6fa8] text-white text-center py-2.5 px-3 text-xs font-semibold border border-white/20">ক্যাডার</th>
                 <th className="bg-[#3a6fa8] text-white text-center py-2.5 px-3 text-xs font-semibold border border-white/20">নন-ক্যাডার</th>
+                <th className="bg-[#3a6fa8] text-white text-center py-2.5 px-3 text-xs font-semibold border border-white/20">অন্যান্য</th>
                 <th className="bg-[#3a8a5a] text-white text-center py-2.5 px-3 text-xs font-semibold border border-white/20">ক্যাডার</th>
                 <th className="bg-[#3a8a5a] text-white text-center py-2.5 px-3 text-xs font-semibold border border-white/20">নন-ক্যাডার</th>
+                <th className="bg-[#3a8a5a] text-white text-center py-2.5 px-3 text-xs font-semibold border border-white/20">অন্যান্য</th>
                 <th className="bg-[#1e3a5f] border border-white/20"></th>
               </tr>
             </thead>
@@ -183,7 +187,7 @@ export default function PaymentRates() {
 
               {/* Add new course row */}
               <tr className="border-t-2 border-dashed border-gray-200 bg-gray-50/50">
-                <td colSpan={6} className="px-4 py-3">
+                <td colSpan={8} className="px-4 py-3">
                   {showAdd ? (
                     <div className="flex items-center gap-2">
                       <input

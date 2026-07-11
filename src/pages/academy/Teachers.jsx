@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 
 const EMPTY = { full_name: '', phone: '', email: '', teacher_type: 'junior', teacher_category: 'non_cadre', specialization: '', bio: '', zoom_display_name: '', fixed_rate: '' };
 const TEACHER_TYPE_LABEL = { senior: 'সিনিয়র', junior: 'জুনিয়র', guest: 'গেস্ট' };
-const CAT_LABEL = { cadre: 'ক্যাডার', non_cadre: 'নন-ক্যাডার' };
+const CAT_LABEL = { cadre: 'ক্যাডার', non_cadre: 'নন-ক্যাডার', others: 'অন্যান্য' };
 
 export default function Teachers() {
   const [list, setList] = useState([]);
@@ -135,7 +135,10 @@ export default function Teachers() {
                       <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{TEACHER_TYPE_LABEL[row.teacher_type]}</span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${row.teacher_category === 'cadre' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}`}>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${
+                        row.teacher_category === 'cadre' ? 'bg-purple-100 text-purple-700' :
+                        row.teacher_category === 'others' ? 'bg-orange-100 text-orange-700' :
+                        'bg-gray-100 text-gray-600'}`}>
                         {CAT_LABEL[row.teacher_category] || 'নন-ক্যাডার'}
                       </span>
                     </td>
