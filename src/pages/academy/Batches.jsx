@@ -62,37 +62,49 @@ export default function Batches() {
       </div>
 
       {showForm && (
-        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
-          <h2 className="font-semibold text-gray-700">{editId ? 'ব্যাচ সম্পাদনা' : 'নতুন ব্যাচ'}</h2>
+        <div className="bg-white rounded-2xl p-6 shadow-sm border-2 border-primary-200 space-y-5">
+          <div className="flex items-center gap-2">
+            <div className="w-1 h-6 bg-primary-500 rounded-full"></div>
+            <h2 className="font-semibold text-gray-700 text-base">{editId ? 'ব্যাচ সম্পাদনা' : 'নতুন ব্যাচ'}</h2>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><label className="label">ব্যাচের নাম *</label><input className="input" value={form.batch_name} onChange={e => set('batch_name', e.target.value)} /></div>
-            <div>
-              <label className="label">কোর্স *</label>
-              <select className="input" value={form.course_id} onChange={e => set('course_id', e.target.value)}>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-gray-600">ব্যাচের নাম <span className="text-red-500">*</span></label>
+              <input className="input-field" placeholder="যেমন: BCS-50 ব্যাচ" value={form.batch_name} onChange={e => set('batch_name', e.target.value)} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-gray-600">কোর্স <span className="text-red-500">*</span></label>
+              <select className="input-field" value={form.course_id} onChange={e => set('course_id', e.target.value)}>
                 <option value="">কোর্স বেছে নিন</option>
                 {courses.map(c => <option key={c.id} value={c.id}>{c.course_name}</option>)}
               </select>
             </div>
-            <div>
-              <label className="label">কোর্স প্ল্যান</label>
-              <select className="input" value={form.plan_id} onChange={e => set('plan_id', e.target.value)} disabled={!form.course_id}>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-gray-600">কোর্স প্ল্যান</label>
+              <select className="input-field" value={form.plan_id} onChange={e => set('plan_id', e.target.value)} disabled={!form.course_id}>
                 <option value="">প্ল্যান বেছে নিন</option>
                 {plans.map(p => <option key={p.id} value={p.id}>{p.plan_name} (v{p.version})</option>)}
               </select>
             </div>
-            <div><label className="label">শুরুর তারিখ</label><input type="date" className="input" value={form.start_date} onChange={e => set('start_date', e.target.value)} /></div>
-            <div>
-              <label className="label">Zoom Account</label>
-              <select className="input" value={form.zoom_account_id} onChange={e => set('zoom_account_id', e.target.value)}>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-gray-600">শুরুর তারিখ</label>
+              <input type="date" className="input-field" value={form.start_date} onChange={e => set('start_date', e.target.value)} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-gray-600">Zoom Account</label>
+              <select className="input-field" value={form.zoom_account_id} onChange={e => set('zoom_account_id', e.target.value)}>
                 <option value="">বেছে নিন</option>
                 {zooms.map(z => <option key={z.id} value={z.id}>{z.account_name}</option>)}
               </select>
             </div>
-            <div><label className="label">সর্বোচ্চ শিক্ষার্থী</label><input type="number" className="input" value={form.max_students} onChange={e => set('max_students', e.target.value)} /></div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-gray-600">সর্বোচ্চ শিক্ষার্থী</label>
+              <input type="number" className="input-field" placeholder="যেমন: 50" value={form.max_students} onChange={e => set('max_students', e.target.value)} />
+            </div>
           </div>
-          <div className="flex gap-3">
-            <button onClick={save} className="btn-primary">সংরক্ষণ</button>
-            <button onClick={() => setShowForm(false)} className="btn-secondary">বাতিল</button>
+          <div className="flex gap-3 pt-1">
+            <button onClick={save} className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-8 py-2.5 rounded-xl transition-colors text-sm">সংরক্ষণ</button>
+            <button onClick={() => setShowForm(false)} className="bg-white hover:bg-gray-50 text-gray-600 font-medium px-6 py-2.5 rounded-xl border-2 border-gray-200 transition-colors text-sm">বাতিল</button>
           </div>
         </div>
       )}
