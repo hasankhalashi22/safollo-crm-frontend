@@ -7,8 +7,21 @@
   body {
     @apply font-sans text-dark bg-gray-50 antialiased;
     min-height: 100vh;
+    /* Bengali script needs extra line-height to avoid clipping ascenders/descenders */
+    line-height: 1.7;
   }
   h1, h2, h3 { @apply font-display; }
+
+  /* Prevent Bengali text clipping in inputs and small containers */
+  input, textarea, select {
+    line-height: 1.7;
+    overflow: visible;
+  }
+
+  /* Badge/pill elements — give enough vertical padding for Bengali glyphs */
+  span, p, label, td, th, li, a, button {
+    line-height: 1.7;
+  }
 }
 
 @layer components {

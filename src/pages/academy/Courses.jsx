@@ -207,7 +207,7 @@ function SubjectRow({ subject, colorIdx, onRefresh, onEditLectures, onImportExce
 
   return (
     <div className={`flex items-center gap-3 px-4 py-3 bg-white border-2 ${clr.border} rounded-xl hover:shadow-sm transition-all group`}>
-      <span className={`w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center flex-shrink-0 ${clr.badge}`}>
+      <span className={`min-w-[2rem] h-8 px-2 rounded-lg text-xs font-bold flex items-center justify-center flex-shrink-0 ${clr.badge}`}>
         {subject.serial_no}
       </span>
 
