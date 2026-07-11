@@ -130,7 +130,7 @@ function LecturesModal({ subject, colorIdx, onClose, onSaved }) {
                     {/* Title input */}
                     <td className="px-3 py-2">
                       <input
-                        className="input py-2 text-sm w-full"
+                        className="input-field text-sm w-full"
                         placeholder={`লেকচার ${i + 1} এর শিরোনাম`}
                         value={r.title}
                         onChange={e => set(r._key, 'title', e.target.value)}
@@ -140,7 +140,7 @@ function LecturesModal({ subject, colorIdx, onClose, onSaved }) {
                     {/* Details input */}
                     <td className="px-3 py-2">
                       <input
-                        className="input py-2 text-sm w-full"
+                        className="input-field text-sm w-full"
                         placeholder="বিস্তারিত বিবরণ (ঐচ্ছিক)"
                         value={r.details}
                         onChange={e => set(r._key, 'details', e.target.value)}
@@ -214,7 +214,7 @@ function SubjectRow({ subject, colorIdx, onRefresh, onEditLectures, onImportExce
       {editing ? (
         <>
           <input
-            className="input flex-1 py-1.5 text-sm"
+            className="input-field flex-1 text-sm"
             value={name}
             onChange={e => setName(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setEditing(false); }}
@@ -387,7 +387,7 @@ function PlanCard({ plan, onRefresh }) {
               {showAdd ? (
                 <div className="flex gap-2 flex-1">
                   <input
-                    className="input flex-1 text-sm py-2"
+                    className="input-field flex-1 text-sm"
                     placeholder="নতুন বিষয়ের নাম..."
                     value={newSubject}
                     onChange={e => setNewSubject(e.target.value)}
@@ -484,7 +484,7 @@ function CourseCard({ course, onRefresh }) {
         {editing ? (
           <>
             <input
-              className="input flex-1 font-semibold"
+              className="input-field flex-1 font-semibold"
               value={courseName}
               onChange={e => setCourseName(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') saveCourse(); if (e.key === 'Escape') { setCourseName(course.course_name); setEditing(false); } }}
@@ -522,13 +522,16 @@ function CourseCard({ course, onRefresh }) {
 
           {/* Add plan form */}
           {showPlanForm ? (
-            <div className="border border-dashed border-gray-200 rounded-xl p-4 space-y-3 bg-gray-50/50">
-              <p className="text-sm font-medium text-gray-600">নতুন কোর্স প্ল্যান</p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="sm:col-span-2">
-                  <label className="label text-xs">প্ল্যানের নাম *</label>
+            <div className="border-2 border-primary-200 rounded-2xl p-5 space-y-4 bg-primary-50/40">
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-6 bg-primary-500 rounded-full"></div>
+                <p className="text-base font-semibold text-gray-700">নতুন কোর্স প্ল্যান</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="sm:col-span-2 flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-gray-600">প্ল্যানের নাম <span className="text-red-500">*</span></label>
                   <input
-                    className="input"
+                    className="input-field text-base"
                     placeholder="যেমন: ব্যাসিক ব্যাচ প্ল্যান"
                     value={planForm.plan_name}
                     onChange={e => setPlanForm(f => ({ ...f, plan_name: e.target.value }))}
@@ -536,19 +539,19 @@ function CourseCard({ course, onRefresh }) {
                     autoFocus
                   />
                 </div>
-                <div>
-                  <label className="label text-xs">মোট ক্লাস</label>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-gray-600">মোট ক্লাস</label>
                   <input
                     type="number"
-                    className="input"
+                    className="input-field text-base"
                     value={planForm.total_classes}
                     onChange={e => setPlanForm(f => ({ ...f, total_classes: e.target.value }))}
                   />
                 </div>
               </div>
-              <div className="flex gap-2">
-                <button onClick={addPlan} className="btn-primary text-sm">প্ল্যান যোগ করুন</button>
-                <button onClick={() => setShowPlanForm(false)} className="btn-secondary text-sm">বাতিল</button>
+              <div className="flex gap-3 pt-1">
+                <button onClick={addPlan} className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-6 py-2.5 rounded-xl transition-colors text-sm">প্ল্যান যোগ করুন</button>
+                <button onClick={() => setShowPlanForm(false)} className="bg-white hover:bg-gray-50 text-gray-600 font-medium px-5 py-2.5 rounded-xl border-2 border-gray-200 transition-colors text-sm">বাতিল</button>
               </div>
             </div>
           ) : (
@@ -606,7 +609,7 @@ export default function Courses() {
           <p className="text-sm font-medium text-gray-600 mb-3">নতুন কোর্স যোগ করুন</p>
           <div className="flex gap-3">
             <input
-              className="input flex-1"
+              className="input-field flex-1"
               placeholder="কোর্সের নাম লিখুন..."
               value={newName}
               onChange={e => setNewName(e.target.value)}
