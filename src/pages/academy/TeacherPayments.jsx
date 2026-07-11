@@ -1,9 +1,9 @@
-﻿import { useState, useEffect } from 'react';
-import { Banknote, CheckCircle, Filter } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Banknote, CheckCircle } from 'lucide-react';
 import { academyApi } from '../../api/client';
 import toast from 'react-hot-toast';
 
-const STATUS_LABEL = { pending: 'à¦¬à¦¾à¦•à¦¿', paid: 'à¦ªà¦°à¦¿à¦¶à§‹à¦§à¦¿à¦¤' };
+const STATUS_LABEL = { pending: 'বাকি', paid: 'পরিশোধিত' };
 const STATUS_COLOR = { pending: 'bg-orange-100 text-orange-700', paid: 'bg-green-100 text-green-700' };
 
 export default function TeacherPayments() {
@@ -26,11 +26,12 @@ export default function TeacherPayments() {
   const selectAll = () => setSelected(pending.map(p => p.id));
 
   const pay = async () => {
-    if (selected.length === 0) return toast.error('à¦…à¦¨à§à¦¤à¦¤ à¦à¦•à¦Ÿà¦¿ à¦ªà§‡à¦®à§‡à¦¨à§à¦Ÿ à¦¬à§‡à¦›à§‡ à¦¨à¦¿à¦¨');
+    if (selected.length === 0) return toast.error('অন্তত একটি পেমেন্ট বেছে নিন');
     try {
       await academyApi.payTeacher({ payment_ids: selected, note: payNote });
-      toast.success('à¦ªà§‡à¦®à§‡à¦¨à§à¦Ÿ à¦¸à¦®à§à¦ªà¦¨à§à¦¨ à¦¹à¦¯à¦¼à§‡à¦›à§‡'); setShowPayModal(false); setSelected([]); setPayNote(''); load(selectedTeacher);
-    } catch { toast.error('à¦¸à¦®à¦¸à§à¦¯à¦¾ à¦¹à¦¯à¦¼à§‡à¦›à§‡'); }
+      toast.success('পেমেন্ট সম্পন্ন হয়েছে');
+      setShowPayModal(false); setSelected([]); setPayNote(''); load(selectedTeacher);
+    } catch { toast.error('সমস্যা হয়েছে'); }
   };
 
   const totalPending = pending.filter(p => selected.includes(p.id)).reduce((s, p) => s + Number(p.amount), 0);
@@ -38,15 +39,15 @@ export default function TeacherPayments() {
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-xl font-bold text-gray-800">à¦¶à¦¿à¦•à§à¦·à¦• à¦ªà§‡à¦®à§‡à¦¨à§à¦Ÿ</h1>
+        <h1 className="text-xl font-bold text-gray-800">শিক্ষক পেমেন্ট</h1>
         <div className="flex gap-3 items-center">
-          <select className="input text-sm py-2" value={selectedTeacher} onChange={e => { setSelectedTeacher(e.target.value); load(e.target.value); }}>
-            <option value="">à¦¸à¦•à¦² à¦¶à¦¿à¦•à§à¦·à¦•</option>
+          <select className="input-field text-sm" value={selectedTeacher} onChange={e => { setSelectedTeacher(e.target.value); load(e.target.value); }}>
+            <option value="">সকল শিক্ষক</option>
             {teachers.map(t => <option key={t.id} value={t.id}>{t.full_name} ({t.teacher_code})</option>)}
           </select>
           {selected.length > 0 && (
-            <button onClick={() => setShowPayModal(true)} className="btn-primary flex items-center gap-2 text-sm">
-              <CheckCircle size={15} /> {selected.length}à¦Ÿà¦¿ à¦ªà¦°à¦¿à¦¶à§‹à¦§ (à§³{totalPending.toLocaleString()})
+            <button onClick={() => setShowPayModal(true)} className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2 text-sm transition-colors">
+              <CheckCircle size={15} /> {selected.length}টি পরিশোধ (৳{totalPending.toLocaleString()})
             </button>
           )}
         </div>
@@ -55,60 +56,65 @@ export default function TeacherPayments() {
       {pending.length > 0 && (
         <div className="bg-orange-50 border border-orange-100 rounded-xl px-4 py-3 flex items-center justify-between">
           <p className="text-sm text-orange-700">
-            à¦®à§‹à¦Ÿ à¦¬à¦¾à¦•à¦¿: <strong>{pending.length}à¦Ÿà¦¿</strong> â€” à§³{pending.reduce((s, p) => s + Number(p.amount), 0).toLocaleString()}
+            মোট বাকি: <strong>{pending.length}টি</strong> — ৳{pending.reduce((s, p) => s + Number(p.amount), 0).toLocaleString()}
           </p>
-          <button onClick={selectAll} className="text-xs text-orange-600 hover:text-orange-800 underline">à¦¸à¦¬ à¦¬à§‡à¦›à§‡ à¦¨à¦¿à¦¨</button>
+          <button onClick={selectAll} className="text-xs text-orange-600 hover:text-orange-800 underline">সব বেছে নিন</button>
         </div>
       )}
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
         {list.length === 0 ? (
           <div className="p-12 text-center text-gray-400">
-            <Banknote size={40} className="mx-auto mb-3 opacity-30" /><p>à¦•à§‹à¦¨à§‹ à¦ªà§‡à¦®à§‡à¦¨à§à¦Ÿ à¦¨à§‡à¦‡</p>
+            <Banknote size={40} className="mx-auto mb-3 opacity-30" /><p>কোনো পেমেন্ট নেই</p>
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
-              <tr>
-                <th className="px-4 py-3 w-8"></th>
-                {['à¦¶à¦¿à¦•à§à¦·à¦•', 'à¦¬à§à¦¯à¦¾à¦š', 'à¦•à§à¦²à¦¾à¦¸ à¦¤à¦¾à¦°à¦¿à¦–', 'à¦•à§à¦²à¦¾à¦¸ à¦§à¦°à¦¨', 'à¦ªà¦°à¦¿à¦®à¦¾à¦£', 'à¦…à¦¬à¦¸à§à¦¥à¦¾', 'à¦ªà¦°à¦¿à¦¶à§‹à¦§à§‡à¦° à¦¤à¦¾à¦°à¦¿à¦–'].map(h => (
-                  <th key={h} className="px-4 py-3 text-left">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {list.map(row => (
-                <tr key={row.id} className="border-t border-gray-50 hover:bg-gray-50">
-                  <td className="px-4 py-3">
-                    {row.status === 'pending' && (
-                      <input type="checkbox" checked={selected.includes(row.id)} onChange={() => toggleSelect(row.id)} />
-                    )}
-                  </td>
-                  <td className="px-4 py-3 font-medium">{row.teacher_name}<br /><span className="text-xs text-gray-400">{row.teacher_code}</span></td>
-                  <td className="px-4 py-3 text-gray-500">{row.batch_name}</td>
-                  <td className="px-4 py-3 text-xs text-gray-500">{row.class_date ? new Date(row.class_date).toLocaleDateString('bn-BD') : 'â€”'}</td>
-                  <td className="px-4 py-3 text-xs text-gray-500">{row.class_type}</td>
-                  <td className="px-4 py-3 font-semibold text-gray-800">à§³{Number(row.amount).toLocaleString()}</td>
-                  <td className="px-4 py-3">
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLOR[row.status]}`}>{STATUS_LABEL[row.status]}</span>
-                  </td>
-                  <td className="px-4 py-3 text-xs text-gray-400">{row.paid_at ? new Date(row.paid_at).toLocaleDateString('bn-BD') : 'â€”'}</td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 text-gray-500 text-xs">
+                <tr>
+                  <th className="px-4 py-3 w-8"></th>
+                  {['শিক্ষক', 'ব্যাচ', 'ক্লাস তারিখ', 'ক্লাস ধরন', 'পরিমাণ', 'অবস্থা', 'পরিশোধের তারিখ'].map(h => (
+                    <th key={h} className="px-4 py-3 text-left font-medium">{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {list.map(row => (
+                  <tr key={row.id} className="border-t border-gray-100 hover:bg-gray-50">
+                    <td className="px-4 py-3">
+                      {row.status === 'pending' && (
+                        <input type="checkbox" checked={selected.includes(row.id)} onChange={() => toggleSelect(row.id)} />
+                      )}
+                    </td>
+                    <td className="px-4 py-3 font-medium">{row.teacher_name}<br /><span className="text-xs text-gray-400">{row.teacher_code}</span></td>
+                    <td className="px-4 py-3 text-gray-500">{row.batch_name}</td>
+                    <td className="px-4 py-3 text-xs text-gray-500">{row.class_date ? new Date(row.class_date).toLocaleDateString('bn-BD') : '—'}</td>
+                    <td className="px-4 py-3 text-xs text-gray-500">{row.class_type}</td>
+                    <td className="px-4 py-3 font-semibold text-gray-800">৳{Number(row.amount).toLocaleString()}</td>
+                    <td className="px-4 py-3">
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLOR[row.status]}`}>{STATUS_LABEL[row.status]}</span>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-gray-400">{row.paid_at ? new Date(row.paid_at).toLocaleDateString('bn-BD') : '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
       {showPayModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-sm p-6 space-y-4">
-            <h3 className="font-semibold">à¦ªà§‡à¦®à§‡à¦¨à§à¦Ÿ à¦¨à¦¿à¦¶à§à¦šà¦¿à¦¤ à¦•à¦°à§à¦¨</h3>
-            <p className="text-sm text-gray-600">{selected.length}à¦Ÿà¦¿ à¦ªà§‡à¦®à§‡à¦¨à§à¦Ÿ â€” à¦®à§‹à¦Ÿ <strong>à§³{totalPending.toLocaleString()}</strong></p>
-            <div><label className="label">à¦¨à§‹à¦Ÿ (à¦à¦šà§à¦›à¦¿à¦•)</label><textarea className="input-field" rows={2} value={payNote} onChange={e => setPayNote(e.target.value)} /></div>
+            <h3 className="font-semibold text-gray-800">পেমেন্ট নিশ্চিত করুন</h3>
+            <p className="text-sm text-gray-600">{selected.length}টি পেমেন্ট — মোট <strong>৳{totalPending.toLocaleString()}</strong></p>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-gray-600">নোট (ঐচ্ছিক)</label>
+              <textarea className="input-field" rows={2} value={payNote} onChange={e => setPayNote(e.target.value)} />
+            </div>
             <div className="flex gap-3">
-              <button onClick={pay} className="btn-primary flex-1">à¦ªà¦°à¦¿à¦¶à§‹à¦§ à¦•à¦°à§à¦¨</button>
-              <button onClick={() => setShowPayModal(false)} className="btn-secondary">à¦¬à¦¾à¦¤à¦¿à¦²</button>
+              <button onClick={pay} className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-6 py-2.5 rounded-xl text-sm flex-1">পরিশোধ করুন</button>
+              <button onClick={() => setShowPayModal(false)} className="bg-white hover:bg-gray-50 text-gray-600 font-medium px-5 py-2.5 rounded-xl border-2 border-gray-200 text-sm">বাতিল</button>
             </div>
           </div>
         </div>
@@ -116,4 +122,3 @@ export default function TeacherPayments() {
     </div>
   );
 }
-
