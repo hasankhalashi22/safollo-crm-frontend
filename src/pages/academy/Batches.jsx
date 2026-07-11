@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { academyApi } from '../../api/client';
 import toast from 'react-hot-toast';
 
-const EMPTY = { batch_name: '', course_id: '', plan_id: '', start_date: '', zoom_account_id: '', max_students: '' };
+const EMPTY = { batch_name: '', course_id: '', plan_id: '', start_date: '', max_students: '' };
 const STATUS_LABEL = { upcoming: 'আসছে', active: 'সক্রিয়', completed: 'সম্পন্ন', cancelled: 'বাতিল' };
 const STATUS_COLOR = { upcoming: 'bg-blue-100 text-blue-700', active: 'bg-green-100 text-green-700', completed: 'bg-gray-100 text-gray-600', cancelled: 'bg-red-100 text-red-600' };
 
@@ -13,7 +13,6 @@ export default function Batches() {
   const [list, setList] = useState([]);
   const [courses, setCourses] = useState([]);
   const [plans, setPlans] = useState([]);
-  const [zooms, setZooms] = useState([]);
   const [form, setForm] = useState(EMPTY);
   const [editId, setEditId] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -23,7 +22,6 @@ export default function Batches() {
   useEffect(() => {
     load();
     academyApi.getCourses().then(r => setCourses(r.data || []));
-    academyApi.getZoomAccounts().then(r => setZooms(r.data || []));
   }, []);
 
   useEffect(() => {
@@ -33,7 +31,7 @@ export default function Batches() {
 
   const openNew = () => { setForm(EMPTY); setEditId(null); setShowForm(true); };
   const openEdit = (row) => {
-    setForm({ batch_name: row.batch_name, course_id: row.course_id, plan_id: row.plan_id || '', start_date: row.start_date?.split('T')[0] || '', zoom_account_id: row.zoom_account_id || '', max_students: row.max_students || '' });
+    setForm({ batch_name: row.batch_name, course_id: row.course_id, plan_id: row.plan_id || '', start_date: row.start_date?.split('T')[0] || '', max_students: row.max_students || '' });
     setEditId(row.id); setShowForm(true);
   };
 
@@ -89,13 +87,6 @@ export default function Batches() {
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-gray-600">শুরুর তারিখ</label>
               <input type="date" className="input-field" value={form.start_date} onChange={e => set('start_date', e.target.value)} />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-gray-600">Zoom Account</label>
-              <select className="input-field" value={form.zoom_account_id} onChange={e => set('zoom_account_id', e.target.value)}>
-                <option value="">বেছে নিন</option>
-                {zooms.map(z => <option key={z.id} value={z.id}>{z.account_name}</option>)}
-              </select>
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-gray-600">সর্বোচ্চ শিক্ষার্থী</label>
