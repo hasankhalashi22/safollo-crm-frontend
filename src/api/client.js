@@ -290,6 +290,7 @@ export const academyApi = {
   getPaymentRates: () => api.get('/api/academy/payment-rates'),
   upsertPaymentRate: (data) => api.post('/api/academy/payment-rates', data),
   deletePaymentRate: (id) => api.delete(`/api/academy/payment-rates/${id}`),
+  deleteCourseTypeRates: (courseType) => api.delete(`/api/academy/payment-rates/course/${encodeURIComponent(courseType)}`),
 
   // Teachers
   getTeachers: () => api.get('/api/academy/teachers'),
