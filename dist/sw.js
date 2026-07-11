@@ -4,11 +4,8 @@ self.addEventListener('push', function(event) {
   const body = data.body || '';
   const options = {
     body: body,
-    icon: '/logo.png',
-    badge: '/logo.png',
     vibrate: [200, 100, 200],
     data: data.data || {},
-    requireInteraction: true,
   };
   event.waitUntil(self.registration.showNotification(title, options));
 });

@@ -1,7 +1,39 @@
-import { useState, useEffect } from 'react';
-import { Plus, ChevronRight, ChevronDown, Edit2, Trash2, BookMarked, Save, X, BookOpen, GripVertical } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Plus, ChevronRight, ChevronDown, Edit2, Trash2, BookMarked, Save, X, BookOpen, Upload, Download, FileSpreadsheet } from 'lucide-react';
 import { academyApi } from '../../api/client';
 import toast from 'react-hot-toast';
+import * as XLSX from 'xlsx';
+
+// ── Template download helpers ─────────────────────────────────────────────────
+function downloadPlanTemplate() {
+  const wb = XLSX.utils.book_new();
+  // Sheet 1: Bangla (sample)
+  const ws1 = XLSX.utils.aoa_to_sheet([
+    ['শিরোনাম', 'বিস্তারিত'],
+    ['বাংলা ব্যাকরণ পরিচিতি', 'সন্ধি, সমাস, কারক সম্পর্কে প্রাথমিক ধারণা'],
+    ['বর্ণমালা ও উচ্চারণ', 'স্বরবর্ণ ও ব্যঞ্জনবর্ণের বিস্তারিত আলোচনা'],
+  ]);
+  // Sheet 2: English (sample)
+  const ws2 = XLSX.utils.aoa_to_sheet([
+    ['শিরোনাম', 'বিস্তারিত'],
+    ['Parts of Speech', 'Noun, Pronoun, Verb, Adjective introduction'],
+    ['Tense', 'Present, Past, Future tense with examples'],
+  ]);
+  XLSX.utils.book_append_sheet(wb, ws1, 'Bangla');
+  XLSX.utils.book_append_sheet(wb, ws2, 'English');
+  XLSX.writeFile(wb, 'plan_import_template.xlsx');
+}
+
+function downloadSubjectTemplate() {
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet([
+    ['শিরোনাম', 'বিস্তারিত'],
+    ['লেকচার ১ এর শিরোনাম', 'এখানে বিস্তারিত লিখুন'],
+    ['লেকচার ২ এর শিরোনাম', 'এখানে বিস্তারিত লিখুন'],
+  ]);
+  XLSX.utils.book_append_sheet(wb, ws, 'Lectures');
+  XLSX.writeFile(wb, 'subject_import_template.xlsx');
+}
 
 // Subject color palette — header bg + light row stripe
 const SUBJECT_COLORS = [
@@ -151,8 +183,9 @@ function LecturesModal({ subject, colorIdx, onClose, onSaved }) {
 }
 
 // ── Subject row ───────────────────────────────────────────────────────────────
-function SubjectRow({ subject, colorIdx, onRefresh, onEditLectures }) {
+function SubjectRow({ subject, colorIdx, onRefresh, onEditLectures, onImportExcel }) {
   const clr = SUBJECT_COLORS[colorIdx % SUBJECT_COLORS.length];
+  const fileRef = useRef();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(subject.subject_name);
 
@@ -204,6 +237,15 @@ function SubjectRow({ subject, colorIdx, onRefresh, onEditLectures }) {
           </button>
 
           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              title="Excel থেকে লেকচার ইমপোর্ট"
+              onClick={() => fileRef.current?.click()}
+              className="p-1.5 hover:bg-green-50 rounded-lg text-green-500"
+            >
+              <Upload size={14} />
+            </button>
+            <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden"
+              onChange={e => { if (e.target.files[0]) { onImportExcel(subject.id, e.target.files[0]); e.target.value = ''; } }} />
             <button onClick={() => setEditing(true)} className="p-1.5 hover:bg-blue-50 rounded-lg text-blue-400"><Edit2 size={14} /></button>
             <button onClick={del} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 size={14} /></button>
           </div>
@@ -220,7 +262,8 @@ function PlanCard({ plan, onRefresh }) {
   const [loadingSubjects, setLoadingSubjects] = useState(false);
   const [newSubject, setNewSubject] = useState('');
   const [showAdd, setShowAdd] = useState(false);
-  const [lectureModal, setLectureModal] = useState(null); // { subject, colorIdx }
+  const [lectureModal, setLectureModal] = useState(null);
+  const planFileRef = useRef();
 
   const loadSubjects = async () => {
     setLoadingSubjects(true);
@@ -239,86 +282,143 @@ function PlanCard({ plan, onRefresh }) {
 
   const delPlan = async () => {
     if (!confirm('এই প্ল্যানটি মুছে ফেলবেন?')) return;
-    await academyApi.deletePlan(plan.id);
-    onRefresh();
+    await academyApi.deletePlan(plan.id); onRefresh();
   };
+
+  const importPlanFile = async (file) => {
+    try {
+      toast.loading('ইমপোর্ট হচ্ছে...');
+      const r = await academyApi.importPlanExcel(plan.id, file);
+      toast.dismiss();
+      toast.success(`${r.data?.imported || 0} টি বিষয় ইমপোর্ট হয়েছে`);
+      if (!open) setOpen(true); else loadSubjects();
+    } catch { toast.dismiss(); toast.error('ইমপোর্ট ব্যর্থ হয়েছে'); }
+  };
+
+  const importSubjectFile = async (subjectId, file) => {
+    try {
+      toast.loading('লেকচার ইমপোর্ট হচ্ছে...');
+      const r = await academyApi.importSubjectExcel(subjectId, file);
+      toast.dismiss();
+      toast.success(`${r.data?.imported || 0} টি লেকচার ইমপোর্ট হয়েছে`);
+      loadSubjects();
+    } catch { toast.dismiss(); toast.error('ইমপোর্ট ব্যর্থ হয়েছে'); }
+  };
+
+  // Totals
+  const subjectCount = subjects.length > 0 ? subjects.length : (plan.subject_count || 0);
+  const totalLectures = subjects.reduce((s, sub) => s + Number(sub.lecture_count || 0), 0);
 
   return (
     <>
-      <div className="border border-gray-100 rounded-xl overflow-hidden">
+      <div className="border-2 border-gray-100 rounded-2xl overflow-hidden">
         {/* Plan header */}
         <div
-          className="flex items-center gap-3 px-4 py-3 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors"
+          className="flex items-center gap-3 px-4 py-3.5 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors group"
           onClick={() => setOpen(o => !o)}
         >
-          <button className="text-gray-400 flex-shrink-0">
+          <span className="text-gray-400 flex-shrink-0">
             {open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-          </button>
-          <span className="text-xs bg-primary-100 text-primary-700 font-semibold px-2 py-0.5 rounded-full">
+          </span>
+          <span className="text-xs bg-primary-100 text-primary-700 font-bold px-2.5 py-1 rounded-full">
             v{plan.version}
           </span>
-          <span className="font-medium text-gray-700 flex-1 text-sm">{plan.plan_name}</span>
+          <span className="font-semibold text-gray-700 flex-1">{plan.plan_name}</span>
 
           {plan.is_active && (
-            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">সক্রিয়</span>
+            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">সক্রিয়</span>
           )}
-          <span className="text-xs text-gray-400">
-            {subjects.length > 0 ? `${subjects.length} বিষয়` : plan.subject_count > 0 ? `${plan.subject_count} বিষয়` : 'কোনো বিষয় নেই'}
-          </span>
-          <button
-            onClick={e => { e.stopPropagation(); delPlan(); }}
-            className="p-1.5 hover:bg-red-50 rounded-lg text-red-400 opacity-0 group-hover:opacity-100"
-          >
-            <Trash2 size={14} />
-          </button>
+
+          {/* Stats */}
+          <div className="flex items-center gap-3 text-xs text-gray-500">
+            <span className="bg-white border border-gray-200 px-2.5 py-1 rounded-lg">
+              {subjectCount} বিষয়
+            </span>
+            {totalLectures > 0 && (
+              <span className="bg-primary-50 border border-primary-100 text-primary-600 px-2.5 py-1 rounded-lg font-medium">
+                {totalLectures} লেকচার
+              </span>
+            )}
+          </div>
+
+          {/* Import plan Excel */}
+          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+            <button title="Excel দিয়ে পুরো প্ল্যান ইমপোর্ট" onClick={() => planFileRef.current?.click()}
+              className="p-1.5 hover:bg-green-50 rounded-lg text-green-500 flex items-center gap-1 text-xs">
+              <FileSpreadsheet size={14} /> ইমপোর্ট
+            </button>
+            <input ref={planFileRef} type="file" accept=".xlsx,.xls" className="hidden"
+              onChange={e => { if (e.target.files[0]) { importPlanFile(e.target.files[0]); e.target.value = ''; } }} />
+            <button onClick={delPlan} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400">
+              <Trash2 size={14} />
+            </button>
+          </div>
         </div>
 
-        {/* Subjects */}
+        {/* Subjects — indented */}
         {open && (
-          <div className="px-4 py-3 space-y-2">
-            {loadingSubjects ? (
-              <p className="text-sm text-gray-400 py-2">লোড হচ্ছে...</p>
-            ) : subjects.length === 0 ? (
-              <p className="text-sm text-gray-400 py-2">কোনো বিষয় নেই। নিচে থেকে যোগ করুন।</p>
-            ) : (
-              subjects.map((s, idx) => (
-                <SubjectRow
-                  key={s.id}
-                  subject={s}
-                  colorIdx={idx}
-                  onRefresh={loadSubjects}
-                  onEditLectures={(subj) => setLectureModal({ subject: subj, colorIdx: idx })}
-                />
-              ))
-            )}
+          <div className="pl-8 pr-4 py-3 space-y-2 border-t border-gray-100">
+            {/* Left border accent */}
+            <div className="relative">
+              <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gray-200 rounded-full -ml-4"></div>
 
-            {/* Add subject */}
-            {showAdd ? (
-              <div className="flex gap-2 pt-1">
-                <input
-                  className="input flex-1 text-sm py-2"
-                  placeholder="নতুন বিষয়ের নাম লিখুন..."
-                  value={newSubject}
-                  onChange={e => setNewSubject(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') addSubject(); if (e.key === 'Escape') setShowAdd(false); }}
-                  autoFocus
-                />
-                <button onClick={addSubject} className="btn-primary text-sm px-4">যোগ</button>
-                <button onClick={() => setShowAdd(false)} className="btn-secondary text-sm px-3">বাতিল</button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setShowAdd(true)}
-                className="flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 pt-1 px-1"
-              >
-                <Plus size={14} /> নতুন বিষয় যোগ করুন
-              </button>
-            )}
+              {loadingSubjects ? (
+                <p className="text-sm text-gray-400 py-2 pl-2">লোড হচ্ছে...</p>
+              ) : subjects.length === 0 ? (
+                <p className="text-sm text-gray-400 py-2 pl-2">কোনো বিষয় নেই।</p>
+              ) : (
+                <div className="space-y-2">
+                  {subjects.map((s, idx) => (
+                    <SubjectRow
+                      key={s.id}
+                      subject={s}
+                      colorIdx={idx}
+                      onRefresh={loadSubjects}
+                      onEditLectures={(subj) => setLectureModal({ subject: subj, colorIdx: idx })}
+                      onImportExcel={importSubjectFile}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Add subject + template download */}
+            <div className="pt-1 flex items-center gap-3">
+              {showAdd ? (
+                <div className="flex gap-2 flex-1">
+                  <input
+                    className="input flex-1 text-sm py-2"
+                    placeholder="নতুন বিষয়ের নাম..."
+                    value={newSubject}
+                    onChange={e => setNewSubject(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') addSubject(); if (e.key === 'Escape') setShowAdd(false); }}
+                    autoFocus
+                  />
+                  <button onClick={addSubject} className="btn-primary text-sm px-4">যোগ</button>
+                  <button onClick={() => setShowAdd(false)} className="btn-secondary text-sm px-3">বাতিল</button>
+                </div>
+              ) : (
+                <>
+                  <button onClick={() => setShowAdd(true)}
+                    className="flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-700">
+                    <Plus size={14} /> নতুন বিষয়
+                  </button>
+                  <span className="text-gray-200">|</span>
+                  <button onClick={downloadPlanTemplate}
+                    className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600">
+                    <Download size={12} /> প্ল্যান টেমপ্লেট
+                  </button>
+                  <button onClick={downloadSubjectTemplate}
+                    className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600">
+                    <Download size={12} /> বিষয় টেমপ্লেট
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         )}
       </div>
 
-      {/* Lecture modal */}
       {lectureModal && (
         <LecturesModal
           subject={lectureModal.subject}
@@ -411,7 +511,7 @@ function CourseCard({ course, onRefresh }) {
 
       {/* Plans section */}
       {open && (
-        <div className="px-5 pb-5 border-t border-gray-50 pt-4 space-y-3">
+        <div className="px-5 pb-5 border-t border-gray-50 pt-4 space-y-4">
           {plans.length === 0 && !showPlanForm && (
             <p className="text-sm text-gray-400">কোনো প্ল্যান নেই।</p>
           )}

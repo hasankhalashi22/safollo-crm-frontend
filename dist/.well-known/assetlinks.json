@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.safollo.crm",
+    "sha256_cert_fingerprints": [
+      "67:56:A5:EB:4B:F9:A5:31:71:E0:92:98:E3:C5:49:34:B8:36:59:8A:55:95:98:7B:EE:59:3F:B9:39:28:9D:B8"
+    ]
+  }
+}]

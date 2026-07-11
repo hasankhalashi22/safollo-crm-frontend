@@ -340,6 +340,16 @@ export const academyApi = {
 
   // Reports
   getScheduleReport: (params) => api.get('/api/academy/reports/schedule', { params }),
+
+  // Excel Import
+  importPlanExcel: (planId, file) => {
+    const fd = new FormData(); fd.append('file', file);
+    return api.post(`/api/academy/plans/${planId}/import-excel`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
+  importSubjectExcel: (subjectId, file) => {
+    const fd = new FormData(); fd.append('file', file);
+    return api.post(`/api/academy/subjects/${subjectId}/import-excel`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+  },
 };
 
 export default api;
