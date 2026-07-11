@@ -3,21 +3,39 @@ import { Plus, ChevronRight, ChevronDown, Edit2, Trash2, BookMarked, Save, X, Bo
 import { academyApi } from '../../api/client';
 import toast from 'react-hot-toast';
 
+// Subject color palette — header bg + light row stripe
+const SUBJECT_COLORS = [
+  { header: 'bg-violet-600', stripe: 'bg-violet-50', badge: 'bg-violet-100 text-violet-700', border: 'border-violet-200' },
+  { header: 'bg-blue-600',   stripe: 'bg-blue-50',   badge: 'bg-blue-100 text-blue-700',     border: 'border-blue-200'   },
+  { header: 'bg-teal-600',   stripe: 'bg-teal-50',   badge: 'bg-teal-100 text-teal-700',     border: 'border-teal-200'   },
+  { header: 'bg-orange-500', stripe: 'bg-orange-50', badge: 'bg-orange-100 text-orange-700', border: 'border-orange-200' },
+  { header: 'bg-rose-600',   stripe: 'bg-rose-50',   badge: 'bg-rose-100 text-rose-700',     border: 'border-rose-200'   },
+  { header: 'bg-emerald-600',stripe: 'bg-emerald-50',badge: 'bg-emerald-100 text-emerald-700',border:'border-emerald-200'},
+  { header: 'bg-amber-500',  stripe: 'bg-amber-50',  badge: 'bg-amber-100 text-amber-700',   border: 'border-amber-200'  },
+  { header: 'bg-indigo-600', stripe: 'bg-indigo-50', badge: 'bg-indigo-100 text-indigo-700', border: 'border-indigo-200' },
+];
+
+// Column header colors
+const COL_COLORS = {
+  serial:   'bg-gray-500 text-white',
+  lectureNo:'bg-blue-500 text-white',
+  title:    'bg-teal-600 text-white',
+  details:  'bg-violet-600 text-white',
+};
+
 // ── Lectures Editor (full modal) ──────────────────────────────────────────────
-function LecturesModal({ subject, onClose, onSaved }) {
+function LecturesModal({ subject, colorIdx, onClose, onSaved }) {
+  const clr = SUBJECT_COLORS[colorIdx % SUBJECT_COLORS.length];
+
   const [rows, setRows] = useState(
     (subject.lectures || []).length > 0
-      ? subject.lectures.map(l => ({ ...l, _key: l.id }))
-      : [{ _key: Date.now(), title: '', duration_min: 60, is_practical: false }]
+      ? subject.lectures.map(l => ({ _key: l.id, title: l.title || '', details: l.details || '' }))
+      : [{ _key: Date.now(), title: '', details: '' }]
   );
 
-  const addRow = () =>
-    setRows(r => [...r, { _key: Date.now(), title: '', duration_min: 60, is_practical: false }]);
-
+  const addRow = () => setRows(r => [...r, { _key: Date.now(), title: '', details: '' }]);
   const del = (key) => setRows(r => r.filter(x => x._key !== key));
-
-  const set = (key, k, v) =>
-    setRows(r => r.map(x => x._key === key ? { ...x, [k]: v } : x));
+  const set = (key, k, v) => setRows(r => r.map(x => x._key === key ? { ...x, [k]: v } : x));
 
   const save = async () => {
     const valid = rows.filter(r => r.title.trim());
@@ -25,76 +43,81 @@ function LecturesModal({ subject, onClose, onSaved }) {
     try {
       await academyApi.saveLectures(subject.id, valid.map(r => ({
         title: r.title.trim(),
-        duration_min: Number(r.duration_min) || 60,
-        is_practical: !!r.is_practical,
+        details: r.details.trim(),
       })));
       toast.success('লেকচার সংরক্ষিত হয়েছে');
       onSaved();
     } catch { toast.error('সমস্যা হয়েছে'); }
   };
 
+  const validCount = rows.filter(r => r.title.trim()).length;
+
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-4 pt-16 overflow-y-auto">
-      <div className="bg-white rounded-2xl w-full max-w-2xl shadow-xl">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-start justify-center p-4 pt-12 overflow-y-auto">
+      <div className="bg-white rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden">
+
+        {/* Colored header */}
+        <div className={`${clr.header} px-6 py-4 flex items-center justify-between`}>
           <div>
-            <p className="text-xs text-gray-400 mb-0.5">লেকচার সম্পাদনা</p>
-            <h3 className="font-semibold text-gray-800">{subject.subject_name}</h3>
+            <p className="text-white/70 text-xs mb-0.5">লেকচার সম্পাদনা</p>
+            <h3 className="font-bold text-white text-lg">{subject.subject_name}</h3>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl text-gray-400">
-            <X size={18} />
+          <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-xl text-white transition-colors">
+            <X size={20} />
           </button>
         </div>
 
         {/* Table */}
-        <div className="px-6 py-4">
-          <div className="rounded-xl border border-gray-100 overflow-hidden">
+        <div className="p-5">
+          <div className={`rounded-xl border-2 ${clr.border} overflow-hidden`}>
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-gray-500 text-xs">
+              <thead>
                 <tr>
-                  <th className="px-4 py-3 text-left w-10">#</th>
-                  <th className="px-4 py-3 text-left">লেকচারের শিরোনাম</th>
-                  <th className="px-4 py-3 text-center w-32">সময় (মিনিট)</th>
-                  <th className="px-4 py-3 text-center w-28">প্র্যাক্টিক্যাল</th>
-                  <th className="w-10"></th>
+                  <th className={`${COL_COLORS.serial} px-4 py-3 text-left text-xs font-semibold w-20`}>ক্রমিক নং</th>
+                  <th className={`${COL_COLORS.lectureNo} px-4 py-3 text-left text-xs font-semibold w-24`}>লেকচার নং</th>
+                  <th className={`${COL_COLORS.title} px-4 py-3 text-left text-xs font-semibold`}>শিরোনাম</th>
+                  <th className={`${COL_COLORS.details} px-4 py-3 text-left text-xs font-semibold`}>বিস্তারিত</th>
+                  <th className="bg-gray-100 w-10"></th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((r, i) => (
-                  <tr key={r._key} className="border-t border-gray-50">
-                    <td className="px-4 py-2.5 text-gray-400 text-xs font-mono">{i + 1}</td>
-                    <td className="px-4 py-2.5">
+                  <tr key={r._key} className={`border-t-2 ${clr.border} ${i % 2 === 0 ? 'bg-white' : clr.stripe}`}>
+                    {/* Auto serial */}
+                    <td className="px-4 py-3">
+                      <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-bold ${clr.badge}`}>
+                        {i + 1}
+                      </span>
+                    </td>
+                    {/* Auto lecture no */}
+                    <td className="px-4 py-3">
+                      <span className="inline-flex items-center justify-center px-3 py-1 rounded-lg text-xs font-mono font-semibold bg-blue-100 text-blue-700">
+                        L-{String(i + 1).padStart(2, '0')}
+                      </span>
+                    </td>
+                    {/* Title input */}
+                    <td className="px-3 py-2">
                       <input
-                        className="input py-2 text-sm"
+                        className="input py-2 text-sm w-full"
                         placeholder={`লেকচার ${i + 1} এর শিরোনাম`}
                         value={r.title}
                         onChange={e => set(r._key, 'title', e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && addRow()}
                       />
                     </td>
-                    <td className="px-4 py-2.5">
+                    {/* Details input */}
+                    <td className="px-3 py-2">
                       <input
-                        type="number"
-                        className="input py-2 text-sm text-center"
-                        value={r.duration_min}
-                        onChange={e => set(r._key, 'duration_min', e.target.value)}
-                        min={1}
+                        className="input py-2 text-sm w-full"
+                        placeholder="বিস্তারিত বিবরণ (ঐচ্ছিক)"
+                        value={r.details}
+                        onChange={e => set(r._key, 'details', e.target.value)}
                       />
                     </td>
-                    <td className="px-4 py-2.5 text-center">
-                      <label className="inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          className="w-4 h-4 accent-primary-600"
-                          checked={!!r.is_practical}
-                          onChange={e => set(r._key, 'is_practical', e.target.checked)}
-                        />
-                      </label>
-                    </td>
-                    <td className="px-3 py-2.5">
+                    {/* Delete */}
+                    <td className="px-2 py-2 text-center">
                       {rows.length > 1 && (
-                        <button onClick={() => del(r._key)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400">
+                        <button onClick={() => del(r._key)} className="p-1.5 hover:bg-red-100 rounded-lg text-red-400">
                           <X size={14} />
                         </button>
                       )}
@@ -105,17 +128,16 @@ function LecturesModal({ subject, onClose, onSaved }) {
             </table>
           </div>
 
-          <button
-            onClick={addRow}
-            className="mt-3 flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 px-1"
-          >
+          <button onClick={addRow} className="mt-3 flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 px-1 font-medium">
             <Plus size={15} /> নতুন লেকচার যোগ
           </button>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/50 rounded-b-2xl">
-          <p className="text-xs text-gray-400">{rows.filter(r => r.title.trim()).length} টি লেকচার</p>
+        <div className={`flex items-center justify-between px-6 py-4 border-t-2 ${clr.border} ${clr.stripe}`}>
+          <span className={`text-sm font-medium px-3 py-1 rounded-full ${clr.badge}`}>
+            {validCount} টি লেকচার
+          </span>
           <div className="flex gap-3">
             <button onClick={onClose} className="btn-secondary">বাতিল</button>
             <button onClick={save} className="btn-primary flex items-center gap-2">
@@ -129,7 +151,8 @@ function LecturesModal({ subject, onClose, onSaved }) {
 }
 
 // ── Subject row ───────────────────────────────────────────────────────────────
-function SubjectRow({ subject, onRefresh, onEditLectures }) {
+function SubjectRow({ subject, colorIdx, onRefresh, onEditLectures }) {
+  const clr = SUBJECT_COLORS[colorIdx % SUBJECT_COLORS.length];
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(subject.subject_name);
 
@@ -150,8 +173,8 @@ function SubjectRow({ subject, onRefresh, onEditLectures }) {
   const lectureCount = subject.lecture_count || (subject.lectures || []).length || 0;
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 bg-white border border-gray-100 rounded-xl hover:border-gray-200 transition-colors group">
-      <span className="w-7 h-7 rounded-lg bg-gray-100 text-gray-500 text-xs font-mono flex items-center justify-center flex-shrink-0">
+    <div className={`flex items-center gap-3 px-4 py-3 bg-white border-2 ${clr.border} rounded-xl hover:shadow-sm transition-all group`}>
+      <span className={`w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center flex-shrink-0 ${clr.badge}`}>
         {subject.serial_no}
       </span>
 
@@ -174,7 +197,7 @@ function SubjectRow({ subject, onRefresh, onEditLectures }) {
           {/* Lecture count + edit button */}
           <button
             onClick={() => onEditLectures(subject)}
-            className="flex items-center gap-1.5 text-xs text-primary-600 bg-primary-50 hover:bg-primary-100 px-3 py-1.5 rounded-lg transition-colors"
+            className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors ${clr.badge} hover:opacity-80`}
           >
             <BookOpen size={13} />
             {lectureCount > 0 ? `${lectureCount} লেকচার` : 'লেকচার যোগ'}
@@ -197,7 +220,7 @@ function PlanCard({ plan, onRefresh }) {
   const [loadingSubjects, setLoadingSubjects] = useState(false);
   const [newSubject, setNewSubject] = useState('');
   const [showAdd, setShowAdd] = useState(false);
-  const [lectureModal, setLectureModal] = useState(null); // subject object
+  const [lectureModal, setLectureModal] = useState(null); // { subject, colorIdx }
 
   const loadSubjects = async () => {
     setLoadingSubjects(true);
@@ -258,12 +281,13 @@ function PlanCard({ plan, onRefresh }) {
             ) : subjects.length === 0 ? (
               <p className="text-sm text-gray-400 py-2">কোনো বিষয় নেই। নিচে থেকে যোগ করুন।</p>
             ) : (
-              subjects.map(s => (
+              subjects.map((s, idx) => (
                 <SubjectRow
                   key={s.id}
                   subject={s}
+                  colorIdx={idx}
                   onRefresh={loadSubjects}
-                  onEditLectures={setLectureModal}
+                  onEditLectures={(subj) => setLectureModal({ subject: subj, colorIdx: idx })}
                 />
               ))
             )}
@@ -297,7 +321,8 @@ function PlanCard({ plan, onRefresh }) {
       {/* Lecture modal */}
       {lectureModal && (
         <LecturesModal
-          subject={lectureModal}
+          subject={lectureModal.subject}
+          colorIdx={lectureModal.colorIdx}
           onClose={() => setLectureModal(null)}
           onSaved={() => { setLectureModal(null); loadSubjects(); }}
         />
