@@ -206,7 +206,10 @@ function SubjectRow({ subject, colorIdx, onRefresh, onEditLectures, onImportExce
   const lectureCount = subject.lecture_count || (subject.lectures || []).length || 0;
 
   return (
-    <div className={`flex items-center gap-3 px-4 py-3 bg-white border-2 ${clr.border} rounded-xl hover:shadow-sm transition-all group`}>
+    <div
+      className={`flex items-center gap-3 px-4 py-3 bg-white border-2 ${clr.border} rounded-xl hover:shadow-md transition-all group ${!editing ? 'cursor-pointer' : ''}`}
+      onClick={!editing ? () => onEditLectures(subject) : undefined}
+    >
       <span className={`min-w-[2rem] min-h-[2.25rem] px-2 rounded-lg text-xs font-bold flex items-center justify-center flex-shrink-0 ${clr.badge}`} style={{lineHeight:'1.7'}}>
         {subject.serial_no}
       </span>
@@ -219,24 +222,21 @@ function SubjectRow({ subject, colorIdx, onRefresh, onEditLectures, onImportExce
             onChange={e => setName(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setEditing(false); }}
             autoFocus
+            onClick={e => e.stopPropagation()}
           />
-          <button onClick={save} className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg"><Save size={15} /></button>
-          <button onClick={() => { setName(subject.subject_name); setEditing(false); }} className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg"><X size={15} /></button>
+          <button onClick={e => { e.stopPropagation(); save(); }} className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg"><Save size={15} /></button>
+          <button onClick={e => { e.stopPropagation(); setName(subject.subject_name); setEditing(false); }} className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg"><X size={15} /></button>
         </>
       ) : (
         <>
           <span className="text-sm font-medium text-gray-700 flex-1">{subject.subject_name}</span>
 
-          {/* Lecture count + edit button */}
-          <button
-            onClick={() => onEditLectures(subject)}
-            className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors ${clr.badge} hover:opacity-80`}
-          >
+          <span className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg ${clr.badge}`}>
             <BookOpen size={13} />
             {lectureCount > 0 ? `${lectureCount} লেকচার` : 'লেকচার যোগ'}
-          </button>
+          </span>
 
-          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
             <button
               title="Excel থেকে লেকচার ইমপোর্ট"
               onClick={() => fileRef.current?.click()}
