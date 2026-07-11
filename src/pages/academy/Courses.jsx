@@ -605,19 +605,34 @@ export default function Courses() {
 
       {/* New course form */}
       {showNew && (
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-          <p className="text-sm font-medium text-gray-600 mb-3">নতুন কোর্স যোগ করুন</p>
-          <div className="flex gap-3">
+        <div className="bg-white rounded-2xl p-5 shadow-sm border-2 border-primary-200">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-1 h-5 bg-primary-500 rounded-full"></div>
+            <p className="text-sm font-semibold text-gray-700">নতুন কোর্স যোগ করুন</p>
+          </div>
+          <div className="flex flex-col gap-3">
             <input
-              className="input-field flex-1"
-              placeholder="কোর্সের নাম লিখুন..."
+              className="input-field w-full text-base"
+              placeholder="কোর্সের নাম লিখুন... (যেমন: বিসিএস প্রস্তুতি)"
               value={newName}
               onChange={e => setNewName(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') addCourse(); if (e.key === 'Escape') setShowNew(false); }}
               autoFocus
             />
-            <button onClick={addCourse} className="btn-primary px-6">যোগ করুন</button>
-            <button onClick={() => setShowNew(false)} className="btn-secondary">বাতিল</button>
+            <div className="flex gap-3">
+              <button
+                onClick={addCourse}
+                className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-8 py-2.5 rounded-xl transition-colors text-sm"
+              >
+                যোগ করুন
+              </button>
+              <button
+                onClick={() => setShowNew(false)}
+                className="bg-white hover:bg-gray-50 text-gray-600 font-medium px-6 py-2.5 rounded-xl border-2 border-gray-200 transition-colors text-sm"
+              >
+                বাতিল
+              </button>
+            </div>
           </div>
         </div>
       )}
