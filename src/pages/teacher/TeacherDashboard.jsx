@@ -75,7 +75,7 @@ export default function TeacherDashboard() {
       const [cls, pay] = await Promise.all([teacherApi.getMyClasses(), teacherApi.getMyPayments()]);
       setClasses(cls.data?.data || []);
       setPayments(pay.data?.data || []);
-    } catch { toast.error('লোড করতে সমস্যা হয়েছে'); navigate('/teacher/login'); }
+    } catch { toast.error('ডেটা লোড করতে সমস্যা হয়েছে'); }
     setLoading(false);
   };
 

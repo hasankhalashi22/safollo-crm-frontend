@@ -40,11 +40,11 @@ export default function TeacherLogin() {
         <div className="bg-white rounded-2xl shadow-lg p-8 space-y-5">
           <form onSubmit={submit} className="space-y-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-gray-600">ফোন নম্বর</label>
+              <label className="text-sm font-medium text-gray-600">ফোন নম্বর / টিচার আইডি</label>
               <input
                 className="input-field"
-                type="tel"
-                placeholder="01XXXXXXXXX"
+                type="text"
+                placeholder="01XXXXXXXXX অথবা TCH-0001"
                 value={phone}
                 onChange={e => setPhone(e.target.value)}
                 required
@@ -78,7 +78,7 @@ export default function TeacherLogin() {
             <Link to="/teacher/register" className="text-primary-600 font-medium hover:underline">রেজিস্ট্রেশন করুন</Link>
           </p>
           <p className="text-center text-xs text-gray-400">
-            পাসওয়ার্ড ভুলে গেলে Admin এর সাথে যোগাযোগ করুন
+            পিন ভুলে গেলে Admin এর সাথে যোগাযোগ করুন
           </p>
         </div>
       </div>
