@@ -151,7 +151,13 @@ export default function Teachers() {
               <div key={t.id} className="bg-white rounded-xl p-3 flex items-center justify-between border border-amber-100">
                 <div>
                   <p className="font-medium text-gray-800 text-sm">{t.full_name}</p>
-                  <p className="text-xs text-gray-400">{t.phone}{t.specialization ? ` • ${t.specialization}` : ''}</p>
+                  <p className="text-xs text-gray-400">
+                    {t.phone}
+                    {t.teacher_category ? ` • ${CAT_LABEL[t.teacher_category]}` : ''}
+                    {t.cadre_name ? ` (${t.cadre_name})` : ''}
+                    {t.current_posting ? ` • ${t.current_posting}` : ''}
+                    {t.address ? ` • ${t.address}` : ''}
+                  </p>
                 </div>
                 <div className="flex gap-2">
                   <button
