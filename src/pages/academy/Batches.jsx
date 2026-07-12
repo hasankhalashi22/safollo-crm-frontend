@@ -119,7 +119,7 @@ export default function Batches() {
             <p className="text-xs text-gray-400 mb-4">{b.start_date ? new Date(b.start_date).toLocaleDateString('bn-BD') : '—'} থেকে</p>
             <div className="flex gap-2">
               <button onClick={() => navigate(`/academy/batches/${b.id}`)} className="flex-1 flex items-center justify-center gap-1 text-xs text-primary-600 hover:bg-primary-50 py-2 rounded-lg transition-colors">
-                আউটলাইন <ChevronRight size={14} />
+                রুটিন তৈরি করুন <ChevronRight size={14} />
               </button>
               <button onClick={() => openEdit(b)} className="p-2 hover:bg-blue-50 rounded-lg text-blue-500"><Edit2 size={14} /></button>
               <button onClick={() => del(b.id)} className="p-2 hover:bg-red-50 rounded-lg text-red-500"><Trash2 size={14} /></button>
