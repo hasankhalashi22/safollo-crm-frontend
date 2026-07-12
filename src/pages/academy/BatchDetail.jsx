@@ -83,10 +83,12 @@ function dayLabel(dateStr) {
   if (!dateStr) return '—';
   return DAY_LABELS[new Date(dateStr + 'T00:00:00').getDay()];
 }
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function localDate(dateStr) {
   if (!dateStr) return '—';
   const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('bn-BD');
+  const yy = String(d.getFullYear()).slice(-2);
+  return `${d.getDate()} ${MONTHS[d.getMonth()]} '${yy}`;
 }
 
 function routineStatus(row) {
@@ -427,11 +429,11 @@ function GenRow({ row, idx, subjects, teachers, zooms, onChange, onDelete, onIns
       {/* সাবজেক্ট — select base + text for seq */}
       <td style={{background: CC[4][1]}} className="px-1 py-1">
         <div className="flex gap-1">
-          <select className={`${ic} flex-1`} value={row._subj_id || ''} onChange={e => handleSubjSelect(e.target.value)}>
+          <select className={ic} style={{flex:'1 1 0', minWidth:0}} value={row._subj_id || ''} onChange={e => handleSubjSelect(e.target.value)}>
             <option value="">— বেছে নিন</option>
             {subjects.map(s => <option key={s.id} value={s.id}>{s.subject_name}</option>)}
           </select>
-          <input type="text" className={`${ic} w-8 text-center`} value={(row.subject_name || '').match(/-(\d+)$/)?.[1] || ''}
+          <input type="text" className={`${ic} text-center`} style={{width:'2rem', flexShrink:0}} value={(row.subject_name || '').match(/-(\d+)$/)?.[1] || ''}
             onChange={e => {
               const base = baseSubj ? baseSubj.subject_name : (row.subject_name || '').replace(/-\d+$/, '');
               set('subject_name', e.target.value ? `${base}-${e.target.value}` : base);
@@ -509,7 +511,7 @@ function AutoRoutineGenerator({ batch, teachers, zooms, onSaved }) {
     classTime: '21:00',
     examTime: '12:00',
     classMode: 'online',
-    location: 'রিমোট',
+    location: 'ক্লাসরুম-১',
     zoomAccountId: '',
     guidelineClasses: 3,
     revisionExamDay: 5, // Friday
@@ -590,6 +592,7 @@ function AutoRoutineGenerator({ batch, teachers, zooms, onSaved }) {
     let cur = advanceToClassDay(cfg.startDate, cfg.days);
     // Track topics covered since the last revision exam (for revision exam topic field)
     let topicsSinceLastRevision = [];
+    let revNo = 1;
 
     for (const { subj, lecture, count } of lectureSchedule) {
       const teacher = findTeacher(subj.subject_name);
@@ -639,13 +642,14 @@ function AutoRoutineGenerator({ batch, teachers, zooms, onSaved }) {
             _id: `rev-${examNo}`, row_type: 'exam', label: 'রিভিশন',
             class_no: null, exam_no: examNo++,
             scheduled_date: toDateStr(gd), scheduled_time: cfg.examTime,
-            subject_name: 'রিভিশন', _subj_id: null,
+            subject_name: `রিভিশন-${revNo}`, _subj_id: null,
             topic: revTopic,
             notes: '',
             teacher_id: '', zoom_account_id: '',
             class_mode: cfg.classMode, location: cfg.location, status: 'scheduled',
           });
-          topicsSinceLastRevision = []; // reset after each revision exam
+          topicsSinceLastRevision = [];
+          revNo++;
           break;
         }
         gd.setDate(gd.getDate() + 1);
@@ -801,8 +805,11 @@ function AutoRoutineGenerator({ batch, teachers, zooms, onSaved }) {
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-gray-600">ডিফল্ট স্থান</label>
-          <input list="loc-cfg" className="input-field text-sm" value={cfg.location} onChange={e => setC('location', e.target.value)} placeholder="রিমোট" />
-          <datalist id="loc-cfg">{LOCATION_OPTIONS.map(l => <option key={l} value={l} />)}</datalist>
+          <select className="input-field text-sm" value={cfg.location} onChange={e => setC('location', e.target.value)}>
+            <option value="রিমোট">রিমোট</option>
+            <option value="ক্লাসরুম-১">ক্লাসরুম-১</option>
+            <option value="ক্লাসরুম-২">ক্লাসরুম-২</option>
+          </select>
         </div>
         <div className="col-span-2 flex flex-col gap-1">
           <label className="text-xs font-medium text-gray-600">ক্লাসের বার</label>
