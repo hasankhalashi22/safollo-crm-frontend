@@ -539,6 +539,14 @@ function AutoRoutineGenerator({ batch, teachers, zooms, onSaved }) {
     }
   }, [batch?.plan_id]);
 
+  useEffect(() => {
+    if (zooms.length > 0 && !cfg.zoomAccountId) {
+      const def = zooms.find(z => (z.account_name || '').toLowerCase().includes('zoom-1') || (z.account_name || '').toLowerCase() === 'zoom 1');
+      if (def) setCfg(p => ({ ...p, zoomAccountId: def.id }));
+      else setCfg(p => ({ ...p, zoomAccountId: zooms[0].id }));
+    }
+  }, [zooms]);
+
   const setC = (k, v) => setCfg(p => ({ ...p, [k]: v }));
   const toggleDay = (d) => setC('days', cfg.days.includes(d) ? cfg.days.filter(x => x !== d) : [...cfg.days, d].sort((a, b) => a - b));
 
