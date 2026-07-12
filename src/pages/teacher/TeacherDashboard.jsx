@@ -186,7 +186,7 @@ export default function TeacherDashboard() {
                           {cls.class_no ? `ক্লাস-${cls.class_no}` : '—'}
                         </td>
                         <td className="px-4 py-3 text-xs text-gray-600 whitespace-nowrap">
-                          {cls.scheduled_date ? new Date(cls.scheduled_date + 'T00:00:00').toLocaleDateString('bn-BD') : '—'}
+                          {cls.scheduled_date ? new Date(cls.scheduled_date).toLocaleDateString('bn-BD') : '—'}
                         </td>
                         <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{cls.scheduled_time || '—'}</td>
                         <td className="px-4 py-3 text-xs text-gray-700 max-w-[160px]">
