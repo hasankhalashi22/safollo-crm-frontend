@@ -202,14 +202,22 @@ export default function TeacherDashboard() {
                           </span>
                         </td>
                         <td className="px-4 py-3 text-right">
-                          {cls.status === 'scheduled' && (
-                            <button
-                              onClick={() => setFeedbackModal(cls)}
-                              className="inline-flex items-center gap-1 text-xs text-green-700 bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-lg transition-colors font-medium"
-                            >
-                              <CheckCircle size={12} /> ফিডব্যাক
-                            </button>
-                          )}
+                          {cls.status === 'scheduled' && (() => {
+                            const d = (cls.scheduled_date || '').split('T')[0];
+                            const t = cls.scheduled_time || '00:00';
+                            const classEnd = new Date(`${d}T${t}`);
+                            const canFeedback = new Date() >= classEnd;
+                            return canFeedback ? (
+                              <button
+                                onClick={() => setFeedbackModal(cls)}
+                                className="inline-flex items-center gap-1 text-xs text-green-700 bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-lg transition-colors font-medium"
+                              >
+                                <CheckCircle size={12} /> ফিডব্যাক
+                              </button>
+                            ) : (
+                              <span className="text-xs text-gray-300">এখনো হয়নি</span>
+                            );
+                          })()}
                         </td>
                       </tr>
                     ))}
