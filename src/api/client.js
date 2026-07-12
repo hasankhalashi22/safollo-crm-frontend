@@ -330,6 +330,7 @@ export const academyApi = {
   // Batch Outline
   getBatchOutline: (batchId) => api.get(`/api/academy/batches/${batchId}/outline`),
   addOutlineRow: (batchId, data) => api.post(`/api/academy/batches/${batchId}/outline`, data),
+  bulkAddOutlineRows: (batchId, rows) => api.post(`/api/academy/batches/${batchId}/outline/bulk`, { rows }),
   updateOutlineRow: (id, data) => api.put(`/api/academy/outline/${id}`, data),
   deleteOutlineRow: (id) => api.delete(`/api/academy/outline/${id}`),
 
