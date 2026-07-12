@@ -16,7 +16,7 @@ export default function Teachers() {
   const [resetModal, setResetModal] = useState(null); // { id, name }
   const [newPassword, setNewPassword] = useState('');
 
-  const load = () => academyApi.getTeachers().then(r => setList(r.data || []));
+  const load = () => academyApi.getTeachers().then(r => setList(r.data?.data || []));
   const loadPending = () => academyApi.getPendingTeachers().then(r => setPending(r.data?.data || [])).catch(() => {});
   useEffect(() => { load(); loadPending(); }, []);
 
