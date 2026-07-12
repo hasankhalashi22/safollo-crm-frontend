@@ -11,8 +11,7 @@ teacherAxios.interceptors.request.use(cfg => {
 });
 
 export const teacherApi = {
-  getCourses:       ()          => teacherAxios.get('/api/academy/courses'),
-  getCoursePlans:   (courseId)  => teacherAxios.get(`/api/academy/courses/${courseId}/plans`),
+  getCourses:       ()          => teacherAxios.get('/api/teacher/courses'),
 
   register:      (data)    => teacherAxios.post('/api/teacher/register', data),
   login:         (data)    => teacherAxios.post('/api/teacher/login', data),

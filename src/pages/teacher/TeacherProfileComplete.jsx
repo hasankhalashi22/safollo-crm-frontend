@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { Camera, Plus, X, Check } from 'lucide-react';
 
 const DEGREES = ['এসএসসি', 'এইচএসসি', 'স্নাতক', 'স্নাতকোত্তর', 'এমফিল', 'পিএইচডি', 'অন্যান্য'];
+const CAT_LABEL = { cadre: 'ক্যাডার', non_cadre: 'নন-ক্যাডার', others: 'অন্যান্য' };
 
 function Section({ title, children }) {
   return (
@@ -24,16 +25,16 @@ function CourseInterestRow({ courses, row, onChange, onRemove }) {
 
   return (
     <div className="border border-gray-200 rounded-xl p-4 space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <select
-          className="input-field flex-1 mr-3"
+          className="input-field flex-1"
           value={row.course_id}
           onChange={e => onChange({ ...row, course_id: e.target.value, subjects: [] })}
         >
           <option value="">— কোর্স সিলেক্ট করুন —</option>
           {courses.map(c => <option key={c.id} value={c.id}>{c.course_name}</option>)}
         </select>
-        <button onClick={onRemove} className="p-1.5 text-red-400 hover:text-red-600">
+        <button onClick={onRemove} className="p-1.5 text-red-400 hover:text-red-600 flex-shrink-0">
           <X size={16} />
         </button>
       </div>
@@ -69,7 +70,7 @@ export default function TeacherProfileComplete() {
   const fileRef = useRef();
   const [loading, setLoading] = useState(false);
   const [courses, setCourses] = useState([]);
-
+  const [profile, setProfile] = useState({});
   const [photo, setPhoto] = useState('');
   const [form, setForm] = useState({
     last_degree: '', degree_subject: '', degree_institution: '',
@@ -80,28 +81,40 @@ export default function TeacherProfileComplete() {
   });
   const [interests, setInterests] = useState([{ course_id: '', subjects: [] }]);
 
+  const teacher = JSON.parse(localStorage.getItem('teacher_info') || '{}');
+
   useEffect(() => {
     const token = localStorage.getItem('teacher_token');
     if (!token) { navigate('/teacher/login'); return; }
-    loadCourses();
+    loadAll();
   }, []);
 
-  const loadCourses = async () => {
+  const loadAll = async () => {
     try {
-      const r = await teacherApi.getCourses();
-      const list = r.data?.data || [];
-      const withSubjects = await Promise.all(
-        list.map(async c => {
-          try {
-            const pr = await teacherApi.getCoursePlans(c.id);
-            const plans = pr.data?.data || [];
-            const subjects = plans.flatMap(p => p.subjects || []);
-            return { ...c, subjects };
-          } catch { return { ...c, subjects: [] }; }
-        })
-      );
-      setCourses(withSubjects);
-    } catch { toast.error('কোর্স লোড করতে সমস্যা'); }
+      const [profileRes, coursesRes] = await Promise.all([
+        teacherApi.getMe(),
+        teacherApi.getCourses(),
+      ]);
+      const p = profileRes.data?.data || {};
+      setProfile(p);
+      setForm({
+        last_degree:        p.last_degree || '',
+        degree_subject:     p.degree_subject || '',
+        degree_institution: p.degree_institution || '',
+        permanent_address:  p.permanent_address || p.address || '',
+        backup_phone:       p.backup_phone || '',
+        backup_whatsapp:    p.backup_whatsapp || false,
+        experience:         p.experience || '',
+        bank_account_no:    p.bank_account_no || '',
+        bank_account_name:  p.bank_account_name || '',
+        bank_branch:        p.bank_branch || '',
+        bkash_phone:        p.bkash_phone || '',
+        nagad_phone:        p.nagad_phone || '',
+      });
+      if (p.profile_photo) setPhoto(p.profile_photo);
+      if (p.teaching_interests?.length) setInterests(p.teaching_interests);
+      setCourses(coursesRes.data?.data || []);
+    } catch { toast.error('লোড করতে সমস্যা হয়েছে'); }
   };
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -129,7 +142,6 @@ export default function TeacherProfileComplete() {
         profile_photo: photo || null,
         teaching_interests: interests.filter(r => r.course_id),
       });
-      // update local storage
       const info = JSON.parse(localStorage.getItem('teacher_info') || '{}');
       localStorage.setItem('teacher_info', JSON.stringify({ ...info, is_profile_complete: true }));
       toast.success('প্রোফাইল সম্পন্ন হয়েছে!');
@@ -139,8 +151,6 @@ export default function TeacherProfileComplete() {
     }
     setLoading(false);
   };
-
-  const teacher = JSON.parse(localStorage.getItem('teacher_info') || '{}');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -153,11 +163,44 @@ export default function TeacherProfileComplete() {
 
       <div className="max-w-2xl mx-auto p-4 space-y-4 pb-24">
 
+        {/* রেজিস্ট্রেশন তথ্য (read-only) */}
+        {(profile.teacher_category || profile.cadre_name || profile.current_posting) && (
+          <div className="bg-primary-50 border border-primary-100 rounded-2xl p-4">
+            <p className="text-xs font-semibold text-primary-700 mb-2">রেজিস্ট্রেশনের তথ্য</p>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              {profile.teacher_category && (
+                <div>
+                  <span className="text-gray-400 text-xs">টাইপ</span>
+                  <p className="font-medium text-gray-700">{CAT_LABEL[profile.teacher_category] || profile.teacher_category}</p>
+                </div>
+              )}
+              {profile.cadre_name && (
+                <div>
+                  <span className="text-gray-400 text-xs">ক্যাডার</span>
+                  <p className="font-medium text-gray-700">{profile.cadre_name}</p>
+                </div>
+              )}
+              {profile.current_posting && (
+                <div>
+                  <span className="text-gray-400 text-xs">বর্তমান পোস্টিং</span>
+                  <p className="font-medium text-gray-700">{profile.current_posting}</p>
+                </div>
+              )}
+              {profile.address && (
+                <div>
+                  <span className="text-gray-400 text-xs">বর্তমান ঠিকানা</span>
+                  <p className="font-medium text-gray-700">{profile.address}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* ছবি */}
         <Section title="প্রোফাইল ছবি">
           <div className="flex items-center gap-5">
             <div
-              className="w-24 h-24 rounded-2xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer overflow-hidden relative hover:border-primary-400 transition-colors"
+              className="w-24 h-24 rounded-2xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer overflow-hidden hover:border-primary-400 transition-colors"
               onClick={() => fileRef.current.click()}
             >
               {photo ? (
@@ -172,10 +215,7 @@ export default function TeacherProfileComplete() {
             <div>
               <p className="text-sm text-gray-600 font-medium">{teacher.full_name}</p>
               <p className="text-xs text-gray-400 mt-0.5">{teacher.teacher_code}</p>
-              <button
-                onClick={() => fileRef.current.click()}
-                className="mt-2 text-xs text-primary-600 hover:underline"
-              >
+              <button onClick={() => fileRef.current.click()} className="mt-2 text-xs text-primary-600 hover:underline">
                 ছবি আপলোড করুন (সর্বোচ্চ ২MB)
               </button>
             </div>
@@ -185,22 +225,20 @@ export default function TeacherProfileComplete() {
 
         {/* শিক্ষাগত যোগ্যতা */}
         <Section title="শিক্ষাগত যোগ্যতা">
-          <div className="grid grid-cols-1 gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-gray-600">সর্বশেষ ডিগ্রি <span className="text-red-500">*</span></label>
-              <select className="input-field" value={form.last_degree} onChange={e => set('last_degree', e.target.value)}>
-                <option value="">— সিলেক্ট করুন —</option>
-                {DEGREES.map(d => <option key={d} value={d}>{d}</option>)}
-              </select>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-gray-600">বিষয়</label>
-              <input className="input-field" placeholder="যেমন: বাংলা, পদার্থবিজ্ঞান" value={form.degree_subject} onChange={e => set('degree_subject', e.target.value)} />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-gray-600">শিক্ষা প্রতিষ্ঠান</label>
-              <input className="input-field" placeholder="বিশ্ববিদ্যালয় বা কলেজের নাম" value={form.degree_institution} onChange={e => set('degree_institution', e.target.value)} />
-            </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-gray-600">সর্বশেষ ডিগ্রি <span className="text-red-500">*</span></label>
+            <select className="input-field" value={form.last_degree} onChange={e => set('last_degree', e.target.value)}>
+              <option value="">— সিলেক্ট করুন —</option>
+              {DEGREES.map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-gray-600">বিষয়</label>
+            <input className="input-field" placeholder="যেমন: বাংলা, পদার্থবিজ্ঞান" value={form.degree_subject} onChange={e => set('degree_subject', e.target.value)} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-gray-600">শিক্ষা প্রতিষ্ঠান</label>
+            <input className="input-field" placeholder="বিশ্ববিদ্যালয় বা কলেজের নাম" value={form.degree_institution} onChange={e => set('degree_institution', e.target.value)} />
           </div>
         </Section>
 
@@ -215,12 +253,7 @@ export default function TeacherProfileComplete() {
             <input className="input-field" type="tel" placeholder="01XXXXXXXXX" value={form.backup_phone} onChange={e => set('backup_phone', e.target.value)} />
             {form.backup_phone && (
               <label className="flex items-center gap-2 cursor-pointer mt-1">
-                <input
-                  type="checkbox"
-                  checked={form.backup_whatsapp}
-                  onChange={e => set('backup_whatsapp', e.target.checked)}
-                  className="w-4 h-4 rounded accent-primary-500"
-                />
+                <input type="checkbox" checked={form.backup_whatsapp} onChange={e => set('backup_whatsapp', e.target.checked)} className="w-4 h-4 rounded accent-primary-500" />
                 <span className="text-sm text-gray-600">এই নম্বরে WhatsApp আছে</span>
               </label>
             )}
@@ -248,7 +281,7 @@ export default function TeacherProfileComplete() {
           </div>
         </Section>
 
-        {/* পূর্বের অভিজ্ঞতা */}
+        {/* অভিজ্ঞতা */}
         <Section title="পূর্বের অভিজ্ঞতা (ঐচ্ছিক)">
           <textarea
             className="input-field"
@@ -261,31 +294,21 @@ export default function TeacherProfileComplete() {
 
         {/* পেমেন্ট তথ্য */}
         <Section title="পেমেন্ট তথ্য">
-          <div className="space-y-3">
-            <p className="text-xs text-gray-400 -mt-2">পেমেন্ট পাওয়ার জন্য অন্তত একটি মাধ্যম পূরণ করুন</p>
-
-            <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl space-y-3">
-              <p className="text-xs font-semibold text-blue-700">ব্যাংক একাউন্ট</p>
-              <div className="flex flex-col gap-1.5">
-                <input className="input-field" placeholder="একাউন্ট নম্বর" value={form.bank_account_no} onChange={e => set('bank_account_no', e.target.value)} />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <input className="input-field" placeholder="একাউন্টধারীর নাম" value={form.bank_account_name} onChange={e => set('bank_account_name', e.target.value)} />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <input className="input-field" placeholder="ব্যাংক ও শাখার নাম" value={form.bank_branch} onChange={e => set('bank_branch', e.target.value)} />
-              </div>
+          <p className="text-xs text-gray-400 -mt-2">পেমেন্ট পাওয়ার জন্য অন্তত একটি মাধ্যম পূরণ করুন</p>
+          <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl space-y-3">
+            <p className="text-xs font-semibold text-blue-700">ব্যাংক একাউন্ট</p>
+            <input className="input-field" placeholder="একাউন্ট নম্বর" value={form.bank_account_no} onChange={e => set('bank_account_no', e.target.value)} />
+            <input className="input-field" placeholder="একাউন্টধারীর নাম" value={form.bank_account_name} onChange={e => set('bank_account_name', e.target.value)} />
+            <input className="input-field" placeholder="ব্যাংক ও শাখার নাম" value={form.bank_branch} onChange={e => set('bank_branch', e.target.value)} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="p-3 bg-pink-50 border border-pink-100 rounded-xl space-y-2">
+              <p className="text-xs font-semibold text-pink-700">বিকাশ</p>
+              <input className="input-field text-sm" placeholder="01XXXXXXXXX" value={form.bkash_phone} onChange={e => set('bkash_phone', e.target.value)} />
             </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 bg-pink-50 border border-pink-100 rounded-xl space-y-2">
-                <p className="text-xs font-semibold text-pink-700">বিকাশ</p>
-                <input className="input-field text-sm" placeholder="01XXXXXXXXX" value={form.bkash_phone} onChange={e => set('bkash_phone', e.target.value)} />
-              </div>
-              <div className="p-3 bg-orange-50 border border-orange-100 rounded-xl space-y-2">
-                <p className="text-xs font-semibold text-orange-700">নগদ</p>
-                <input className="input-field text-sm" placeholder="01XXXXXXXXX" value={form.nagad_phone} onChange={e => set('nagad_phone', e.target.value)} />
-              </div>
+            <div className="p-3 bg-orange-50 border border-orange-100 rounded-xl space-y-2">
+              <p className="text-xs font-semibold text-orange-700">নগদ</p>
+              <input className="input-field text-sm" placeholder="01XXXXXXXXX" value={form.nagad_phone} onChange={e => set('nagad_phone', e.target.value)} />
             </div>
           </div>
         </Section>
