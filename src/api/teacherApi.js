@@ -11,14 +11,18 @@ teacherAxios.interceptors.request.use(cfg => {
 });
 
 export const teacherApi = {
-  register: (data)    => teacherAxios.post('/api/teacher/register', data),
-  login:    (data)    => teacherAxios.post('/api/teacher/login', data),
-  getMe:    ()        => teacherAxios.get('/api/teacher/me'),
-  getMyClasses:  ()   => teacherAxios.get('/api/teacher/classes'),
-  getMyPayments: ()   => teacherAxios.get('/api/teacher/payments'),
+  getCourses:       ()          => teacherAxios.get('/api/academy/courses'),
+  getCoursePlans:   (courseId)  => teacherAxios.get(`/api/academy/courses/${courseId}/plans`),
+
+  register:      (data)    => teacherAxios.post('/api/teacher/register', data),
+  login:         (data)    => teacherAxios.post('/api/teacher/login', data),
+  getMe:         ()        => teacherAxios.get('/api/teacher/me'),
+  updateProfile: (data)    => teacherAxios.put('/api/teacher/me', data),
+  getMyClasses:  ()        => teacherAxios.get('/api/teacher/classes'),
+  getMyPayments: ()        => teacherAxios.get('/api/teacher/payments'),
 
   // Admin
-  getPending:         ()          => teacherAxios.get('/api/teacher/pending'),
-  approve:            (id, approved) => teacherAxios.post(`/api/teacher/${id}/approve`, { approved }),
-  resetPassword:      (id, password) => teacherAxios.post(`/api/teacher/${id}/reset-password`, { password }),
+  getPending:     ()             => teacherAxios.get('/api/teacher/pending'),
+  approve:        (id, approved) => teacherAxios.post(`/api/teacher/${id}/approve`, { approved }),
+  resetPassword:  (id, password) => teacherAxios.post(`/api/teacher/${id}/reset-password`, { password }),
 };

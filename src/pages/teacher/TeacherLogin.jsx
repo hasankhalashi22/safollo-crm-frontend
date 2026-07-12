@@ -16,10 +16,15 @@ export default function TeacherLogin() {
     setLoading(true);
     try {
       const r = await teacherApi.login({ phone, password });
-      localStorage.setItem('teacher_token', r.data.data.token);
-      localStorage.setItem('teacher_info', JSON.stringify(r.data.data.teacher));
-      toast.success(`স্বাগতম, ${r.data.data.teacher.full_name}!`);
-      navigate('/teacher/dashboard');
+      const { token, teacher } = r.data.data;
+      localStorage.setItem('teacher_token', token);
+      localStorage.setItem('teacher_info', JSON.stringify(teacher));
+      toast.success(`স্বাগতম, ${teacher.full_name}!`);
+      if (!teacher.is_profile_complete) {
+        navigate('/teacher/profile/complete');
+      } else {
+        navigate('/teacher/dashboard');
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || 'সমস্যা হয়েছে');
     }

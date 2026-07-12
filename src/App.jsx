@@ -44,6 +44,7 @@ import ZoomAccounts from './pages/academy/ZoomAccounts';
 import TeacherRegister from './pages/teacher/TeacherRegister';
 import TeacherLogin from './pages/teacher/TeacherLogin';
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
+import TeacherProfileComplete from './pages/teacher/TeacherProfileComplete';
 import PortalHome from './pages/portal/PortalHome';
 import PortalAttendance from './pages/portal/PortalAttendance';
 import PortalLeave from './pages/portal/PortalLeave';
@@ -209,9 +210,10 @@ useNotifications();
       <Route path="/academy/zoom-accounts" element={<ProtectedRoute allowedLevels={[1]}><AcademyLayout><ZoomAccounts /></AcademyLayout></ProtectedRoute>} />
 
       {/* Teacher portal — public */}
-      <Route path="/teacher/register"  element={<TeacherRegister />} />
-      <Route path="/teacher/login"     element={<TeacherLogin />} />
-      <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
+      <Route path="/teacher/register"          element={<TeacherRegister />} />
+      <Route path="/teacher/login"             element={<TeacherLogin />} />
+      <Route path="/teacher/profile/complete"  element={<TeacherProfileComplete />} />
+      <Route path="/teacher/dashboard"         element={<TeacherDashboard />} />
 
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
