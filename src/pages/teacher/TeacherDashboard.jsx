@@ -159,48 +159,64 @@ export default function TeacherDashboard() {
         ) : loading ? (
           <div className="text-center py-12 text-gray-400">লোড হচ্ছে...</div>
         ) : tab === 'classes' ? (
-          <div className="space-y-3">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             {classes.length === 0 ? (
-              <div className="bg-white rounded-2xl p-12 text-center text-gray-400 border border-gray-100">
+              <div className="p-12 text-center text-gray-400">
                 <Calendar size={36} className="mx-auto mb-3 opacity-30" />
                 <p>কোনো ক্লাস নেই</p>
               </div>
-            ) : classes.map(cls => (
-              <div key={cls.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <p className="font-semibold text-gray-800">{cls.topic || `ক্লাস ${cls.class_no}`}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{cls.batch_name} • {cls.course_name}</p>
-                  </div>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLOR[cls.status]}`}>
-                    {STATUS_LABEL[cls.status]}
-                  </span>
-                </div>
-                <div className="flex items-center gap-4 text-xs text-gray-500">
-                  <span className="flex items-center gap-1">
-                    <Calendar size={12} />
-                    {cls.scheduled_date ? new Date(cls.scheduled_date).toLocaleDateString('bn-BD') : '—'}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock size={12} />
-                    {cls.scheduled_time || '—'}
-                  </span>
-                </div>
-                {cls.zoom_link && (
-                  <a href={cls.zoom_link} target="_blank" rel="noreferrer" className="mt-2 inline-flex text-xs text-primary-600 hover:underline">
-                    Zoom লিঙ্ক খুলুন →
-                  </a>
-                )}
-                {cls.status === 'scheduled' && (
-                  <button
-                    onClick={() => setFeedbackModal(cls)}
-                    className="mt-3 w-full flex items-center justify-center gap-2 text-xs text-green-700 bg-green-50 hover:bg-green-100 py-2 rounded-lg transition-colors font-medium"
-                  >
-                    <CheckCircle size={13} /> ক্লাস শেষ — ফিডব্যাক দিন
-                  </button>
-                )}
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-100">
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500">ক্লাস</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500">তারিখ</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500">সময়</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500">বিষয়</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500">ব্যাচ</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500">স্ট্যাটাস</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500">ফিডব্যাক</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {classes.map((cls, i) => (
+                      <tr key={cls.id} className={`border-b border-gray-50 hover:bg-gray-50 transition-colors ${i % 2 === 0 ? '' : 'bg-gray-50/40'}`}>
+                        <td className="px-4 py-3 font-medium text-gray-800 text-xs">
+                          {cls.class_no ? `ক্লাস-${cls.class_no}` : '—'}
+                        </td>
+                        <td className="px-4 py-3 text-xs text-gray-600 whitespace-nowrap">
+                          {cls.scheduled_date ? new Date(cls.scheduled_date + 'T00:00:00').toLocaleDateString('bn-BD') : '—'}
+                        </td>
+                        <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{cls.scheduled_time || '—'}</td>
+                        <td className="px-4 py-3 text-xs text-gray-700 max-w-[160px]">
+                          <p className="truncate" title={cls.topic}>{cls.topic || '—'}</p>
+                          {cls.zoom_link && (
+                            <a href={cls.zoom_link} target="_blank" rel="noreferrer" className="text-primary-500 hover:underline text-[10px]">Zoom →</a>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-xs text-gray-500">{cls.batch_name || '—'}</td>
+                        <td className="px-4 py-3">
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLOR[cls.status]}`}>
+                            {STATUS_LABEL[cls.status]}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          {cls.status === 'scheduled' && (
+                            <button
+                              onClick={() => setFeedbackModal(cls)}
+                              className="inline-flex items-center gap-1 text-xs text-green-700 bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-lg transition-colors font-medium"
+                            >
+                              <CheckCircle size={12} /> ফিডব্যাক
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            ))}
+            )}
           </div>
         ) : (
           <div className="space-y-3">
