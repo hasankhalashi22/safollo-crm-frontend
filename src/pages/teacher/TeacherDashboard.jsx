@@ -17,10 +17,10 @@ function FeedbackModal({ cls, onClose, onDone }) {
     setLoading(true);
     try {
       const token = localStorage.getItem('teacher_token');
-      await fetch(`${import.meta.env.VITE_API_URL || ''}/api/academy/outline/${cls.id}/feedback`, {
+      await fetch(`${import.meta.env.VITE_API_URL || ''}/api/teacher/outline/${cls.id}/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ teacher_id: cls.teacher_id || null, note }),
+        body: JSON.stringify({ note }),
       });
       toast.success('ফিডব্যাক জমা হয়েছে — Admin অনুমোদনের পর সম্পন্ন হবে');
       onDone();
