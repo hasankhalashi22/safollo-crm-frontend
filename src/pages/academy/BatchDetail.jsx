@@ -258,7 +258,7 @@ function FeedbackModal({ outlineRow, teachers, onClose, onDone }) {
 }
 
 // ── Saved Outline Row ──────────────────────────────────────────────────────────
-function OutlineRow({ row, idx, teachers, zooms, onRefresh, onFeedback, onInsertAfter }) {
+function OutlineRow({ row, idx, teachers, zooms, allRows, onRefresh, onFeedback, onInsertAfter }) {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
     scheduled_date: (row.scheduled_date || '').split('T')[0],
@@ -282,19 +282,53 @@ function OutlineRow({ row, idx, teachers, zooms, onRefresh, onFeedback, onInsert
     await academyApi.deleteOutlineRow(row.id); onRefresh();
   };
 
+  const toggleActive = async () => {
+    try {
+      await academyApi.updateOutlineRow(row.id, { is_active: !row.is_active });
+      onRefresh();
+    } catch { toast.error('সমস্যা হয়েছে'); }
+  };
+
+  // Swap: select topic from an inactive row — exchange content, both become active
+  const swapWith = async (inactiveRowId) => {
+    const inactiveRow = allRows.find(r => r.id === inactiveRowId);
+    if (!inactiveRow) return;
+    try {
+      await Promise.all([
+        academyApi.updateOutlineRow(row.id, { topic: inactiveRow.topic, notes: inactiveRow.notes, subject_name: inactiveRow.subject_name, is_active: true }),
+        academyApi.updateOutlineRow(inactiveRow.id, { topic: row.topic, notes: row.notes, subject_name: row.subject_name, is_active: true }),
+      ]);
+      toast.success('কনটেন্ট এক্সচেঞ্জ হয়েছে');
+      onRefresh();
+    } catch { toast.error('সমস্যা হয়েছে'); }
+  };
+
+  // Inactive rows of same subject (excluding self) available for swap
+  const swappable = (allRows || []).filter(r =>
+    r.id !== row.id && r.is_active === false &&
+    (r.subject_name || '') === (row.subject_name || '') && r.topic
+  );
+
   const isExam = row.row_type === 'exam';
   const st = routineStatus(row);
   const typeLabel = isExam ? `এক্সাম-${row.class_no || ''}` : `ক্লাস-${row.class_no || ''}`;
   const d = (row.scheduled_date || '').split('T')[0];
+  const isActive = row.is_active !== false;
 
   const ic = 'w-full text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-primary-400';
 
   return (
     <>
-      <tr className={`border-t border-gray-100 hover:brightness-95 group ${isExam ? '' : ''}`}>
+      <tr className={`border-t border-gray-100 hover:brightness-95 group ${!isActive ? 'opacity-40 line-through' : ''}`}>
         {/* ক্রম */}
         <td style={{background: isExam ? '#f5f3ff' : '#eff6ff'}} className="px-2 py-1.5">
-          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${isExam ? 'bg-purple-200 text-purple-800' : 'bg-blue-200 text-blue-800'}`}>{typeLabel}</span>
+          <div className="flex items-center gap-1">
+            <button onClick={toggleActive} title={isActive ? 'ইনএকটিভ করুন' : 'একটিভ করুন'}
+              className={`p-0.5 rounded text-[10px] ${isActive ? 'text-green-600 hover:bg-green-100' : 'text-gray-400 hover:bg-gray-100'}`}>
+              {isActive ? '●' : '○'}
+            </button>
+            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${isExam ? 'bg-purple-200 text-purple-800' : 'bg-blue-200 text-blue-800'}`}>{typeLabel}</span>
+          </div>
         </td>
         {editing ? (
           <>
@@ -341,7 +375,20 @@ function OutlineRow({ row, idx, teachers, zooms, onRefresh, onFeedback, onInsert
             <td style={{background: CC[2][1]}} className="px-2 py-2 text-xs text-center text-gray-600">{dayLabel(d)}</td>
             <td style={{background: CC[3][1]}} className="px-2 py-2 text-xs text-gray-500">{row.scheduled_time || '—'}</td>
             <td style={{background: CC[4][1]}} className="px-2 py-2 text-xs font-semibold text-emerald-700 max-w-[100px] truncate">{row.subject_name || '—'}</td>
-            <td style={{background: CC[5][1]}} className="px-2 py-2 text-xs max-w-[130px] truncate" title={row.topic}>{row.topic || '—'}</td>
+            <td style={{background: CC[5][1]}} className="px-2 py-2 text-xs max-w-[130px]">
+              {swappable.length > 0 && isActive ? (
+                <select className="w-full text-xs border border-amber-300 rounded px-1 py-0.5 bg-amber-50"
+                  value={row.topic || ''}
+                  onChange={e => { const sr = swappable.find(r => r.topic === e.target.value); if (sr) swapWith(sr.id); }}>
+                  <option value={row.topic || ''}>{row.topic || '—'}</option>
+                  <optgroup label="— এক্সচেঞ্জ করুন —">
+                    {swappable.map(sr => <option key={sr.id} value={sr.topic}>⇄ {sr.topic}</option>)}
+                  </optgroup>
+                </select>
+              ) : (
+                <span className="truncate block" title={row.topic}>{row.topic || '—'}</span>
+              )}
+            </td>
             <td style={{background: CC[6][1]}} className="px-2 py-2 text-xs text-gray-400 max-w-[110px] truncate" title={row.notes}>{row.notes || '—'}</td>
             <td style={{background: CC[7][1]}} className="px-2 py-2 text-xs text-gray-500">{zooms.find(z => z.id === row.zoom_account_id)?.account_name || row.zoom_account_name || '—'}</td>
             <td style={{background: CC[8][1]}} className="px-2 py-2 text-xs text-gray-500">{teachers.find(t => t.id === row.teacher_id)?.full_name || row.teacher_name || '—'}</td>
@@ -1091,7 +1138,7 @@ export default function BatchDetail() {
               <tbody>
                 {outline.map((row, idx) => (
                   <OutlineRow key={row.id} row={row} idx={idx}
-                    teachers={teachers} zooms={zooms}
+                    teachers={teachers} zooms={zooms} allRows={outline}
                     onRefresh={loadOutline} onFeedback={setFeedbackRow} onInsertAfter={handleInsertAfter} />
                 ))}
               </tbody>
