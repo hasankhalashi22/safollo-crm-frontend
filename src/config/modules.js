@@ -91,6 +91,7 @@ export const MODULES = [
       { to: '/academy/teacher-payments', icon: Banknote, label: 'Teacher Payments' },
       { to: '/academy/payment-rates', icon: DollarSign, label: 'Payment Rates' },
       { to: '/academy/zoom-accounts', icon: Video, label: 'Zoom Accounts' },
+      { to: '/academy/schedule-report', icon: Calendar, label: 'ক্লাস রিপোর্ট' },
     ],
   },
   // Future modules go here, e.g.:
