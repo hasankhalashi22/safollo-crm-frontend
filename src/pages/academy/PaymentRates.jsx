@@ -29,15 +29,10 @@ export default function PaymentRates() {
     ]).then(async ([ratesRes, coursesRes]) => {
       // Load all plans for all courses
       const courseList = coursesRes.data || [];
-      const planArrays = await Promise.all(courseList.map(c =>
-        academyApi.getCoursePlans(c.id).then(r => (r.data || []).map(p => ({
-          id: p.id,
-          plan_name: p.plan_name,
-          course_name: c.course_name,
-          label: `${c.course_name} — ${p.plan_name}`,
-        }))).catch(() => [])
-      ));
-      const plans = planArrays.flat();
+      const plans = courseList.map(c => ({
+        id: c.id,
+        label: c.course_name,
+      }));
       setAllPlans(plans);
 
       // Build rates map from saved data
