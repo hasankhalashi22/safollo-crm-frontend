@@ -41,6 +41,9 @@ import Teachers from './pages/academy/Teachers';
 import TeacherPayments from './pages/academy/TeacherPayments';
 import PaymentRates from './pages/academy/PaymentRates';
 import ZoomAccounts from './pages/academy/ZoomAccounts';
+import TeacherRegister from './pages/teacher/TeacherRegister';
+import TeacherLogin from './pages/teacher/TeacherLogin';
+import TeacherDashboard from './pages/teacher/TeacherDashboard';
 import PortalHome from './pages/portal/PortalHome';
 import PortalAttendance from './pages/portal/PortalAttendance';
 import PortalLeave from './pages/portal/PortalLeave';
@@ -204,6 +207,11 @@ useNotifications();
       <Route path="/academy/teacher-payments" element={<ProtectedRoute allowedLevels={[1]}><AcademyLayout><TeacherPayments /></AcademyLayout></ProtectedRoute>} />
       <Route path="/academy/payment-rates" element={<ProtectedRoute allowedLevels={[1]}><AcademyLayout><PaymentRates /></AcademyLayout></ProtectedRoute>} />
       <Route path="/academy/zoom-accounts" element={<ProtectedRoute allowedLevels={[1]}><AcademyLayout><ZoomAccounts /></AcademyLayout></ProtectedRoute>} />
+
+      {/* Teacher portal — public */}
+      <Route path="/teacher/register"  element={<TeacherRegister />} />
+      <Route path="/teacher/login"     element={<TeacherLogin />} />
+      <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
 
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="*" element={<Navigate to="/login" replace />} />

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, UserCheck } from 'lucide-react';
+import { Plus, Edit2, Trash2, UserCheck, CheckCircle, XCircle, Key, Clock } from 'lucide-react';
 import { academyApi } from '../../api/client';
+import { teacherApi } from '../../api/teacherApi';
 import toast from 'react-hot-toast';
 
 const EMPTY = { full_name: '', phone: '', email: '', teacher_type: 'junior', teacher_category: 'non_cadre', specialization: '', bio: '', zoom_display_name: '', fixed_rate: '' };
@@ -9,12 +10,16 @@ const CAT_LABEL = { cadre: 'ক্যাডার', non_cadre: 'নন-ক্য
 
 export default function Teachers() {
   const [list, setList] = useState([]);
+  const [pending, setPending] = useState([]);
   const [form, setForm] = useState(EMPTY);
   const [editId, setEditId] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [resetModal, setResetModal] = useState(null); // { id, name }
+  const [newPassword, setNewPassword] = useState('');
 
   const load = () => academyApi.getTeachers().then(r => setList(r.data || []));
-  useEffect(() => { load(); }, []);
+  const loadPending = () => teacherApi.getPending().then(r => setPending(r.data?.data || [])).catch(() => {});
+  useEffect(() => { load(); loadPending(); }, []);
 
   const openNew = () => { setForm(EMPTY); setEditId(null); setShowForm(true); };
   const openEdit = (row) => {
@@ -35,6 +40,23 @@ export default function Teachers() {
   const del = async (id) => {
     if (!confirm('মুছে ফেলবেন?')) return;
     await academyApi.deleteTeacher(id); toast.success('মুছে ফেলা হয়েছে'); load();
+  };
+
+  const approve = async (id, approved) => {
+    try {
+      await teacherApi.approve(id, approved);
+      toast.success(approved ? 'অনুমোদন হয়েছে' : 'প্রত্যাখ্যান হয়েছে');
+      loadPending(); load();
+    } catch { toast.error('সমস্যা হয়েছে'); }
+  };
+
+  const doResetPassword = async () => {
+    if (!newPassword || newPassword.length < 6) return toast.error('কমপক্ষে ৬ অক্ষর দিন');
+    try {
+      await teacherApi.resetPassword(resetModal.id, newPassword);
+      toast.success('পাসওয়ার্ড রিসেট হয়েছে');
+      setResetModal(null); setNewPassword('');
+    } catch { toast.error('সমস্যা হয়েছে'); }
   };
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -117,6 +139,40 @@ export default function Teachers() {
         </div>
       )}
 
+      {/* Pending teachers awaiting approval */}
+      {pending.length > 0 && (
+        <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-5 space-y-3">
+          <div className="flex items-center gap-2">
+            <Clock size={16} className="text-amber-600" />
+            <h2 className="font-semibold text-amber-800 text-sm">অনুমোদনের অপেক্ষায় ({pending.length})</h2>
+          </div>
+          <div className="space-y-2">
+            {pending.map(t => (
+              <div key={t.id} className="bg-white rounded-xl p-3 flex items-center justify-between border border-amber-100">
+                <div>
+                  <p className="font-medium text-gray-800 text-sm">{t.full_name}</p>
+                  <p className="text-xs text-gray-400">{t.phone}{t.specialization ? ` • ${t.specialization}` : ''}</p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => approve(t.id, true)}
+                    className="flex items-center gap-1 px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs font-medium rounded-lg transition-colors"
+                  >
+                    <CheckCircle size={13} /> অনুমোদন
+                  </button>
+                  <button
+                    onClick={() => approve(t.id, false)}
+                    className="flex items-center gap-1 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded-lg transition-colors"
+                  >
+                    <XCircle size={13} /> প্রত্যাখ্যান
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
         {list.length === 0 ? (
           <div className="p-12 text-center text-gray-400"><UserCheck size={40} className="mx-auto mb-3 opacity-30" /><p>কোনো শিক্ষক নেই</p></div>
@@ -150,6 +206,11 @@ export default function Teachers() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2 justify-end">
+                        {row.password_hash && (
+                          <button onClick={() => { setResetModal({ id: row.id, name: row.full_name }); setNewPassword(''); }} className="p-1.5 rounded-lg hover:bg-amber-50 text-amber-500" title="পাসওয়ার্ড রিসেট">
+                            <Key size={14} />
+                          </button>
+                        )}
                         <button onClick={() => openEdit(row)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-500"><Edit2 size={14} /></button>
                         <button onClick={() => del(row.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-500"><Trash2 size={14} /></button>
                       </div>
@@ -161,6 +222,48 @@ export default function Teachers() {
           </div>
         )}
       </div>
+
+      {/* Password reset modal */}
+      {resetModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm p-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
+                <Key size={18} className="text-amber-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-800">পাসওয়ার্ড রিসেট</h3>
+                <p className="text-xs text-gray-500">{resetModal.name}</p>
+              </div>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-gray-600">নতুন পাসওয়ার্ড</label>
+              <input
+                className="input-field"
+                type="password"
+                placeholder="কমপক্ষে ৬ অক্ষর"
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                autoFocus
+              />
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={doResetPassword}
+                className="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors"
+              >
+                রিসেট করুন
+              </button>
+              <button
+                onClick={() => { setResetModal(null); setNewPassword(''); }}
+                className="px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 text-sm hover:bg-gray-50 transition-colors"
+              >
+                বাতিল
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
