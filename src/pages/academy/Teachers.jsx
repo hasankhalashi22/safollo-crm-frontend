@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, UserCheck, CheckCircle, XCircle, Key, Clock } from 'lucide-react';
 import { academyApi } from '../../api/client';
+import { AdminProfileView } from '../teacher/TeacherProfileView';
 import toast from 'react-hot-toast';
 
 const EMPTY = { full_name: '', phone: '', email: '', teacher_type: 'junior', teacher_category: 'non_cadre', specialization: '', bio: '', zoom_display_name: '', fixed_rate: '' };
@@ -13,8 +14,9 @@ export default function Teachers() {
   const [form, setForm] = useState(EMPTY);
   const [editId, setEditId] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [resetModal, setResetModal] = useState(null); // { id, name }
+  const [resetModal, setResetModal] = useState(null);
   const [newPassword, setNewPassword] = useState('');
+  const [profileModal, setProfileModal] = useState(null); // { id, name }
 
   const load = () => academyApi.getTeachers().then(r => setList(r.data || []));
   const loadPending = () => academyApi.getPendingTeachers().then(r => setPending(r.data || [])).catch(() => {});
@@ -189,7 +191,7 @@ export default function Teachers() {
               </thead>
               <tbody>
                 {list.map(row => (
-                  <tr key={row.id} className="border-t border-gray-100 hover:bg-gray-50">
+                  <tr key={row.id} className="border-t border-gray-100 hover:bg-gray-50 cursor-pointer" onClick={() => setProfileModal({ id: row.id, name: row.full_name })}>
                     <td className="px-4 py-3 font-mono text-xs text-primary-600">{row.teacher_code}</td>
                     <td className="px-4 py-3 font-medium">{row.full_name}</td>
                     <td className="px-4 py-3">
@@ -210,7 +212,7 @@ export default function Teachers() {
                       ) : <span className="text-gray-300 text-xs">—</span>}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex gap-2 justify-end">
+                      <div className="flex gap-2 justify-end" onClick={e => e.stopPropagation()}>
                         {row.password_hash && (
                           <button onClick={() => { setResetModal({ id: row.id, name: row.full_name }); setNewPassword(''); }} className="p-1.5 rounded-lg hover:bg-amber-50 text-amber-500" title="পাসওয়ার্ড রিসেট">
                             <Key size={14} />
@@ -227,6 +229,23 @@ export default function Teachers() {
           </div>
         )}
       </div>
+
+      {/* Teacher profile modal */}
+      {profileModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <h3 className="font-semibold text-gray-800">{profileModal.name} — প্রোফাইল</h3>
+              <button onClick={() => setProfileModal(null)} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400">
+                <XCircle size={20} />
+              </button>
+            </div>
+            <div className="overflow-y-auto p-6">
+              <AdminProfileView teacherId={profileModal.id} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Password reset modal */}
       {resetModal && (

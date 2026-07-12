@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { teacherApi } from '../../api/teacherApi';
+import { MyProfileView } from './TeacherProfileView';
 import toast from 'react-hot-toast';
-import { LogOut, BookOpen, Banknote, Clock, CheckCircle, X, Calendar } from 'lucide-react';
+import { LogOut, BookOpen, Banknote, Clock, CheckCircle, X, Calendar, UserCircle } from 'lucide-react';
 
 const STATUS_LABEL = { scheduled: 'নির্ধারিত', done: 'সম্পন্ন', cancelled: 'বাতিল', rescheduled: 'পুনর্নির্ধারিত' };
 const STATUS_COLOR = { scheduled: 'bg-blue-100 text-blue-700', done: 'bg-green-100 text-green-700', cancelled: 'bg-red-100 text-red-600', rescheduled: 'bg-yellow-100 text-yellow-700' };
@@ -56,6 +57,7 @@ function FeedbackModal({ cls, onClose, onDone }) {
 export default function TeacherDashboard() {
   const navigate = useNavigate();
   const [tab, setTab] = useState('classes');
+
   const [classes, setClasses] = useState([]);
   const [payments, setPayments] = useState([]);
   const [feedbackModal, setFeedbackModal] = useState(null);
@@ -122,7 +124,7 @@ export default function TeacherDashboard() {
 
       {/* Tabs */}
       <div className="px-4 flex gap-2 mb-4">
-        {[['classes', 'আমার ক্লাস', BookOpen], ['payments', 'পেমেন্ট', Banknote]].map(([key, label, Icon]) => (
+        {[['classes', 'আমার ক্লাস', BookOpen], ['payments', 'পেমেন্ট', Banknote], ['profile', 'প্রোফাইল', UserCircle]].map(([key, label, Icon]) => (
           <button
             key={key}
             onClick={() => setTab(key)}
@@ -136,7 +138,20 @@ export default function TeacherDashboard() {
       </div>
 
       <div className="px-4 pb-8">
-        {loading ? (
+        {tab === 'profile' ? (
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-gray-800">আমার প্রোফাইল</h3>
+              <button
+                onClick={() => navigate('/teacher/profile/complete')}
+                className="text-xs text-primary-600 font-medium hover:underline"
+              >
+                সম্পাদনা করুন →
+              </button>
+            </div>
+            <MyProfileView />
+          </div>
+        ) : loading ? (
           <div className="text-center py-12 text-gray-400">লোড হচ্ছে...</div>
         ) : tab === 'classes' ? (
           <div className="space-y-3">

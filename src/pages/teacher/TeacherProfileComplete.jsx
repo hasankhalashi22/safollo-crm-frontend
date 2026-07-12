@@ -140,7 +140,10 @@ export default function TeacherProfileComplete() {
       await teacherApi.updateProfile({
         ...form,
         profile_photo: photo || null,
-        teaching_interests: interests.filter(r => r.course_id),
+        teaching_interests: interests.filter(r => r.course_id).map(r => ({
+        ...r,
+        course_name: courses.find(c => c.id === r.course_id)?.course_name || '',
+      })),
       });
       const info = JSON.parse(localStorage.getItem('teacher_info') || '{}');
       localStorage.setItem('teacher_info', JSON.stringify({ ...info, is_profile_complete: true }));
