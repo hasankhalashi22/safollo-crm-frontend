@@ -17,7 +17,7 @@ function dayLabel(d) {
   return DAY_LABELS[new Date(d).getDay()];
 }
 
-const EMPTY = { batch_id: '', teacher_id: '', status: '', row_type: '', date_from: '', date_to: '', subject_name: '' };
+const EMPTY = { batch_id: '', teacher_id: '', row_type: '', date_from: '', date_to: '', subject_name: '' };
 
 export default function ScheduleReport() {
   const [rows, setRows] = useState([]);
@@ -43,7 +43,7 @@ export default function ScheduleReport() {
 
   const load = (f) => {
     setLoading(true);
-    const params = Object.fromEntries(Object.entries(f).filter(([, v]) => v));
+    const params = { ...Object.fromEntries(Object.entries(f).filter(([, v]) => v)), status: 'done', feedback_approved: true };
     academyApi.getScheduleReport(params)
       .then(r => setRows(r.data || []))
       .catch(() => {})
@@ -80,9 +80,8 @@ export default function ScheduleReport() {
           </div>
           <div>
             <label className="text-xs text-gray-500 mb-1 block">স্ট্যাটাস</label>
-            <select className={sel} value={filters.status} onChange={e => sf('status', e.target.value)}>
-              <option value="">সব স্ট্যাটাস</option>
-              {Object.entries(STATUS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            <select className={sel} disabled value="done">
+              <option value="done">সম্পন্ন (ফিডব্যাক অনুমোদিত)</option>
             </select>
           </div>
           <div>
