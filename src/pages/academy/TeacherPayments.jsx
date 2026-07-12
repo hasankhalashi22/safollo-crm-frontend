@@ -39,8 +39,8 @@ export default function TeacherPayments() {
     setRecalculating(true);
     try {
       const r = await academyApi.recalculatePayments();
-      const { total, updated } = r.data || {};
-      toast.success(`${total} টি রেকর্ডের মধ্যে ${updated} টি আপডেট হয়েছে`);
+      const { created = 0, updated = 0 } = r.data || {};
+      toast.success(`${created} টি নতুন যোগ, ${updated} টি আপডেট হয়েছে`);
       load(selectedTeacher);
     } catch { toast.error('সমস্যা হয়েছে'); }
     setRecalculating(false);
