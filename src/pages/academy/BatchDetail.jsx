@@ -666,11 +666,11 @@ function AutoRoutineGenerator({ batch, teachers, zooms, onSaved }) {
       cur = nextCur;
     }
 
-    // 4. Subjective exams at end (N per subject on revisionExamDay)
+    // 4. Subjective exams — round-robin: all subjects cycle before repeating
     let tailDate = cur;
-    subjects.forEach(subj => {
-      for (let q = 1; q <= Number(cfg.subjectivePerSubject); q++) {
-        // Find next revisionExamDay
+    const subjectiveRounds = Number(cfg.subjectivePerSubject);
+    for (let q = 1; q <= subjectiveRounds; q++) {
+      for (const subj of subjects) {
         const rd = new Date(tailDate + 'T00:00:00');
         while (rd.getDay() !== Number(cfg.revisionExamDay)) rd.setDate(rd.getDate() + 1);
         tailDate = toDateStr(rd);
@@ -685,7 +685,7 @@ function AutoRoutineGenerator({ batch, teachers, zooms, onSaved }) {
         });
         tailDate = addDays(tailDate, 1);
       }
-    });
+    }
 
     // 5. Model tests (on class days at end, strictly after previous)
     let modelDate = nextClassDay(tailDate, cfg.days);
