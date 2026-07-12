@@ -342,6 +342,7 @@ export const academyApi = {
   // Teacher Payments
   getTeacherPayments: (teacherId) => api.get(`/api/academy/teacher-payments${teacherId ? `?teacher_id=${teacherId}` : ''}`),
   payTeacher: (data) => api.post('/api/academy/teacher-payments/pay', data),
+  recalculatePayments: () => api.post('/api/academy/teacher-payments/recalculate'),
 
   // Reports
   getScheduleReport: (params) => api.get('/api/academy/reports/schedule', { params }),

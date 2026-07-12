@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Banknote, CheckCircle } from 'lucide-react';
+import { Banknote, CheckCircle, RefreshCw } from 'lucide-react';
 import { academyApi } from '../../api/client';
 import toast from 'react-hot-toast';
 
@@ -13,6 +13,7 @@ export default function TeacherPayments() {
   const [selected, setSelected] = useState([]);
   const [payNote, setPayNote] = useState('');
   const [showPayModal, setShowPayModal] = useState(false);
+  const [recalculating, setRecalculating] = useState(false);
 
   const load = (teacherId) => academyApi.getTeacherPayments(teacherId || null).then(r => setList(r.data || []));
 
@@ -34,17 +35,33 @@ export default function TeacherPayments() {
     } catch { toast.error('সমস্যা হয়েছে'); }
   };
 
+  const recalculate = async () => {
+    setRecalculating(true);
+    try {
+      const r = await academyApi.recalculatePayments();
+      const { total, updated } = r.data || {};
+      toast.success(`${total} টি রেকর্ডের মধ্যে ${updated} টি আপডেট হয়েছে`);
+      load(selectedTeacher);
+    } catch { toast.error('সমস্যা হয়েছে'); }
+    setRecalculating(false);
+  };
+
   const totalPending = pending.filter(p => selected.includes(p.id)).reduce((s, p) => s + Number(p.amount), 0);
 
   return (
     <div className="p-6 space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-xl font-bold text-gray-800">শিক্ষক পেমেন্ট</h1>
-        <div className="flex gap-3 items-center">
+        <div className="flex gap-3 items-center flex-wrap">
           <select className="input-field text-sm" value={selectedTeacher} onChange={e => { setSelectedTeacher(e.target.value); load(e.target.value); }}>
             <option value="">সকল শিক্ষক</option>
             {teachers.map(t => <option key={t.id} value={t.id}>{t.full_name} ({t.teacher_code})</option>)}
           </select>
+          <button onClick={recalculate} disabled={recalculating}
+            className="bg-gray-100 hover:bg-gray-200 disabled:opacity-50 text-gray-700 font-medium px-4 py-2.5 rounded-xl flex items-center gap-2 text-sm transition-colors">
+            <RefreshCw size={14} className={recalculating ? 'animate-spin' : ''} />
+            রেট পুনরায় প্রয়োগ করুন
+          </button>
           {selected.length > 0 && (
             <button onClick={() => setShowPayModal(true)} className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2 text-sm transition-colors">
               <CheckCircle size={15} /> {selected.length}টি পরিশোধ (৳{totalPending.toLocaleString()})
