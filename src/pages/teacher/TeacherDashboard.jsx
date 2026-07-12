@@ -75,7 +75,7 @@ export default function TeacherDashboard() {
     setLoading(true);
     try {
       const [cls, pay] = await Promise.all([teacherApi.getMyClasses(), teacherApi.getMyPayments()]);
-      setClasses(cls.data?.data || []);
+      setClasses((cls.data?.data || []).sort((a, b) => new Date(a.scheduled_date) - new Date(b.scheduled_date)));
       setPayments(pay.data?.data || []);
     } catch { toast.error('ডেটা লোড করতে সমস্যা হয়েছে'); }
     setLoading(false);
