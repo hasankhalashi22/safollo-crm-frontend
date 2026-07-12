@@ -101,9 +101,14 @@ export default function TeacherDashboard() {
           <h1 className="font-bold text-lg">{teacher.full_name}</h1>
           <p className="text-primary-200 text-xs">{teacher.teacher_code}</p>
         </div>
-        <button onClick={logout} className="p-2 hover:bg-primary-700 rounded-xl transition-colors">
-          <LogOut size={20} />
-        </button>
+        <div className="flex items-center gap-1">
+          <button onClick={() => setTab('profile')} className="p-2 hover:bg-primary-700 rounded-xl transition-colors" title="প্রোফাইল">
+            <UserCircle size={20} />
+          </button>
+          <button onClick={logout} className="p-2 hover:bg-primary-700 rounded-xl transition-colors" title="লগআউট">
+            <LogOut size={20} />
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -124,7 +129,7 @@ export default function TeacherDashboard() {
 
       {/* Tabs */}
       <div className="px-4 flex gap-2 mb-4">
-        {[['classes', 'আমার ক্লাস', BookOpen], ['payments', 'পেমেন্ট', Banknote], ['profile', 'প্রোফাইল', UserCircle]].map(([key, label, Icon]) => (
+        {[['classes', 'আমার ক্লাস', BookOpen], ['payments', 'পেমেন্ট', Banknote]].map(([key, label, Icon]) => (
           <button
             key={key}
             onClick={() => setTab(key)}
