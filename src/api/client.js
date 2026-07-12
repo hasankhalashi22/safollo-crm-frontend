@@ -298,6 +298,9 @@ export const academyApi = {
   createTeacher: (data) => api.post('/api/academy/teachers', data),
   updateTeacher: (id, data) => api.put(`/api/academy/teachers/${id}`, data),
   deleteTeacher: (id) => api.delete(`/api/academy/teachers/${id}`),
+  getPendingTeachers: () => api.get('/api/teacher/pending'),
+  approveTeacher: (id, approved) => api.post(`/api/teacher/${id}/approve`, { approved }),
+  resetTeacherPassword: (id, password) => api.post(`/api/teacher/${id}/reset-password`, { password }),
 
   // Courses
   getCourses: () => api.get('/api/academy/courses'),

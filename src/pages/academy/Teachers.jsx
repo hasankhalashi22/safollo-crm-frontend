@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, UserCheck, CheckCircle, XCircle, Key, Clock } from 'lucide-react';
 import { academyApi } from '../../api/client';
-import { teacherApi } from '../../api/teacherApi';
 import toast from 'react-hot-toast';
 
 const EMPTY = { full_name: '', phone: '', email: '', teacher_type: 'junior', teacher_category: 'non_cadre', specialization: '', bio: '', zoom_display_name: '', fixed_rate: '' };
@@ -18,7 +17,7 @@ export default function Teachers() {
   const [newPassword, setNewPassword] = useState('');
 
   const load = () => academyApi.getTeachers().then(r => setList(r.data || []));
-  const loadPending = () => teacherApi.getPending().then(r => setPending(r.data?.data || [])).catch(() => {});
+  const loadPending = () => academyApi.getPendingTeachers().then(r => setPending(r.data?.data || [])).catch(() => {});
   useEffect(() => { load(); loadPending(); }, []);
 
   const openNew = () => { setForm(EMPTY); setEditId(null); setShowForm(true); };
@@ -44,7 +43,7 @@ export default function Teachers() {
 
   const approve = async (id, approved) => {
     try {
-      await teacherApi.approve(id, approved);
+      await academyApi.approveTeacher(id, approved);
       toast.success(approved ? 'অনুমোদন হয়েছে' : 'প্রত্যাখ্যান হয়েছে');
       loadPending(); load();
     } catch { toast.error('সমস্যা হয়েছে'); }
@@ -53,7 +52,7 @@ export default function Teachers() {
   const doResetPassword = async () => {
     if (!newPassword || newPassword.length < 6) return toast.error('কমপক্ষে ৬ অক্ষর দিন');
     try {
-      await teacherApi.resetPassword(resetModal.id, newPassword);
+      await academyApi.resetTeacherPassword(resetModal.id, newPassword);
       toast.success('পাসওয়ার্ড রিসেট হয়েছে');
       setResetModal(null); setNewPassword('');
     } catch { toast.error('সমস্যা হয়েছে'); }
