@@ -17,8 +17,9 @@ export const teacherApi = {
   login:         (data)    => teacherAxios.post('/api/teacher/login', data),
   getMe:         ()        => teacherAxios.get('/api/teacher/me'),
   updateProfile: (data)    => teacherAxios.put('/api/teacher/me', data),
-  getMyClasses:  ()        => teacherAxios.get('/api/teacher/classes'),
-  getMyPayments: ()        => teacherAxios.get('/api/teacher/payments'),
+  getMyClasses:              ()     => teacherAxios.get('/api/teacher/classes'),
+  getMyPayments:             ()     => teacherAxios.get('/api/teacher/payments'),
+  getMyPaymentTransactions:  ()     => teacherAxios.get('/api/teacher/payment-transactions'),
 
   // Admin
   getPending:     ()             => teacherAxios.get('/api/teacher/pending'),

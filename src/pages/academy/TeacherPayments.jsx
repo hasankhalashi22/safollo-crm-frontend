@@ -26,11 +26,30 @@ export default function TeacherPayments() {
   const toggleSelect = (id) => setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
   const selectAll = () => setSelected(pending.map(p => p.id));
 
-  const handleEntrySuccess = async () => {
+  const handleEntrySuccess = async (txnData) => {
     try {
-      await academyApi.payTeacher({ payment_ids: selected });
-      toast.success('পেমেন্ট সম্পন্ন ও এন্ট্রি হয়েছে');
-    } catch { toast.error('একাউন্টিং এন্ট্রি হয়েছে কিন্তু পেমেন্ট মার্ক করতে সমস্যা হয়েছে'); }
+      // Group selected payments by teacher
+      const selectedRows = list.filter(p => selected.includes(p.id));
+      const byTeacher = {};
+      selectedRows.forEach(p => {
+        if (!byTeacher[p.teacher_id]) byTeacher[p.teacher_id] = 0;
+        byTeacher[p.teacher_id] += Number(p.amount);
+      });
+      const totalSelected = Object.values(byTeacher).reduce((s, v) => s + v, 0);
+      const paidAmount = txnData?.amount ? Number(txnData.amount) : totalSelected;
+
+      await Promise.all(Object.entries(byTeacher).map(([teacher_id, amt]) => {
+        const ratio = totalSelected > 0 ? amt / totalSelected : 1;
+        return academyApi.createTeacherPaymentTransaction({
+          teacher_id,
+          amount: Math.round(paidAmount * ratio),
+          proof_url: txnData?.proof_url || null,
+          transaction_date: txnData?.transaction_date || new Date().toISOString().split('T')[0],
+          accounting_transaction_id: txnData?.id ? String(txnData.id) : null,
+        });
+      }));
+      toast.success('পেমেন্ট এন্ট্রি সম্পন্ন হয়েছে');
+    } catch { toast.error('এন্ট্রি করতে সমস্যা হয়েছে'); }
     setShowEntryModal(false);
     setSelected([]);
     load(selectedTeacher);

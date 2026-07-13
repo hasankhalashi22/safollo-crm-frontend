@@ -7,7 +7,6 @@ import { LogOut, BookOpen, Banknote, Clock, CheckCircle, X, Calendar, UserCircle
 
 const STATUS_LABEL = { scheduled: 'নির্ধারিত', done: 'সম্পন্ন', cancelled: 'বাতিল', rescheduled: 'পুনর্নির্ধারিত' };
 const STATUS_COLOR = { scheduled: 'bg-blue-100 text-blue-700', done: 'bg-green-100 text-green-700', cancelled: 'bg-red-100 text-red-600', rescheduled: 'bg-yellow-100 text-yellow-700' };
-const PAY_COLOR = { pending: 'bg-orange-100 text-orange-700', paid: 'bg-green-100 text-green-700' };
 
 function FeedbackModal({ cls, onClose, onDone }) {
   const [note, setNote] = useState('');
@@ -59,8 +58,9 @@ export default function TeacherDashboard() {
   const [tab, setTab] = useState('classes');
 
   const [classes, setClasses] = useState([]);
-  const [payments, setPayments] = useState([]);
+  const [payData, setPayData] = useState({ transactions: [], total_due: 0, total_paid: 0, remaining: 0 });
   const [feedbackModal, setFeedbackModal] = useState(null);
+  const [zoomImg, setZoomImg] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const teacher = JSON.parse(localStorage.getItem('teacher_info') || '{}');
@@ -74,9 +74,9 @@ export default function TeacherDashboard() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [cls, pay] = await Promise.all([teacherApi.getMyClasses(), teacherApi.getMyPayments()]);
+      const [cls, pay] = await Promise.all([teacherApi.getMyClasses(), teacherApi.getMyPaymentTransactions()]);
       setClasses((cls.data?.data || []).sort((a, b) => new Date(a.scheduled_date) - new Date(b.scheduled_date)));
-      setPayments(pay.data?.data || []);
+      setPayData(pay.data?.data || { transactions: [], total_due: 0, total_paid: 0, remaining: 0 });
     } catch { toast.error('ডেটা লোড করতে সমস্যা হয়েছে'); }
     setLoading(false);
   };
@@ -89,8 +89,7 @@ export default function TeacherDashboard() {
 
   const upcoming = classes.filter(c => c.status === 'scheduled');
   const done = classes.filter(c => c.status === 'done');
-  const pendingPay = payments.filter(p => p.status === 'pending');
-  const totalPending = pendingPay.reduce((s, p) => s + Number(p.amount || 0), 0);
+  const remaining = payData.remaining || 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -122,7 +121,7 @@ export default function TeacherDashboard() {
           <p className="text-xs text-gray-500 mt-1">সম্পন্ন</p>
         </div>
         <div className="bg-white rounded-2xl p-4 text-center shadow-sm border border-gray-100">
-          <p className="text-2xl font-bold text-orange-600">৳{totalPending.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-orange-600">৳{remaining.toLocaleString()}</p>
           <p className="text-xs text-gray-500 mt-1">বাকি পেমেন্ট</p>
         </div>
       </div>
@@ -228,25 +227,47 @@ export default function TeacherDashboard() {
           </div>
         ) : (
           <div className="space-y-3">
-            {payments.length === 0 ? (
+            {/* Summary */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-white rounded-2xl p-3 text-center border border-gray-100 shadow-sm">
+                <p className="text-sm font-bold text-gray-800">৳{(payData.total_due || 0).toLocaleString()}</p>
+                <p className="text-xs text-gray-400 mt-0.5">মোট প্রাপ্য</p>
+              </div>
+              <div className="bg-white rounded-2xl p-3 text-center border border-gray-100 shadow-sm">
+                <p className="text-sm font-bold text-green-600">৳{(payData.total_paid || 0).toLocaleString()}</p>
+                <p className="text-xs text-gray-400 mt-0.5">পরিশোধিত</p>
+              </div>
+              <div className="bg-white rounded-2xl p-3 text-center border border-orange-100 bg-orange-50 shadow-sm">
+                <p className="text-sm font-bold text-orange-600">৳{(payData.remaining || 0).toLocaleString()}</p>
+                <p className="text-xs text-orange-400 mt-0.5">বাকি</p>
+              </div>
+            </div>
+
+            {/* Transactions */}
+            {(payData.transactions || []).length === 0 ? (
               <div className="bg-white rounded-2xl p-12 text-center text-gray-400 border border-gray-100">
                 <Banknote size={36} className="mx-auto mb-3 opacity-30" />
-                <p>কোনো পেমেন্ট নেই</p>
+                <p>কোনো পেমেন্ট রেকর্ড নেই</p>
               </div>
-            ) : payments.map(p => (
-              <div key={p.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-700">{p.batch_name || '—'}</p>
+            ) : (payData.transactions || []).map(t => (
+              <div key={t.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-3">
+                {t.proof_url ? (
+                  <button onClick={() => setZoomImg(t.proof_url)} className="flex-shrink-0">
+                    <img src={t.proof_url} alt="proof" className="w-14 h-14 rounded-xl object-cover border border-gray-200 hover:opacity-90 transition-opacity" />
+                  </button>
+                ) : (
+                  <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center">
+                    <Banknote size={20} className="text-gray-300" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-gray-800">৳{Number(t.amount || 0).toLocaleString()}</p>
                   <p className="text-xs text-gray-400 mt-0.5">
-                    {p.class_date ? new Date(p.class_date).toLocaleDateString('bn-BD') : '—'}
+                    {t.transaction_date ? new Date(t.transaction_date + 'T00:00:00').toLocaleDateString('bn-BD') : '—'}
                   </p>
+                  {t.note && <p className="text-xs text-gray-500 truncate mt-0.5">{t.note}</p>}
                 </div>
-                <div className="text-right">
-                  <p className="font-bold text-gray-800">৳{Number(p.amount || 0).toLocaleString()}</p>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${PAY_COLOR[p.status]}`}>
-                    {p.status === 'paid' ? 'পরিশোধিত' : 'বাকি'}
-                  </span>
-                </div>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 flex-shrink-0">পরিশোধিত</span>
               </div>
             ))}
           </div>
@@ -259,6 +280,12 @@ export default function TeacherDashboard() {
           onClose={() => setFeedbackModal(null)}
           onDone={() => { setFeedbackModal(null); loadData(); }}
         />
+      )}
+
+      {zoomImg && (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={() => setZoomImg(null)}>
+          <img src={zoomImg} alt="proof" className="max-w-full max-h-[85vh] rounded-2xl object-contain" onClick={e => e.stopPropagation()} />
+        </div>
       )}
     </div>
   );
