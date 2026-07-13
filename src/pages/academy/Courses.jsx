@@ -536,7 +536,12 @@ function PlanCard({ plan, onRefresh }) {
 }
 
 // ── Course card ───────────────────────────────────────────────────────────────
-function CourseCard({ course, onRefresh }) {
+function CourseCard({ course, onRefresh, index = 0 }) {
+  const COURSE_COLORS = [
+    { header: 'bg-[#be185d]', icon: 'bg-[#9d174d]', iconText: 'text-pink-200', text: 'text-pink-50', sub: 'text-pink-200', btn: 'hover:bg-[#9d174d]', btnText: 'text-pink-200' },
+    { header: 'bg-[#b45309]', icon: 'bg-[#92400e]', iconText: 'text-amber-200', text: 'text-amber-50', sub: 'text-amber-200', btn: 'hover:bg-[#92400e]', btnText: 'text-amber-200' },
+  ];
+  const cc = COURSE_COLORS[index % 2];
   const [open, setOpen] = useState(false);
   const [plans, setPlans] = useState([]);
   const [editing, setEditing] = useState(false);
@@ -571,17 +576,17 @@ function CourseCard({ course, onRefresh }) {
   };
 
   return (
-    <div className="rounded-2xl shadow-sm border border-primary-200 overflow-hidden">
+    <div className="rounded-2xl shadow-sm overflow-hidden" style={{border: '1px solid rgba(0,0,0,0.1)'}}>
       {/* Course header */}
-      <div className="flex items-center gap-4 px-5 py-4 group bg-primary-600">
+      <div className={`flex items-center gap-4 px-5 py-4 group ${cc.header}`}>
         <button
           onClick={() => setOpen(o => !o)}
-          className="text-primary-200 hover:text-white transition-colors flex-shrink-0"
+          className={`${cc.btnText} hover:text-white transition-colors flex-shrink-0`}
         >
           {open ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
         </button>
 
-        <div className="w-10 h-10 rounded-xl bg-primary-500 flex items-center justify-center flex-shrink-0">
+        <div className={`w-10 h-10 rounded-xl ${cc.icon} flex items-center justify-center flex-shrink-0`}>
           <BookMarked size={18} className="text-white" />
         </div>
 
@@ -600,14 +605,14 @@ function CourseCard({ course, onRefresh }) {
         ) : (
           <>
             <div className="flex-1 cursor-pointer" onClick={() => setOpen(o => !o)}>
-              <p className="font-semibold text-white">{course.course_name}</p>
-              <p className="text-xs text-primary-200 mt-0.5">
+              <p className={`font-semibold ${cc.text}`}>{course.course_name}</p>
+              <p className={`text-xs ${cc.sub} mt-0.5`}>
                 {course.course_code} · {course.plan_count || 0} টি প্ল্যান
               </p>
             </div>
             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button onClick={() => setEditing(true)} className="p-2 hover:bg-primary-500 rounded-xl text-primary-200"><Edit2 size={15} /></button>
-              <button onClick={delCourse} className="p-2 hover:bg-primary-500 rounded-xl text-primary-200"><Trash2 size={15} /></button>
+              <button onClick={() => setEditing(true)} className={`p-2 ${cc.btn} rounded-xl ${cc.btnText}`}><Edit2 size={15} /></button>
+              <button onClick={delCourse} className={`p-2 ${cc.btn} rounded-xl ${cc.btnText}`}><Trash2 size={15} /></button>
             </div>
           </>
         )}
@@ -615,7 +620,7 @@ function CourseCard({ course, onRefresh }) {
 
       {/* Plans section */}
       {open && (
-        <div className="pl-8 pr-4 pb-5 border-t border-primary-700 bg-primary-50 pt-4 space-y-4">
+        <div className="pl-8 pr-4 pb-5 border-t border-gray-200 bg-gray-50 pt-4 space-y-4">
           {plans.length === 0 && !showPlanForm && (
             <p className="text-sm text-gray-400">কোনো প্ল্যান নেই।</p>
           )}
@@ -754,7 +759,7 @@ export default function Courses() {
         </div>
       ) : (
         <div className="space-y-3">
-          {courses.map(c => <CourseCard key={c.id} course={c} onRefresh={load} />)}
+          {courses.map((c, idx) => <CourseCard key={c.id} course={c} onRefresh={load} index={idx} />)}
         </div>
       )}
     </div>
