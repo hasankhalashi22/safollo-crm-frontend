@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Banknote, CheckCircle, RefreshCw } from 'lucide-react';
 import { academyApi } from '../../api/client';
+import EntryModal from '../../components/accounting/EntryModal';
 import toast from 'react-hot-toast';
 
 const STATUS_LABEL = { pending: 'বাকি', paid: 'পরিশোধিত' };
@@ -11,8 +12,7 @@ export default function TeacherPayments() {
   const [teachers, setTeachers] = useState([]);
   const [selectedTeacher, setSelectedTeacher] = useState('');
   const [selected, setSelected] = useState([]);
-  const [payNote, setPayNote] = useState('');
-  const [showPayModal, setShowPayModal] = useState(false);
+  const [showEntryModal, setShowEntryModal] = useState(false);
   const [recalculating, setRecalculating] = useState(false);
 
   const load = (teacherId) => academyApi.getTeacherPayments(teacherId || null).then(r => setList(r.data || []));
@@ -26,13 +26,14 @@ export default function TeacherPayments() {
   const toggleSelect = (id) => setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
   const selectAll = () => setSelected(pending.map(p => p.id));
 
-  const pay = async () => {
-    if (selected.length === 0) return toast.error('অন্তত একটি পেমেন্ট বেছে নিন');
+  const handleEntrySuccess = async () => {
     try {
-      await academyApi.payTeacher({ payment_ids: selected, note: payNote });
-      toast.success('পেমেন্ট সম্পন্ন হয়েছে');
-      setShowPayModal(false); setSelected([]); setPayNote(''); load(selectedTeacher);
-    } catch { toast.error('সমস্যা হয়েছে'); }
+      await academyApi.payTeacher({ payment_ids: selected });
+      toast.success('পেমেন্ট সম্পন্ন ও এন্ট্রি হয়েছে');
+    } catch { toast.error('একাউন্টিং এন্ট্রি হয়েছে কিন্তু পেমেন্ট মার্ক করতে সমস্যা হয়েছে'); }
+    setShowEntryModal(false);
+    setSelected([]);
+    load(selectedTeacher);
   };
 
   const recalculate = async () => {
@@ -63,7 +64,7 @@ export default function TeacherPayments() {
             রেট পুনরায় প্রয়োগ করুন
           </button>
           {selected.length > 0 && (
-            <button onClick={() => setShowPayModal(true)} className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2 text-sm transition-colors">
+            <button onClick={() => setShowEntryModal(true)} className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2 text-sm transition-colors">
               <CheckCircle size={15} /> {selected.length}টি পরিশোধ (৳{totalPending.toLocaleString()})
             </button>
           )}
@@ -120,21 +121,15 @@ export default function TeacherPayments() {
         )}
       </div>
 
-      {showPayModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm p-6 space-y-4">
-            <h3 className="font-semibold text-gray-800">পেমেন্ট নিশ্চিত করুন</h3>
-            <p className="text-sm text-gray-600">{selected.length}টি পেমেন্ট — মোট <strong>৳{totalPending.toLocaleString()}</strong></p>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-gray-600">নোট (ঐচ্ছিক)</label>
-              <textarea className="input-field" rows={2} value={payNote} onChange={e => setPayNote(e.target.value)} />
-            </div>
-            <div className="flex gap-3">
-              <button onClick={pay} className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-6 py-2.5 rounded-xl text-sm flex-1">পরিশোধ করুন</button>
-              <button onClick={() => setShowPayModal(false)} className="bg-white hover:bg-gray-50 text-gray-600 font-medium px-5 py-2.5 rounded-xl border-2 border-gray-200 text-sm">বাতিল</button>
-            </div>
-          </div>
-        </div>
+      {showEntryModal && (
+        <EntryModal
+          mode="out"
+          initialAmount={totalPending}
+          initialParty={[...new Set(pending.filter(p => selected.includes(p.id)).map(p => p.teacher_name))].join(', ')}
+          initialDescription="শিক্ষক সম্মানী"
+          onClose={() => setShowEntryModal(false)}
+          onSuccess={handleEntrySuccess}
+        />
       )}
     </div>
   );
