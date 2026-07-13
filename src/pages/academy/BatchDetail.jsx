@@ -964,7 +964,11 @@ export default function BatchDetail() {
   const [showPdf, setShowPdf] = useState(false);
   const [showFollowModal, setShowFollowModal] = useState(false);
   const [allBatches, setAllBatches] = useState([]);
-  const [followForm, setFollowForm] = useState({ source_batch_id: '', cutoff_type: 'class_no', cutoff_value: '' });
+  const [followForm, setFollowForm] = useState({
+    source_batch_id: '', cutoff_type: 'class_no', cutoff_value: '',
+    guideline_classes: 0, subjective_per_subject: 0, model_tests: 0,
+    class_mode: 'online', location: 'রিমোট', zoom_account_id: '',
+  });
   const [following, setFollowing] = useState(false);
   const [insertAfterRowNo, setInsertAfterRowNo] = useState(null);
   const [addForm, setAddForm] = useState({
@@ -979,11 +983,70 @@ export default function BatchDetail() {
     if (!followForm.cutoff_value) return toast.error('কাটঅফ মান দিন');
     setFollowing(true);
     try {
+      const baseProps = {
+        class_mode: followForm.class_mode,
+        location: followForm.location,
+        zoom_account_id: followForm.zoom_account_id || null,
+        status: 'scheduled',
+        teacher_id: null,
+      };
+
+      // 1. Guideline rows (prepended before follow rows — added first so they get lower row_no)
+      const guidelineCount = Number(followForm.guideline_classes) || 0;
+      if (guidelineCount > 0) {
+        const guideRows = Array.from({ length: guidelineCount }, (_, i) => ({
+          row_type: 'class', label: `গাইডলাইন-${i + 1}`,
+          class_no: null, exam_no: null,
+          scheduled_date: null, scheduled_time: null,
+          subject_name: 'গাইডলাইন',
+          topic: `গাইডলাইন ক্লাস ${i + 1}`, notes: '',
+          ...baseProps,
+        }));
+        await academyApi.bulkAddOutlineRows(id, guideRows);
+      }
+
+      // 2. Follow main rows
       const r = await academyApi.followBatch(id, followForm);
       const { imported, from_cutoff, before_cutoff } = r.data || {};
-      toast.success(`${imported} টি সারি যুক্ত হয়েছে (${from_cutoff} টি প্রথমে, ${before_cutoff} টি শেষে)`);
+
+      // 3. Subjective exam rows (one per subject per round)
+      const subjectiveRounds = Number(followForm.subjective_per_subject) || 0;
+      if (subjectiveRounds > 0 && subjects.length > 0) {
+        const subjRows = [];
+        let examNo = 1;
+        for (let q = 1; q <= subjectiveRounds; q++) {
+          for (const subj of subjects) {
+            subjRows.push({
+              row_type: 'exam', label: 'সাবজেক্টিভ',
+              class_no: null, exam_no: examNo++,
+              scheduled_date: null, scheduled_time: null,
+              subject_name: subj.subject_name,
+              topic: `সাবজেক্টিভ পরীক্ষা ${q} — ${subj.subject_name}`,
+              notes: '', ...baseProps, zoom_account_id: null,
+            });
+          }
+        }
+        await academyApi.bulkAddOutlineRows(id, subjRows);
+      }
+
+      // 4. Model test rows (appended last)
+      const modelCount = Number(followForm.model_tests) || 0;
+      if (modelCount > 0) {
+        const modelRows = Array.from({ length: modelCount }, (_, i) => ({
+          row_type: 'exam', label: `মডেল-${i + 1}`,
+          class_no: null, exam_no: i + 1,
+          scheduled_date: null, scheduled_time: null,
+          subject_name: 'মডেল টেস্ট',
+          topic: `মডেল টেস্ট ${i + 1}`, notes: '',
+          ...baseProps, zoom_account_id: null,
+        }));
+        await academyApi.bulkAddOutlineRows(id, modelRows);
+      }
+
+      const extras = guidelineCount + (subjectiveRounds * subjects.length) + modelCount;
+      toast.success(`${imported} টি রুটিন সারি যুক্ত হয়েছে (${from_cutoff} প্রথমে, ${before_cutoff} শেষে)${extras > 0 ? ` + ${extras} টি অতিরিক্ত সারি` : ''}`);
       setShowFollowModal(false);
-      setFollowForm({ source_batch_id: '', cutoff_type: 'class_no', cutoff_value: '' });
+      setFollowForm({ source_batch_id: '', cutoff_type: 'class_no', cutoff_value: '', guideline_classes: 0, subjective_per_subject: 0, model_tests: 0, class_mode: 'online', location: 'রিমোট', zoom_account_id: '' });
       loadOutline();
     } catch { toast.error('সমস্যা হয়েছে'); }
     setFollowing(false);
@@ -1194,10 +1257,11 @@ export default function BatchDetail() {
 
             <p className="text-xs text-gray-500">
               উৎস ব্যাচের রুটিন থেকে কাটঅফের পর থেকে আগে আসবে, আগেরগুলো শেষে যুক্ত হবে।
-              গাইডলাইন, সাবজেক্টিভ ও মডেল টেস্ট আসবে না।
+              গাইডলাইন, সাবজেক্টিভ ও মডেল টেস্ট আলাদা কনফিগ থেকে যোগ হবে।
             </p>
 
-            <div className="space-y-4">
+            <div className="space-y-4 max-h-[65vh] overflow-y-auto pr-1">
+              {/* Source batch + cutoff */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-gray-600">উৎস ব্যাচ</label>
                 <select className="input-field"
@@ -1240,6 +1304,73 @@ export default function BatchDetail() {
                 <p className="text-xs text-gray-400">
                   এই {followForm.cutoff_type === 'class_no' ? 'নম্বর' : 'তারিখ'} থেকে শুরু হবে — আগেরগুলো শেষে যাবে
                 </p>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-gray-100 pt-3">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">অতিরিক্ত সারি কনফিগ</p>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-medium text-gray-600">গাইডলাইন ক্লাস</label>
+                    <input type="number" min="0" max="10" className="input-field text-sm"
+                      value={followForm.guideline_classes}
+                      onChange={e => setFollowForm(f => ({ ...f, guideline_classes: e.target.value }))} />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-medium text-gray-600">সাবজেক্টিভ/সাবজেক্ট</label>
+                    <input type="number" min="0" max="10" className="input-field text-sm"
+                      value={followForm.subjective_per_subject}
+                      onChange={e => setFollowForm(f => ({ ...f, subjective_per_subject: e.target.value }))} />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-medium text-gray-600">মডেল টেস্ট</label>
+                    <input type="number" min="0" max="20" className="input-field text-sm"
+                      value={followForm.model_tests}
+                      onChange={e => setFollowForm(f => ({ ...f, model_tests: e.target.value }))} />
+                  </div>
+                </div>
+
+                {Number(followForm.subjective_per_subject) > 0 && subjects.length === 0 && (
+                  <p className="text-xs text-amber-500 mt-1.5">এই ব্যাচের প্ল্যানে সাবজেক্ট পাওয়া যায়নি — সাবজেক্টিভ রো যোগ হবে না</p>
+                )}
+              </div>
+
+              {/* Class config */}
+              <div className="border-t border-gray-100 pt-3 space-y-3">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">ক্লাস কনফিগ (অতিরিক্ত সারির জন্য)</p>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-medium text-gray-600">ক্লাসের ধরন</label>
+                  <div className="flex gap-3">
+                    {[['online', 'অনলাইন'], ['offline', 'অফলাইন']].map(([v, l]) => (
+                      <label key={v} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                        <input type="radio" name="follow_class_mode" value={v}
+                          checked={followForm.class_mode === v}
+                          onChange={() => setFollowForm(f => ({ ...f, class_mode: v }))} />
+                        {l}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-medium text-gray-600">স্থান</label>
+                    <input type="text" className="input-field text-sm" placeholder="যেমন: রিমোট / ঢাকা"
+                      value={followForm.location}
+                      onChange={e => setFollowForm(f => ({ ...f, location: e.target.value }))} />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-medium text-gray-600">জুম একাউন্ট</label>
+                    <select className="input-field text-sm"
+                      value={followForm.zoom_account_id}
+                      onChange={e => setFollowForm(f => ({ ...f, zoom_account_id: e.target.value }))}>
+                      <option value="">নেই</option>
+                      {zooms.map(z => <option key={z.id} value={z.id}>{z.account_name}</option>)}
+                    </select>
+                  </div>
+                </div>
               </div>
             </div>
 
