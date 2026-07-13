@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, ArrowLeft, Edit2, Trash2, CheckCircle, Clock, Save, X, Wand2, FileDown, FileSpreadsheet, GitMerge } from 'lucide-react';
+import { Plus, ArrowLeft, Edit2, Trash2, CheckCircle, Clock, Save, X, Wand2, FileDown, FileSpreadsheet, GitMerge, Lock } from 'lucide-react';
 import { academyApi } from '../../api/client';
 import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
@@ -314,6 +314,7 @@ function OutlineRow({ row, idx, teachers, zooms, allRows, onRefresh, onFeedback,
   const typeLabel = isExam ? `এক্সাম-${row.class_no || ''}` : `ক্লাস-${row.class_no || ''}`;
   const d = (row.scheduled_date || '').split('T')[0];
   const isActive = row.is_active !== false;
+  const isSynced = !!row.source_outline_id;
 
   const ic = 'w-full text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-primary-400';
 
@@ -400,8 +401,14 @@ function OutlineRow({ row, idx, teachers, zooms, allRows, onRefresh, onFeedback,
                 {row.status === 'scheduled' && row.row_type === 'class' && (
                   <button onClick={() => onFeedback(row)} className="p-1.5 text-green-600 hover:bg-green-50 rounded" title="ফিডব্যাক"><CheckCircle size={13} /></button>
                 )}
-                <button onClick={() => setEditing(true)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded"><Edit2 size={13} /></button>
-                <button onClick={del} className="p-1.5 text-red-400 hover:bg-red-50 rounded"><Trash2 size={13} /></button>
+                {isSynced ? (
+                  <span title="সোর্স রুটিন থেকে সিঙ্ক হয় — সেখানে এডিট করুন" className="p-1.5 text-amber-400 cursor-default"><Lock size={13} /></span>
+                ) : (
+                  <>
+                    <button onClick={() => setEditing(true)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded"><Edit2 size={13} /></button>
+                    <button onClick={del} className="p-1.5 text-red-400 hover:bg-red-50 rounded"><Trash2 size={13} /></button>
+                  </>
+                )}
               </div>
             </td>
           </>
