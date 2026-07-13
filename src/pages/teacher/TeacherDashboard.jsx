@@ -265,7 +265,7 @@ export default function TeacherDashboard() {
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-gray-800 text-sm">৳{Number(t.amount || 0).toLocaleString()}</p>
                   <p className="text-xs text-gray-400 mt-0.5">
-                    {t.transaction_date ? new Date(t.transaction_date + 'T00:00:00').toLocaleDateString('bn-BD') : '—'}
+                    {t.transaction_date ? new Date(t.transaction_date).toLocaleDateString('bn-BD') : '—'}
                   </p>
                   {t.note && <p className="text-xs text-gray-500 truncate mt-0.5">{t.note}</p>}
                 </div>
