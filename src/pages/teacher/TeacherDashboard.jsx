@@ -95,10 +95,12 @@ export default function TeacherDashboard() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-primary-600 text-white px-4 py-3 flex items-center justify-between">
-        <div>
-          <p className="text-primary-200 text-xs">সাফল্য একাডেমি</p>
-          <h1 className="font-bold text-base">{teacher.full_name}</h1>
-          <p className="text-primary-200 text-xs">{teacher.teacher_code}</p>
+        <div className="flex items-center gap-3">
+          <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-8 brightness-0 invert flex-shrink-0" />
+          <div>
+            <h1 className="font-bold text-base leading-tight">{teacher.full_name}</h1>
+            <p className="text-primary-200 text-xs">{teacher.teacher_code}</p>
+          </div>
         </div>
         <div className="flex items-center gap-1">
           <button onClick={() => setTab('profile')} className="p-2 hover:bg-primary-700 rounded-xl transition-colors" title="প্রোফাইল">

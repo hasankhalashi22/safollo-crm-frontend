@@ -35,11 +35,8 @@ export default function TeacherLogin() {
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-teal-50 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-primary-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <span className="text-white text-2xl font-bold">স</span>
-          </div>
-          <h1 className="text-2xl font-bold text-gray-800">সাফল্য একাডেমি</h1>
-          <p className="text-gray-500 text-sm mt-1">শিক্ষক পোর্টাল</p>
+          <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-14 mx-auto mb-3" />
+          <p className="text-gray-500 text-sm">শিক্ষক পোর্টাল</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg p-8 space-y-5">
