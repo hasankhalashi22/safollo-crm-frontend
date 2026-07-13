@@ -697,12 +697,12 @@ export default function Courses() {
   return (
     <div className="p-3 md:p-6 space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex items-center gap-4">
+        <div className="flex-1">
           <h1 className="text-xl font-bold text-gray-800">কোর্স ও প্ল্যান</h1>
           <p className="text-sm text-gray-400 mt-0.5">কোর্স → প্ল্যান → বিষয় → লেকচার</p>
         </div>
-        <button onClick={() => { setShowNew(true); }} className="btn-primary flex items-center gap-2">
+        <button onClick={() => { setShowNew(true); }} className="btn-primary flex items-center justify-center gap-2 w-1/4">
           <Plus size={16} /> নতুন কোর্স
         </button>
       </div>
