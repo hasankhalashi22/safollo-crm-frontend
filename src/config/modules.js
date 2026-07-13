@@ -92,6 +92,7 @@ export const MODULES = [
       { to: '/academy/payment-rates', icon: DollarSign, label: 'Payment Rates' },
       { to: '/academy/zoom-accounts', icon: Video, label: 'Zoom Accounts' },
       { to: '/academy/schedule-report', icon: Calendar, label: 'ক্লাস রিপোর্ট' },
+      { to: '/academy/settings', icon: Settings, label: 'Settings' },
     ],
   },
   // Future modules go here, e.g.:

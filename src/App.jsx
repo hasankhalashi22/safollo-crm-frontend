@@ -42,6 +42,7 @@ import TeacherPayments from './pages/academy/TeacherPayments';
 import PaymentRates from './pages/academy/PaymentRates';
 import ZoomAccounts from './pages/academy/ZoomAccounts';
 import ScheduleReport from './pages/academy/ScheduleReport';
+import AcademySettings from './pages/academy/AcademySettings';
 import TeacherRegister from './pages/teacher/TeacherRegister';
 import TeacherLogin from './pages/teacher/TeacherLogin';
 import TeacherDashboard from './pages/teacher/TeacherDashboard';
@@ -210,6 +211,7 @@ useNotifications();
       <Route path="/academy/payment-rates" element={<ProtectedRoute allowedLevels={[1]}><AcademyLayout><PaymentRates /></AcademyLayout></ProtectedRoute>} />
       <Route path="/academy/zoom-accounts" element={<ProtectedRoute allowedLevels={[1]}><AcademyLayout><ZoomAccounts /></AcademyLayout></ProtectedRoute>} />
       <Route path="/academy/schedule-report" element={<ProtectedRoute allowedLevels={[1]}><AcademyLayout><ScheduleReport /></AcademyLayout></ProtectedRoute>} />
+      <Route path="/academy/settings" element={<ProtectedRoute allowedLevels={[1]}><AcademyLayout><AcademySettings /></AcademyLayout></ProtectedRoute>} />
 
       {/* Teacher portal — public */}
       <Route path="/teacher/register"          element={<TeacherRegister />} />

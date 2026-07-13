@@ -347,6 +347,10 @@ export const academyApi = {
   recalculatePayments: () => api.post('/api/academy/teacher-payments/recalculate'),
   createTeacherPaymentTransaction: (data) => api.post('/api/academy/teacher-payment-transactions', data),
 
+  // Settings
+  getAcademySettings: () => api.get('/api/academy/settings'),
+  updateAcademySettings: (data) => api.put('/api/academy/settings', data),
+
   // Reports
   getScheduleReport: (params) => api.get('/api/academy/reports/schedule', { params }),
 

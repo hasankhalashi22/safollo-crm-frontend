@@ -27,7 +27,7 @@ const titles = {
   investor_profit: 'Investor Profit Payment',
 };
 
-export default function EntryModal({ mode, onClose, onSuccess, initialAmount = '', initialDescription = '', initialParty = '' }) {
+export default function EntryModal({ mode, onClose, onSuccess, initialAmount = '', initialDescription = '', initialParty = '', initialCategoryId = '' }) {
   useScrollLock();
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -38,7 +38,7 @@ export default function EntryModal({ mode, onClose, onSuccess, initialAmount = '
     transaction_date: format(new Date(), 'yyyy-MM-dd'),
     amount: initialAmount ? String(initialAmount) : '',
     account_id: '',
-    category_id: '',
+    category_id: initialCategoryId ? String(initialCategoryId) : '',
     party: initialParty,
     description: initialDescription,
     proof: null,

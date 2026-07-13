@@ -21,8 +21,12 @@ export default function TeacherPayments() {
   const [zoomImg, setZoomImg] = useState(null);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [settings, setSettings] = useState(null);
 
-  useEffect(() => { loadSummary(); }, []);
+  useEffect(() => {
+    loadSummary();
+    academyApi.getAcademySettings().then(r => setSettings(r.data || null)).catch(() => {});
+  }, []);
 
   const loadSummary = () => {
     setLoading(true);
@@ -250,6 +254,7 @@ export default function TeacherPayments() {
           initialAmount={remaining > 0 ? remaining : ''}
           initialParty={selected.full_name}
           initialDescription="শিক্ষক সম্মানী"
+          initialCategoryId={settings?.teacher_payable_account_id || ''}
           onClose={() => setShowEntryModal(false)}
           onSuccess={handleEntrySuccess}
         />
