@@ -958,6 +958,7 @@ export default function BatchDetail() {
   const [outline, setOutline] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [zooms, setZooms] = useState([]);
+  const [batchSubjects, setBatchSubjects] = useState([]);
   const [feedbackRow, setFeedbackRow] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showGenerator, setShowGenerator] = useState(false);
@@ -1011,11 +1012,11 @@ export default function BatchDetail() {
 
       // 3. Subjective exam rows (one per subject per round)
       const subjectiveRounds = Number(followForm.subjective_per_subject) || 0;
-      if (subjectiveRounds > 0 && subjects.length > 0) {
+      if (subjectiveRounds > 0 && batchSubjects.length > 0) {
         const subjRows = [];
         let examNo = 1;
         for (let q = 1; q <= subjectiveRounds; q++) {
-          for (const subj of subjects) {
+          for (const subj of batchSubjects) {
             subjRows.push({
               row_type: 'exam', label: 'সাবজেক্টিভ',
               class_no: null, exam_no: examNo++,
@@ -1043,7 +1044,7 @@ export default function BatchDetail() {
         await academyApi.bulkAddOutlineRows(id, modelRows);
       }
 
-      const extras = guidelineCount + (subjectiveRounds * subjects.length) + modelCount;
+      const extras = guidelineCount + (subjectiveRounds * batchSubjects.length) + modelCount;
       toast.success(`${imported} টি রুটিন সারি যুক্ত হয়েছে (${from_cutoff} প্রথমে, ${before_cutoff} শেষে)${extras > 0 ? ` + ${extras} টি অতিরিক্ত সারি` : ''}`);
       setShowFollowModal(false);
       setFollowForm({ source_batch_id: '', cutoff_type: 'class_no', cutoff_value: '', guideline_classes: 0, subjective_per_subject: 0, model_tests: 0, class_mode: 'online', location: 'রিমোট', zoom_account_id: '' });
@@ -1055,8 +1056,14 @@ export default function BatchDetail() {
   useEffect(() => {
     academyApi.getBatches().then(r => {
       const list = r.data || [];
-      setBatch(list.find(x => x.id === id) || null);
+      const found = list.find(x => x.id === id) || null;
+      setBatch(found);
       setAllBatches(list);
+      if (found?.plan_id) {
+        academyApi.getPlanSubjects(found.plan_id)
+          .then(rs => setBatchSubjects((rs.data || []).sort((a, b) => a.serial_no - b.serial_no)))
+          .catch(() => {});
+      }
     });
     academyApi.getTeachers().then(r => setTeachers(r.data || []));
     academyApi.getZoomAccounts().then(r => setZooms(r.data || []));
@@ -1331,7 +1338,7 @@ export default function BatchDetail() {
                   </div>
                 </div>
 
-                {Number(followForm.subjective_per_subject) > 0 && subjects.length === 0 && (
+                {Number(followForm.subjective_per_subject) > 0 && batchSubjects.length === 0 && (
                   <p className="text-xs text-amber-500 mt-1.5">এই ব্যাচের প্ল্যানে সাবজেক্ট পাওয়া যায়নি — সাবজেক্টিভ রো যোগ হবে না</p>
                 )}
               </div>
