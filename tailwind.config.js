@@ -23,8 +23,8 @@ export default {
         dark: '#1C2B2A',
       },
       fontFamily: {
-        sans: ['Hind Siliguri', 'sans-serif'],
-        display: ['Tiro Bangla', 'serif'],
+        sans: ['Anek Bangla', 'sans-serif'],
+        display: ['Anek Bangla', 'sans-serif'],
       },
       boxShadow: {
         'card': '0 2px 12px rgba(26, 122, 110, 0.08)',
