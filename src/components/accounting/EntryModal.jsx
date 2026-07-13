@@ -352,7 +352,13 @@ export default function EntryModal({ mode, onClose, onSuccess, initialAmount = '
               <label className="block text-sm font-medium mb-1.5">Proof / Voucher / Cheque image</label>
               {proofPreview ? (
                 <div className="relative">
-                  <img src={proofPreview} className="w-full h-32 object-cover rounded-xl" alt="proof" />
+                  {proofPreview === '__pdf__' ? (
+                    <div className="w-full h-32 flex items-center justify-center gap-2 bg-red-50 border-2 border-red-200 rounded-xl text-red-600 font-medium text-sm">
+                      <span style={{fontSize:28}}>📄</span> PDF ফাইল সংযুক্ত
+                    </div>
+                  ) : (
+                    <img src={proofPreview} className="w-full h-32 object-cover rounded-xl" alt="proof" />
+                  )}
                   <button type="button" onClick={() => { setProofPreview(null); set('proof', null); }}
                     className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1">
                     <X size={14} />
@@ -362,13 +368,23 @@ export default function EntryModal({ mode, onClose, onSuccess, initialAmount = '
                 <label className="flex items-center gap-3 p-3 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer"
                   onPaste={e => {
                     const item = Array.from(e.clipboardData.items).find(i => i.type.startsWith('image/'));
-                    if (item) { const file = item.getAsFile(); set('proof', file); setProofPreview(URL.createObjectURL(file)); }
+                    if (item) {
+                      const file = item.getAsFile();
+                      if (file.size > 1 * 1024 * 1024) { alert('ফাইল সাইজ ১ MB এর বেশি হবে না'); return; }
+                      set('proof', file); setProofPreview(URL.createObjectURL(file));
+                    }
                   }}>
                   <Camera size={20} className="text-gray-400" />
-                  <span className="text-sm text-gray-400">Upload image or Ctrl+V to paste (optional)</span>
-                  <input type="file" accept="image/*" className="hidden" onChange={e => {
+                  <span className="text-sm text-gray-400">ছবি বা PDF আপলোড করুন (সর্বোচ্চ ১ MB) — Ctrl+V paste করা যাবে</span>
+                  <input type="file" accept="image/*,application/pdf" className="hidden" onChange={e => {
                     const file = e.target.files[0];
-                    if (file) { set('proof', file); setProofPreview(URL.createObjectURL(file)); }
+                    if (!file) return;
+                    if (file.size > 1 * 1024 * 1024) { alert('ফাইল সাইজ ১ MB এর বেশি হবে না'); e.target.value = ''; return; }
+                    if (file.type === 'application/pdf') {
+                      set('proof', file); setProofPreview('__pdf__');
+                    } else {
+                      set('proof', file); setProofPreview(URL.createObjectURL(file));
+                    }
                   }} />
                 </label>
               )}
