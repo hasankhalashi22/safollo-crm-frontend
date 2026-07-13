@@ -340,6 +340,8 @@ export const academyApi = {
   approveFeedback: (id, approved) => api.post(`/api/academy/feedbacks/${id}/approve`, { approved }),
 
   // Teacher Payments
+  getTeacherPaymentSummary: () => api.get('/api/academy/teacher-payment-summary'),
+  getTeacherPaymentDetails: (teacherId) => api.get(`/api/academy/teacher-payment-details/${teacherId}`),
   getTeacherPayments: (teacherId) => api.get(`/api/academy/teacher-payments${teacherId ? `?teacher_id=${teacherId}` : ''}`),
   payTeacher: (data) => api.post('/api/academy/teacher-payments/pay', data),
   recalculatePayments: () => api.post('/api/academy/teacher-payments/recalculate'),
