@@ -106,7 +106,7 @@ export default function Batches() {
             <Layers size={40} className="mx-auto mb-3 opacity-30" /><p>কোনো ব্যাচ নেই</p>
           </div>
         ) : list.map(b => (
-          <div key={b.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
+          <div key={b.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow flex flex-col">
             <div className="flex items-start justify-between mb-3">
               <div>
                 <p className="font-semibold text-gray-800">{b.batch_name}</p>
@@ -116,8 +116,8 @@ export default function Batches() {
                 {STATUS_LABEL[b.status] || b.status}
               </span>
             </div>
-            <p className="text-xs text-gray-400 mb-4">{b.start_date ? `${new Date(b.start_date).toLocaleDateString('bn-BD')} থেকে` : ''}</p>
-            <div className="flex gap-2">
+            <p className="text-xs text-gray-400 flex-1">{b.start_date ? `${new Date(b.start_date).toLocaleDateString('bn-BD')} থেকে` : ''}</p>
+            <div className="flex gap-2 mt-4">
               <button onClick={() => navigate(`/academy/batches/${b.id}`)}
                 className={`flex-1 flex items-center justify-center gap-1.5 text-sm font-medium py-2 rounded-xl transition-colors ${
                   Number(b.total_classes) > 0
