@@ -35,16 +35,18 @@ function downloadSubjectTemplate() {
   XLSX.writeFile(wb, 'subject_import_template.xlsx');
 }
 
-// Subject color palette — header bg + light row stripe
+// Subject color palette
 const SUBJECT_COLORS = [
-  { header: 'bg-violet-600', stripe: 'bg-violet-50', badge: 'bg-violet-100 text-violet-700', border: 'border-violet-200' },
-  { header: 'bg-blue-600',   stripe: 'bg-blue-50',   badge: 'bg-blue-100 text-blue-700',     border: 'border-blue-200'   },
-  { header: 'bg-teal-600',   stripe: 'bg-teal-50',   badge: 'bg-teal-100 text-teal-700',     border: 'border-teal-200'   },
-  { header: 'bg-orange-500', stripe: 'bg-orange-50', badge: 'bg-orange-100 text-orange-700', border: 'border-orange-200' },
-  { header: 'bg-rose-600',   stripe: 'bg-rose-50',   badge: 'bg-rose-100 text-rose-700',     border: 'border-rose-200'   },
-  { header: 'bg-emerald-600',stripe: 'bg-emerald-50',badge: 'bg-emerald-100 text-emerald-700',border:'border-emerald-200'},
-  { header: 'bg-amber-500',  stripe: 'bg-amber-50',  badge: 'bg-amber-100 text-amber-700',   border: 'border-amber-200'  },
-  { header: 'bg-indigo-600', stripe: 'bg-indigo-50', badge: 'bg-indigo-100 text-indigo-700', border: 'border-indigo-200' },
+  { badge: 'bg-violet-600 text-white',  border: 'border-violet-300', bg: 'bg-violet-50'  },
+  { badge: 'bg-blue-600 text-white',    border: 'border-blue-300',   bg: 'bg-blue-50'    },
+  { badge: 'bg-teal-600 text-white',    border: 'border-teal-300',   bg: 'bg-teal-50'    },
+  { badge: 'bg-orange-500 text-white',  border: 'border-orange-300', bg: 'bg-orange-50'  },
+  { badge: 'bg-rose-600 text-white',    border: 'border-rose-300',   bg: 'bg-rose-50'    },
+  { badge: 'bg-emerald-600 text-white', border: 'border-emerald-300',bg: 'bg-emerald-50' },
+  { badge: 'bg-amber-500 text-white',   border: 'border-amber-300',  bg: 'bg-amber-50'   },
+  { badge: 'bg-indigo-600 text-white',  border: 'border-indigo-300', bg: 'bg-indigo-50'  },
+  { badge: 'bg-cyan-600 text-white',    border: 'border-cyan-300',   bg: 'bg-cyan-50'    },
+  { badge: 'bg-pink-600 text-white',    border: 'border-pink-300',   bg: 'bg-pink-50'    },
 ];
 
 // Column header colors
@@ -207,7 +209,7 @@ function SubjectRow({ subject, colorIdx, onRefresh, onEditLectures, onImportExce
 
   return (
     <div
-      className={`flex items-center gap-3 px-4 py-3 bg-white border-2 ${clr.border} rounded-xl hover:shadow-md transition-all group ${!editing ? 'cursor-pointer' : ''}`}
+      className={`flex items-center gap-3 px-4 py-3 ${clr.bg} border-2 ${clr.border} rounded-xl hover:shadow-md transition-all group ${!editing ? 'cursor-pointer' : ''}`}
       onClick={!editing ? () => onEditLectures(subject) : undefined}
     >
       <span className={`min-w-[2rem] min-h-[2.25rem] px-2 rounded-lg text-xs font-bold flex items-center justify-center flex-shrink-0 ${clr.badge}`} style={{lineHeight:'1.7'}}>
@@ -231,7 +233,7 @@ function SubjectRow({ subject, colorIdx, onRefresh, onEditLectures, onImportExce
         <>
           <span className="text-sm font-medium text-gray-700 flex-1">{subject.subject_name}</span>
 
-          <span className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg ${clr.badge}`}>
+          <span className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg ${clr.badge} opacity-80`}>
             <BookOpen size={13} />
             {lectureCount > 0 ? `${lectureCount} লেকচার` : 'লেকচার যোগ'}
           </span>
@@ -359,49 +361,49 @@ function PlanCard({ plan, onRefresh }) {
 
   return (
     <>
-      <div className="border-2 border-gray-100 rounded-2xl">
+      <div className="border-2 border-indigo-200 rounded-2xl overflow-hidden">
         {/* Plan header */}
         <div
-          className="flex items-center gap-3 px-4 py-3.5 bg-gray-50 rounded-t-2xl cursor-pointer hover:bg-gray-100 transition-colors group"
+          className="flex items-center gap-3 px-4 py-3.5 bg-indigo-500 rounded-t-2xl cursor-pointer hover:bg-indigo-600 transition-colors group"
           onClick={() => setOpen(o => !o)}
         >
-          <span className="text-gray-400 flex-shrink-0">
+          <span className="text-indigo-200 flex-shrink-0">
             {open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
           </span>
-          <span className="text-xs bg-primary-100 text-primary-700 font-bold px-2.5 py-1 rounded-full">
+          <span className="text-xs bg-indigo-400 text-white font-bold px-2.5 py-1 rounded-full">
             v{plan.version}
           </span>
-          <span className="font-semibold text-gray-700 flex-1">{plan.plan_name}</span>
+          <span className="font-semibold text-white flex-1">{plan.plan_name}</span>
 
           {plan.is_active && (
-            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">সক্রিয়</span>
+            <span className="text-xs bg-green-400 text-white px-2 py-0.5 rounded-full font-medium">সক্রিয়</span>
           )}
 
           {/* Stats */}
-          <div className="flex items-center gap-3 text-xs text-gray-500">
-            <span className="bg-white border border-gray-200 px-2.5 py-1 rounded-lg">
+          <div className="flex items-center gap-3 text-xs">
+            <span className="bg-indigo-400 text-white px-2.5 py-1 rounded-lg">
               {subjectCount} বিষয়
             </span>
             {totalLectures > 0 && (
-              <span className="bg-primary-50 border border-primary-100 text-primary-600 px-2.5 py-1 rounded-lg font-medium">
+              <span className="bg-indigo-400 text-white px-2.5 py-1 rounded-lg font-medium">
                 {totalLectures} লেকচার
               </span>
             )}
           </div>
 
-          {/* Import plan Excel */}
+          {/* Actions */}
           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
             <button title="অন্য প্ল্যান থেকে বিষয় ইমপোর্ট" onClick={openImportModal}
-              className="p-1.5 hover:bg-indigo-50 rounded-lg text-indigo-500 flex items-center gap-1 text-xs">
+              className="p-1.5 hover:bg-indigo-400 rounded-lg text-indigo-100 flex items-center gap-1 text-xs">
               <GitMerge size={14} /> সিঙ্ক ইমপোর্ট
             </button>
             <button title="Excel দিয়ে পুরো প্ল্যান ইমপোর্ট" onClick={() => planFileRef.current?.click()}
-              className="p-1.5 hover:bg-green-50 rounded-lg text-green-500 flex items-center gap-1 text-xs">
+              className="p-1.5 hover:bg-indigo-400 rounded-lg text-indigo-100 flex items-center gap-1 text-xs">
               <FileSpreadsheet size={14} /> Excel
             </button>
             <input ref={planFileRef} type="file" accept=".xlsx,.xls" className="hidden"
               onChange={e => { if (e.target.files[0]) { importPlanFile(e.target.files[0]); e.target.value = ''; } }} />
-            <button onClick={delPlan} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400">
+            <button onClick={delPlan} className="p-1.5 hover:bg-indigo-400 rounded-lg text-indigo-100">
               <Trash2 size={14} />
             </button>
           </div>
@@ -569,18 +571,18 @@ function CourseCard({ course, onRefresh }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
+    <div className="rounded-2xl shadow-sm border border-primary-200 overflow-hidden">
       {/* Course header */}
-      <div className="flex items-center gap-4 px-5 py-4 group">
+      <div className="flex items-center gap-4 px-5 py-4 group bg-primary-600">
         <button
           onClick={() => setOpen(o => !o)}
-          className="text-gray-300 hover:text-gray-500 transition-colors flex-shrink-0"
+          className="text-primary-200 hover:text-white transition-colors flex-shrink-0"
         >
           {open ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
         </button>
 
-        <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center flex-shrink-0">
-          <BookMarked size={18} className="text-primary-500" />
+        <div className="w-10 h-10 rounded-xl bg-primary-500 flex items-center justify-center flex-shrink-0">
+          <BookMarked size={18} className="text-white" />
         </div>
 
         {editing ? (
@@ -598,14 +600,14 @@ function CourseCard({ course, onRefresh }) {
         ) : (
           <>
             <div className="flex-1 cursor-pointer" onClick={() => setOpen(o => !o)}>
-              <p className="font-semibold text-gray-800">{course.course_name}</p>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <p className="font-semibold text-white">{course.course_name}</p>
+              <p className="text-xs text-primary-200 mt-0.5">
                 {course.course_code} · {course.plan_count || 0} টি প্ল্যান
               </p>
             </div>
             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button onClick={() => setEditing(true)} className="p-2 hover:bg-blue-50 rounded-xl text-blue-400"><Edit2 size={15} /></button>
-              <button onClick={delCourse} className="p-2 hover:bg-red-50 rounded-xl text-red-400"><Trash2 size={15} /></button>
+              <button onClick={() => setEditing(true)} className="p-2 hover:bg-primary-500 rounded-xl text-primary-200"><Edit2 size={15} /></button>
+              <button onClick={delCourse} className="p-2 hover:bg-primary-500 rounded-xl text-primary-200"><Trash2 size={15} /></button>
             </div>
           </>
         )}
@@ -613,7 +615,7 @@ function CourseCard({ course, onRefresh }) {
 
       {/* Plans section */}
       {open && (
-        <div className="px-5 pb-5 border-t border-gray-50 pt-4 space-y-4">
+        <div className="px-5 pb-5 border-t border-primary-700 bg-primary-50 pt-4 space-y-4">
           {plans.length === 0 && !showPlanForm && (
             <p className="text-sm text-gray-400">কোনো প্ল্যান নেই।</p>
           )}
