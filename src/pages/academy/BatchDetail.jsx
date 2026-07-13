@@ -1269,57 +1269,58 @@ export default function BatchDetail() {
 
       {/* Filters */}
       {outline.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
-          {/* Row 1: keyword + quick dropdowns */}
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 space-y-3">
+          {/* Row 1: all controls in one line */}
           <div className="flex flex-wrap gap-2 items-center">
-            <div className="flex items-center gap-1.5 border border-gray-200 rounded-lg px-2 py-1.5 flex-1 min-w-[180px]">
-              <Search size={13} className="text-gray-400 flex-shrink-0" />
-              <input className="text-xs outline-none w-full bg-transparent" placeholder="শিরোনাম / বিস্তারিত খুঁজুন..."
+            <div className="flex items-center gap-1.5 border border-gray-300 rounded-lg px-2.5 py-1.5 w-48">
+              <Search size={13} className="text-gray-500 flex-shrink-0" />
+              <input className="text-xs outline-none w-full bg-transparent text-gray-900 placeholder-gray-500" placeholder="শিরোনাম / বিস্তারিত..."
                 value={filters.keyword} onChange={e => ff('keyword', e.target.value)} />
             </div>
             {[
-              ['teacher', '— টিচার —', teachers.map(t => [t.id, t.full_name])],
-              ['zoom', '— জুম —', zooms.map(z => [z.id, z.account_name])],
-              ['location', '— স্থান —', LOCATION_OPTIONS.map(l => [l, l])],
-              ['rowType', '— ধরণ —', [['class','ক্লাস'],['exam','পরীক্ষা']]],
-              ['day', '— বার —', DAY_NAMES.map(d => [d, d])],
-              ['status', '— স্ট্যাটাস —', [['scheduled','হবে'],['done','সম্পন্ন'],['cancelled','বাতিল']]],
+              ['teacher', 'টিচার', teachers.map(t => [t.id, t.full_name])],
+              ['zoom', 'জুম', zooms.map(z => [z.id, z.account_name])],
+              ['location', 'স্থান', LOCATION_OPTIONS.map(l => [l, l])],
+              ['rowType', 'ধরণ', [['class','ক্লাস'],['exam','পরীক্ষা']]],
+              ['day', 'বার', DAY_NAMES.map(d => [d, d])],
+              ['status', 'স্ট্যাটাস', [['scheduled','হবে'],['done','সম্পন্ন'],['cancelled','বাতিল']]],
             ].map(([key, placeholder, opts]) => (
-              <select key={key} className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 bg-white min-w-[100px]"
+              <select key={key}
+                className="text-xs border border-gray-300 rounded-lg px-2 py-1.5 bg-white text-gray-900 min-w-[90px]"
                 value={filters[key]} onChange={e => ff(key, e.target.value)}>
-                <option value="">{placeholder}</option>
+                <option value="">— {placeholder} —</option>
                 {opts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
               </select>
             ))}
-            <div className="flex gap-1.5 items-center text-xs border border-gray-200 rounded-lg px-2 py-1.5">
-              <span className="text-gray-400 whitespace-nowrap">তারিখ:</span>
-              <input type="date" className="text-xs outline-none bg-transparent" value={filters.dateFrom} onChange={e => ff('dateFrom', e.target.value)} />
-              <span className="text-gray-300">—</span>
-              <input type="date" className="text-xs outline-none bg-transparent" value={filters.dateTo} onChange={e => ff('dateTo', e.target.value)} />
+            <div className="flex gap-1.5 items-center border border-gray-300 rounded-lg px-2.5 py-1.5">
+              <span className="text-xs text-gray-700 font-medium whitespace-nowrap">তারিখ:</span>
+              <input type="date" className="text-xs outline-none bg-transparent text-gray-900" value={filters.dateFrom} onChange={e => ff('dateFrom', e.target.value)} />
+              <span className="text-gray-400 text-xs">—</span>
+              <input type="date" className="text-xs outline-none bg-transparent text-gray-900" value={filters.dateTo} onChange={e => ff('dateTo', e.target.value)} />
             </div>
             {isFiltered && (
               <button onClick={() => setFilters(EMPTY_FILTER)}
-                className="flex items-center gap-1 text-xs text-red-500 border border-red-200 rounded-lg px-2.5 py-1.5 hover:bg-red-50">
+                className="flex items-center gap-1 text-xs font-medium text-red-600 border border-red-300 rounded-lg px-2.5 py-1.5 hover:bg-red-50">
                 <RotateCcw size={11} /> রিসেট
               </button>
             )}
           </div>
           {/* Row 2: subject checkboxes */}
           {uniqueSubjects.length > 0 && (
-            <div className="flex flex-wrap gap-2 items-center border-t border-gray-100 pt-3">
-              <span className="text-xs text-gray-400 font-medium">সাবজেক্ট:</span>
+            <div className="flex flex-wrap gap-x-4 gap-y-1.5 items-center border-t border-gray-200 pt-3">
+              <span className="text-xs font-semibold text-gray-700">সাবজেক্ট:</span>
               {uniqueSubjects.map(s => (
                 <label key={s} className="flex items-center gap-1 text-xs cursor-pointer select-none">
                   <input type="checkbox" className="accent-primary-500"
                     checked={filters.subjects.includes(s)}
                     onChange={e => ff('subjects', e.target.checked ? [...filters.subjects, s] : filters.subjects.filter(x => x !== s))} />
-                  <span className="text-gray-600">{s}</span>
+                  <span className="text-gray-900">{s}</span>
                 </label>
               ))}
             </div>
           )}
           {isFiltered && (
-            <p className="text-xs text-gray-400">{filteredOutline.length} / {outline.length} সারি দেখাচ্ছে</p>
+            <p className="text-xs font-medium text-gray-700">{filteredOutline.length} / {outline.length} সারি দেখাচ্ছে</p>
           )}
         </div>
       )}
