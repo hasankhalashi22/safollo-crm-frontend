@@ -1303,11 +1303,13 @@ export default function BatchDetail() {
                     setFollowForm(f => ({ ...f, source_batch_id: bid, selected_subjects: null }));
                     setSourceSubjects([]);
                     if (bid) {
-                      const r = await academyApi.getBatchOutline(bid);
-                      const rows = r.data || [];
-                      const names = [...new Set(rows.filter(x => x.subject_name).map(x => x.subject_name))];
-                      setSourceSubjects(names);
-                      setFollowForm(f => ({ ...f, selected_subjects: names }));
+                      const sourceBatch = allBatches.find(b => b.id === bid);
+                      if (sourceBatch?.plan_id) {
+                        const r = await academyApi.getPlanSubjects(sourceBatch.plan_id);
+                        const subjects = (r.data || []).map(s => s.subject_name);
+                        setSourceSubjects(subjects);
+                        setFollowForm(f => ({ ...f, selected_subjects: subjects }));
+                      }
                     }
                   }}>
                   <option value="">বেছে নিন</option>
