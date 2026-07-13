@@ -238,7 +238,7 @@ function SubjectRow({ subject, colorIdx, onRefresh, onEditLectures, onImportExce
             {lectureCount > 0 ? `${lectureCount} লেকচার` : 'লেকচার যোগ'}
           </span>
 
-          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+          <div className="flex gap-1 transition-opacity" onClick={e => e.stopPropagation()}>
             {subject.source_subject_id ? (
               <span title="সোর্স প্ল্যান থেকে সিঙ্ক হয় — সেখানে এডিট করুন" className="p-1.5 text-amber-400 cursor-default"><Lock size={14} /></span>
             ) : (
@@ -392,7 +392,7 @@ function PlanCard({ plan, onRefresh }) {
           </div>
 
           {/* Actions */}
-          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+          <div className="flex gap-1 transition-opacity" onClick={e => e.stopPropagation()}>
             <button title="অন্য প্ল্যান থেকে বিষয় ইমপোর্ট" onClick={openImportModal}
               className="p-1.5 hover:bg-indigo-400 rounded-lg text-indigo-100 flex items-center gap-1 text-xs">
               <GitMerge size={14} /> সিঙ্ক ইমপোর্ট
@@ -610,7 +610,7 @@ function CourseCard({ course, onRefresh, index = 0 }) {
                 {course.course_code} · {course.plan_count || 0} টি প্ল্যান
               </p>
             </div>
-            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex gap-1 transition-opacity">
               <button onClick={() => setEditing(true)} className={`p-2 ${cc.btn} rounded-xl ${cc.btnText}`}><Edit2 size={15} /></button>
               <button onClick={delCourse} className={`p-2 ${cc.btn} rounded-xl ${cc.btnText}`}><Trash2 size={15} /></button>
             </div>
