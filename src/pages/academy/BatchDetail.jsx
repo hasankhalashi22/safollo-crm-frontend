@@ -1023,7 +1023,7 @@ export default function BatchDetail() {
   const doneRows = outline.filter(r => r.status === 'done' || r.feedback_status === 'approved');
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="p-3 md:p-6 space-y-4">
       {/* Header */}
       <div className="flex items-center gap-3">
         <button onClick={() => navigate('/academy/batches')} className="p-2 hover:bg-gray-100 rounded-lg text-gray-500"><ArrowLeft size={18} /></button>

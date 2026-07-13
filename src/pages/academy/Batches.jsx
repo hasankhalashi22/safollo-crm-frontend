@@ -53,7 +53,7 @@ export default function Batches() {
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="p-3 md:p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-800">ব্যাচ সমূহ</h1>
         <button onClick={openNew} className="btn-primary flex items-center gap-2"><Plus size={16} /> নতুন ব্যাচ</button>

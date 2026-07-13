@@ -51,17 +51,17 @@ export default function AcademyDashboard() {
   ];
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold text-gray-800">Academy Dashboard</h1>
+    <div className="p-3 md:p-6 space-y-4">
+      <h1 className="text-lg font-bold text-gray-800">Academy Dashboard</h1>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {cards.map(({ label, value, icon: Icon, color }) => (
-          <div key={label} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center gap-4">
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${color}`}>
-              <Icon size={22} />
+          <div key={label} className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${color}`}>
+              <Icon size={18} />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-800">{value}</p>
+              <p className="text-xl font-bold text-gray-800">{value}</p>
               <p className="text-xs text-gray-500">{label}</p>
             </div>
           </div>

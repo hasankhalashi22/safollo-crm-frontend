@@ -122,7 +122,7 @@ export default function PaymentRates() {
   if (loading) return <div className="p-6 text-gray-400">লোড হচ্ছে...</div>;
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-3 md:p-6 space-y-5">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-gray-800">Payment Policy</h1>

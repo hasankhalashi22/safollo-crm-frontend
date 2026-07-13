@@ -94,10 +94,10 @@ export default function TeacherDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-primary-600 text-white px-5 py-4 flex items-center justify-between">
+      <div className="bg-primary-600 text-white px-4 py-3 flex items-center justify-between">
         <div>
           <p className="text-primary-200 text-xs">সাফল্য একাডেমি</p>
-          <h1 className="font-bold text-lg">{teacher.full_name}</h1>
+          <h1 className="font-bold text-base">{teacher.full_name}</h1>
           <p className="text-primary-200 text-xs">{teacher.teacher_code}</p>
         </div>
         <div className="flex items-center gap-1">
@@ -111,39 +111,39 @@ export default function TeacherDashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-3 p-4">
-        <div className="bg-white rounded-2xl p-4 text-center shadow-sm border border-gray-100">
-          <p className="text-2xl font-bold text-blue-600">{upcoming.length}</p>
-          <p className="text-xs text-gray-500 mt-1">আসন্ন ক্লাস</p>
+      <div className="grid grid-cols-3 gap-2 p-3">
+        <div className="bg-white rounded-xl p-3 text-center shadow-sm border border-gray-100">
+          <p className="text-xl font-bold text-blue-600">{upcoming.length}</p>
+          <p className="text-xs text-gray-500 mt-0.5">আসন্ন ক্লাস</p>
         </div>
-        <div className="bg-white rounded-2xl p-4 text-center shadow-sm border border-gray-100">
-          <p className="text-2xl font-bold text-green-600">{done.length}</p>
-          <p className="text-xs text-gray-500 mt-1">সম্পন্ন</p>
+        <div className="bg-white rounded-xl p-3 text-center shadow-sm border border-gray-100">
+          <p className="text-xl font-bold text-green-600">{done.length}</p>
+          <p className="text-xs text-gray-500 mt-0.5">সম্পন্ন</p>
         </div>
-        <div className="bg-white rounded-2xl p-4 text-center shadow-sm border border-gray-100">
-          <p className="text-2xl font-bold text-orange-600">৳{remaining.toLocaleString()}</p>
-          <p className="text-xs text-gray-500 mt-1">বাকি পেমেন্ট</p>
+        <div className="bg-white rounded-xl p-3 text-center shadow-sm border border-gray-100">
+          <p className="text-xl font-bold text-orange-600">৳{remaining.toLocaleString()}</p>
+          <p className="text-xs text-gray-500 mt-0.5">বাকি পেমেন্ট</p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="px-4 flex gap-2 mb-4">
+      <div className="px-3 flex gap-2 mb-3">
         {[['classes', 'আমার ক্লাস', BookOpen], ['payments', 'পেমেন্ট', Banknote]].map(([key, label, Icon]) => (
           <button
             key={key}
             onClick={() => setTab(key)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
               tab === key ? 'bg-primary-500 text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
             }`}
           >
-            <Icon size={15} /> {label}
+            <Icon size={14} /> {label}
           </button>
         ))}
       </div>
 
-      <div className="px-4 pb-8">
+      <div className="px-3 pb-6">
         {tab === 'profile' ? (
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-gray-800">আমার প্রোফাইল</h3>
               <button
@@ -169,38 +169,38 @@ export default function TeacherDashboard() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-100">
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500">ক্লাস</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500">তারিখ</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500">সময়</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500">বিষয়</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500">ব্যাচ</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500">স্ট্যাটাস</th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500">ফিডব্যাক</th>
+                      <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500">ক্লাস</th>
+                      <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500">তারিখ</th>
+                      <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500">সময়</th>
+                      <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500">বিষয়</th>
+                      <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500">ব্যাচ</th>
+                      <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500">স্ট্যাটাস</th>
+                      <th className="px-3 py-2 text-right text-xs font-semibold text-gray-500">ফিডব্যাক</th>
                     </tr>
                   </thead>
                   <tbody>
                     {classes.map((cls, i) => (
                       <tr key={cls.id} className={`border-b border-gray-50 hover:bg-gray-50 transition-colors ${i % 2 === 0 ? '' : 'bg-gray-50/40'}`}>
-                        <td className="px-4 py-3 font-medium text-gray-800 text-xs">
+                        <td className="px-3 py-2 font-medium text-gray-800 text-xs">
                           {cls.class_no ? `ক্লাস-${cls.class_no}` : '—'}
                         </td>
-                        <td className="px-4 py-3 text-xs text-gray-600 whitespace-nowrap">
+                        <td className="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">
                           {cls.scheduled_date ? new Date(cls.scheduled_date).toLocaleDateString('bn-BD') : '—'}
                         </td>
-                        <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{cls.scheduled_time || '—'}</td>
-                        <td className="px-4 py-3 text-xs text-gray-700 max-w-[160px]">
+                        <td className="px-3 py-2 text-xs text-gray-500 whitespace-nowrap">{cls.scheduled_time || '—'}</td>
+                        <td className="px-3 py-2 text-xs text-gray-700 max-w-[140px]">
                           <p className="truncate" title={cls.topic}>{cls.topic || '—'}</p>
                           {cls.zoom_link && (
                             <a href={cls.zoom_link} target="_blank" rel="noreferrer" className="text-primary-500 hover:underline text-[10px]">Zoom →</a>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-xs text-gray-500">{cls.batch_name || '—'}</td>
-                        <td className="px-4 py-3">
+                        <td className="px-3 py-2 text-xs text-gray-500">{cls.batch_name || '—'}</td>
+                        <td className="px-3 py-2">
                           <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLOR[cls.status]}`}>
                             {STATUS_LABEL[cls.status]}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-3 py-2 text-right">
                           {cls.status === 'scheduled' && (() => {
                             const d = (cls.scheduled_date || '').split('T')[0];
                             const t = cls.scheduled_time || '00:00';
@@ -250,18 +250,18 @@ export default function TeacherDashboard() {
                 <p>কোনো পেমেন্ট রেকর্ড নেই</p>
               </div>
             ) : (payData.transactions || []).map(t => (
-              <div key={t.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-3">
+              <div key={t.id} className="bg-white rounded-xl p-3 shadow-sm border border-gray-100 flex items-center gap-3">
                 {t.proof_url ? (
                   <button onClick={() => setZoomImg(t.proof_url)} className="flex-shrink-0">
-                    <img src={t.proof_url} alt="proof" className="w-14 h-14 rounded-xl object-cover border border-gray-200 hover:opacity-90 transition-opacity" />
+                    <img src={t.proof_url} alt="proof" className="w-11 h-11 rounded-lg object-cover border border-gray-200 hover:opacity-90 transition-opacity" />
                   </button>
                 ) : (
-                  <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center">
-                    <Banknote size={20} className="text-gray-300" />
+                  <div className="flex-shrink-0 w-11 h-11 rounded-lg bg-gray-100 flex items-center justify-center">
+                    <Banknote size={18} className="text-gray-300" />
                   </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-gray-800">৳{Number(t.amount || 0).toLocaleString()}</p>
+                  <p className="font-bold text-gray-800 text-sm">৳{Number(t.amount || 0).toLocaleString()}</p>
                   <p className="text-xs text-gray-400 mt-0.5">
                     {t.transaction_date ? new Date(t.transaction_date + 'T00:00:00').toLocaleDateString('bn-BD') : '—'}
                   </p>
