@@ -398,9 +398,6 @@ function OutlineRow({ row, idx, teachers, zooms, allRows, onRefresh, onFeedback,
             <td style={{background: CC[11][1]}} className="px-2 py-2"><span className={`text-xs px-2 py-0.5 rounded-full ${st.cls}`}>{st.label}</span></td>
             <td className="px-2 py-2">
               <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                {row.status === 'scheduled' && row.row_type === 'class' && (
-                  <button onClick={() => onFeedback(row)} className="p-1.5 text-green-600 hover:bg-green-50 rounded" title="ফিডব্যাক"><CheckCircle size={13} /></button>
-                )}
                 {isSynced ? (
                   <span title="সোর্স রুটিন থেকে সিঙ্ক হয় — সেখানে এডিট করুন" className="p-1.5 text-amber-400 cursor-default"><Lock size={13} /></span>
                 ) : (
@@ -409,6 +406,7 @@ function OutlineRow({ row, idx, teachers, zooms, allRows, onRefresh, onFeedback,
                     <button onClick={del} className="p-1.5 text-red-400 hover:bg-red-50 rounded"><Trash2 size={13} /></button>
                   </>
                 )}
+
               </div>
             </td>
           </>
@@ -1381,9 +1379,11 @@ export default function BatchDetail() {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="flex flex-col gap-1">
                     <label className="text-xs font-medium text-gray-600">স্থান</label>
-                    <input type="text" className="input-field text-sm" placeholder="যেমন: রিমোট / ঢাকা"
+                    <select className="input-field text-sm"
                       value={followForm.location}
-                      onChange={e => setFollowForm(f => ({ ...f, location: e.target.value }))} />
+                      onChange={e => setFollowForm(f => ({ ...f, location: e.target.value }))}>
+                      {LOCATION_OPTIONS.map(l => <option key={l} value={l}>{l}</option>)}
+                    </select>
                   </div>
                   <div className="flex flex-col gap-1">
                     <label className="text-xs font-medium text-gray-600">জুম একাউন্ট</label>
