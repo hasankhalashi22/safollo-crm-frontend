@@ -1269,12 +1269,12 @@ export default function BatchDetail() {
 
       {/* Filters */}
       {outline.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 space-y-3">
+        <div className="bg-slate-50 rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3">
           {/* Row 1: all controls in one line */}
-          <div className="flex flex-wrap gap-2 items-center">
-            <div className="flex items-center gap-1.5 border border-gray-300 rounded-lg px-2.5 bg-white" style={{height:30}}>
+          <div className="flex flex-wrap gap-2 items-center justify-between">
+            <div className="flex items-center gap-1.5 border border-slate-300 rounded-lg px-2.5 bg-white flex-1" style={{height:30}}>
               <Search size={13} className="text-gray-500 flex-shrink-0" />
-              <input className="text-xs outline-none w-36 bg-transparent text-gray-900 placeholder-gray-500" placeholder="শিরোনাম / বিস্তারিত..."
+              <input className="text-xs outline-none w-full bg-transparent text-gray-900 placeholder-gray-500" placeholder="শিরোনাম / বিস্তারিত..."
                 value={filters.keyword} onChange={e => ff('keyword', e.target.value)} />
             </div>
             {[
@@ -1287,13 +1287,13 @@ export default function BatchDetail() {
             ].map(([key, placeholder, opts]) => (
               <select key={key}
                 style={{height:30}}
-                className="text-xs border border-gray-300 rounded-lg px-2 bg-white text-gray-900 min-w-[90px]"
+                className="text-xs border border-slate-300 rounded-lg px-2 bg-white text-gray-900 flex-1 min-w-[80px]"
                 value={filters[key]} onChange={e => ff(key, e.target.value)}>
                 <option value="">— {placeholder} —</option>
                 {opts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
               </select>
             ))}
-            <div className="flex gap-1.5 items-center border border-gray-300 rounded-lg px-2.5" style={{height:30}}>
+            <div className="flex gap-1.5 items-center border border-slate-300 rounded-lg px-2.5 bg-white" style={{height:30}}>
               <span className="text-xs text-gray-700 font-medium whitespace-nowrap">তারিখ:</span>
               <input type="date" className="text-xs outline-none bg-transparent text-gray-900" value={filters.dateFrom} onChange={e => ff('dateFrom', e.target.value)} />
               <span className="text-gray-400 text-xs">—</span>
@@ -1308,7 +1308,7 @@ export default function BatchDetail() {
           </div>
           {/* Row 2: subject checkboxes */}
           {uniqueSubjects.length > 0 && (
-            <div className="flex flex-wrap gap-x-4 gap-y-1.5 items-center border-t border-gray-200 pt-3">
+            <div className="flex flex-wrap gap-x-4 gap-y-1.5 items-center border-t border-slate-200 pt-3">
               <span className="text-xs font-semibold text-gray-700">সাবজেক্ট:</span>
               {uniqueSubjects.map(s => (
                 <label key={s} className="flex items-center gap-1 text-xs cursor-pointer select-none">
