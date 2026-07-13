@@ -353,6 +353,7 @@ export const academyApi = {
 
   // Follow batch
   followBatch: (targetBatchId, data) => api.post(`/api/academy/batches/${targetBatchId}/follow`, data),
+  clearBatchOutline: (batchId) => api.delete(`/api/academy/batches/${batchId}/outline`),
 
   // Reports
   getScheduleReport: (params) => api.get('/api/academy/reports/schedule', { params }),

@@ -1162,6 +1162,16 @@ export default function BatchDetail() {
               className="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-xl border-2 border-emerald-200 bg-white hover:bg-emerald-50 text-emerald-600">
               <FileSpreadsheet size={14} /> Excel
             </button>
+            <button onClick={async () => {
+              if (!confirm(`পুরো রুটিন (${outline.length} টি সারি) মুছে ফেলবেন?`)) return;
+              try {
+                await academyApi.clearBatchOutline(id);
+                toast.success('রুটিন মুছে ফেলা হয়েছে');
+                loadOutline();
+              } catch { toast.error('সমস্যা হয়েছে'); }
+            }} className="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-xl border-2 border-red-300 bg-white hover:bg-red-50 text-red-700">
+              <Trash2 size={14} /> রুটিন মুছুন
+            </button>
           </>
         )}
       </div>
