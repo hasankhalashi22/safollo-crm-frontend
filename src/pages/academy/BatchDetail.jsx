@@ -974,7 +974,9 @@ export default function BatchDetail() {
     source_batch_id: '', cutoff_type: 'class_no', cutoff_value: '',
     guideline_classes: 0, subjective_per_subject: 0, model_tests: 0,
     class_mode: 'online', location: 'রিমোট', zoom_account_id: '',
+    selected_subjects: null,
   });
+  const [sourceSubjects, setSourceSubjects] = useState([]);
   const [following, setFollowing] = useState(false);
   const [insertAfterRowNo, setInsertAfterRowNo] = useState(null);
   const [addForm, setAddForm] = useState({
@@ -1012,16 +1014,23 @@ export default function BatchDetail() {
       }
 
       // 2. Follow main rows
-      const r = await academyApi.followBatch(id, followForm);
+      const followPayload = { ...followForm };
+      if (!followPayload.selected_subjects || followPayload.selected_subjects.length === sourceSubjects.length) {
+        followPayload.selected_subjects = null;
+      }
+      const r = await academyApi.followBatch(id, followPayload);
       const { imported, from_cutoff, before_cutoff } = r.data || {};
 
       // 3. Subjective exam rows (one per subject per round)
       const subjectiveRounds = Number(followForm.subjective_per_subject) || 0;
-      if (subjectiveRounds > 0 && batchSubjects.length > 0) {
+      const subjSubjects = followPayload.selected_subjects
+        ? batchSubjects.filter(s => followPayload.selected_subjects.includes(s.subject_name))
+        : batchSubjects;
+      if (subjectiveRounds > 0 && subjSubjects.length > 0) {
         const subjRows = [];
         let examNo = 1;
         for (let q = 1; q <= subjectiveRounds; q++) {
-          for (const subj of batchSubjects) {
+          for (const subj of subjSubjects) {
             subjRows.push({
               row_type: 'exam', label: 'সাবজেক্টিভ',
               class_no: null, exam_no: examNo++,
@@ -1052,7 +1061,8 @@ export default function BatchDetail() {
       const extras = guidelineCount + (subjectiveRounds * batchSubjects.length) + modelCount;
       toast.success(`${imported} টি রুটিন সারি যুক্ত হয়েছে (${from_cutoff} প্রথমে, ${before_cutoff} শেষে)${extras > 0 ? ` + ${extras} টি অতিরিক্ত সারি` : ''}`);
       setShowFollowModal(false);
-      setFollowForm({ source_batch_id: '', cutoff_type: 'class_no', cutoff_value: '', guideline_classes: 0, subjective_per_subject: 0, model_tests: 0, class_mode: 'online', location: 'রিমোট', zoom_account_id: '' });
+      setSourceSubjects([]);
+      setFollowForm({ source_batch_id: '', cutoff_type: 'class_no', cutoff_value: '', guideline_classes: 0, subjective_per_subject: 0, model_tests: 0, class_mode: 'online', location: 'রিমোট', zoom_account_id: '', selected_subjects: null });
       loadOutline();
     } catch { toast.error('সমস্যা হয়েছে'); }
     setFollowing(false);
@@ -1288,13 +1298,52 @@ export default function BatchDetail() {
                 <label className="text-sm font-medium text-gray-600">উৎস ব্যাচ</label>
                 <select className="input-field"
                   value={followForm.source_batch_id}
-                  onChange={e => setFollowForm(f => ({ ...f, source_batch_id: e.target.value }))}>
+                  onChange={async e => {
+                    const bid = e.target.value;
+                    setFollowForm(f => ({ ...f, source_batch_id: bid, selected_subjects: null }));
+                    setSourceSubjects([]);
+                    if (bid) {
+                      const r = await academyApi.getBatchOutline(bid);
+                      const rows = r.data || [];
+                      const names = [...new Set(rows.filter(x => x.subject_name).map(x => x.subject_name))];
+                      setSourceSubjects(names);
+                      setFollowForm(f => ({ ...f, selected_subjects: names }));
+                    }
+                  }}>
                   <option value="">বেছে নিন</option>
                   {allBatches.filter(b => b.id !== id).map(b => (
                     <option key={b.id} value={b.id}>{b.batch_name} — {b.course_name}</option>
                   ))}
                 </select>
               </div>
+
+              {sourceSubjects.length > 0 && (
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-gray-600">সাবজেক্ট বেছে নিন</label>
+                  <div className="border border-gray-200 rounded-xl p-3 space-y-2 bg-gray-50">
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700 cursor-pointer pb-2 border-b border-gray-200">
+                      <input type="checkbox"
+                        checked={followForm.selected_subjects?.length === sourceSubjects.length}
+                        onChange={e => setFollowForm(f => ({ ...f, selected_subjects: e.target.checked ? [...sourceSubjects] : [] }))} />
+                      সব সাবজেক্ট
+                    </label>
+                    {sourceSubjects.map(s => (
+                      <label key={s} className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                        <input type="checkbox"
+                          checked={followForm.selected_subjects?.includes(s) ?? true}
+                          onChange={e => setFollowForm(f => {
+                            const cur = f.selected_subjects ?? [...sourceSubjects];
+                            return { ...f, selected_subjects: e.target.checked ? [...cur, s] : cur.filter(x => x !== s) };
+                          })} />
+                        {s}
+                      </label>
+                    ))}
+                  </div>
+                  {(followForm.selected_subjects?.length ?? sourceSubjects.length) < sourceSubjects.length && (
+                    <p className="text-xs text-amber-600">আংশিক সিলেকশন: শুধু এই সাবজেক্টের ক্লাস ও রেগুলার এক্সাম আসবে। রিভিশন এক্সাম আসবে না।</p>
+                  )}
+                </div>
+              )}
 
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-gray-600">কাটঅফ ধরন</label>
