@@ -686,7 +686,11 @@ export default function Courses() {
 
   const load = () => {
     setLoading(true);
-    academyApi.getCourses().then(r => { setCourses(r.data || []); setLoading(false); });
+    academyApi.getCourses().then(r => {
+      const sorted = (r.data || []).sort((a, b) => a.course_code.localeCompare(b.course_code, undefined, { numeric: true }));
+      setCourses(sorted);
+      setLoading(false);
+    });
   };
   useEffect(() => { load(); }, []);
 
