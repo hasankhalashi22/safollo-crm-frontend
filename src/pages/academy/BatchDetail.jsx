@@ -1272,31 +1272,31 @@ export default function BatchDetail() {
         <div className="bg-slate-50 rounded-2xl border-2 border-indigo-200 shadow-sm p-4 space-y-3">
           {/* Row 1: all controls in one line */}
           <div className="flex flex-wrap gap-2 items-center justify-between">
-            <div className="flex items-center gap-1.5 border border-slate-300 rounded-lg px-2.5 bg-white flex-1" style={{height:30}}>
-              <Search size={13} className="text-gray-500 flex-shrink-0" />
-              <input className="text-xs outline-none w-full bg-transparent text-gray-900 placeholder-gray-500" placeholder="শিরোনাম / বিস্তারিত..."
+            <div className="flex items-center gap-1.5 border-2 border-violet-300 rounded-lg px-2.5 bg-violet-50 flex-1" style={{height:30}}>
+              <Search size={13} className="text-violet-500 flex-shrink-0" />
+              <input className="text-xs outline-none w-full bg-transparent text-gray-900 placeholder-violet-400" placeholder="শিরোনাম / বিস্তারিত..."
                 value={filters.keyword} onChange={e => ff('keyword', e.target.value)} />
             </div>
             {[
-              ['teacher', 'টিচার', teachers.map(t => [t.id, t.full_name])],
-              ['zoom', 'জুম', zooms.map(z => [z.id, z.account_name])],
-              ['location', 'স্থান', LOCATION_OPTIONS.map(l => [l, l])],
-              ['rowType', 'ধরণ', [['class','ক্লাস'],['exam','পরীক্ষা']]],
-              ['day', 'বার', DAY_NAMES.map(d => [d, d])],
-              ['status', 'স্ট্যাটাস', [['scheduled','হবে'],['done','সম্পন্ন'],['cancelled','বাতিল']]],
-            ].map(([key, placeholder, opts]) => (
+              ['teacher', 'টিচার', teachers.map(t => [t.id, t.full_name]), 'border-blue-300 bg-blue-50 text-blue-900'],
+              ['zoom', 'জুম', zooms.map(z => [z.id, z.account_name]), 'border-cyan-300 bg-cyan-50 text-cyan-900'],
+              ['location', 'স্থান', LOCATION_OPTIONS.map(l => [l, l]), 'border-teal-300 bg-teal-50 text-teal-900'],
+              ['rowType', 'ধরণ', [['class','ক্লাস'],['exam','পরীক্ষা']], 'border-orange-300 bg-orange-50 text-orange-900'],
+              ['day', 'বার', DAY_NAMES.map(d => [d, d]), 'border-pink-300 bg-pink-50 text-pink-900'],
+              ['status', 'স্ট্যাটাস', [['scheduled','হবে'],['done','সম্পন্ন'],['cancelled','বাতিল']], 'border-green-300 bg-green-50 text-green-900'],
+            ].map(([key, placeholder, opts, clr]) => (
               <select key={key}
                 style={{height:30}}
-                className="text-xs border border-slate-300 rounded-lg px-2 bg-white text-gray-900 flex-1 min-w-[80px]"
+                className={`text-xs border-2 rounded-lg px-2 flex-1 min-w-[80px] ${clr}`}
                 value={filters[key]} onChange={e => ff(key, e.target.value)}>
                 <option value="">— {placeholder} —</option>
                 {opts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
               </select>
             ))}
-            <div className="flex gap-1.5 items-center border border-slate-300 rounded-lg px-2.5 bg-white" style={{height:30}}>
-              <span className="text-xs text-gray-700 font-medium whitespace-nowrap">তারিখ:</span>
+            <div className="flex gap-1.5 items-center border-2 border-amber-300 rounded-lg px-2.5 bg-amber-50" style={{height:30}}>
+              <span className="text-xs text-amber-700 font-medium whitespace-nowrap">তারিখ:</span>
               <input type="date" className="text-xs outline-none bg-transparent text-gray-900" value={filters.dateFrom} onChange={e => ff('dateFrom', e.target.value)} />
-              <span className="text-gray-400 text-xs">—</span>
+              <span className="text-amber-300 text-xs">—</span>
               <input type="date" className="text-xs outline-none bg-transparent text-gray-900" value={filters.dateTo} onChange={e => ff('dateTo', e.target.value)} />
             </div>
             <button onClick={() => setFilters(EMPTY_FILTER)}
