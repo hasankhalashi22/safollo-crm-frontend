@@ -411,7 +411,7 @@ function PlanCard({ plan, onRefresh }) {
 
         {/* Subjects — indented */}
         {open && (
-          <div className="pl-8 pr-4 py-3 space-y-2 border-t border-gray-100">
+          <div className="pl-8 pr-3 py-3 space-y-2 border-t border-indigo-100">
             {/* Left border accent */}
             <div className="relative">
               <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gray-200 rounded-full -ml-4"></div>
@@ -615,7 +615,7 @@ function CourseCard({ course, onRefresh }) {
 
       {/* Plans section */}
       {open && (
-        <div className="px-5 pb-5 border-t border-primary-700 bg-primary-50 pt-4 space-y-4">
+        <div className="pl-8 pr-4 pb-5 border-t border-primary-700 bg-primary-50 pt-4 space-y-4">
           {plans.length === 0 && !showPlanForm && (
             <p className="text-sm text-gray-400">কোনো প্ল্যান নেই।</p>
           )}
