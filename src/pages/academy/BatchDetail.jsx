@@ -1269,7 +1269,7 @@ export default function BatchDetail() {
 
       {/* Filters */}
       {outline.length > 0 && (
-        <div className="bg-slate-50 rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3">
+        <div className="bg-slate-50 rounded-2xl border-2 border-indigo-200 shadow-sm p-4 space-y-3">
           {/* Row 1: all controls in one line */}
           <div className="flex flex-wrap gap-2 items-center justify-between">
             <div className="flex items-center gap-1.5 border border-slate-300 rounded-lg px-2.5 bg-white flex-1" style={{height:30}}>
@@ -1299,12 +1299,11 @@ export default function BatchDetail() {
               <span className="text-gray-400 text-xs">—</span>
               <input type="date" className="text-xs outline-none bg-transparent text-gray-900" value={filters.dateTo} onChange={e => ff('dateTo', e.target.value)} />
             </div>
-            {isFiltered && (
-              <button onClick={() => setFilters(EMPTY_FILTER)}
-                style={{height:30}} className="flex items-center gap-1 text-xs font-medium text-red-600 border border-red-300 rounded-lg px-2.5 hover:bg-red-50">
-                <RotateCcw size={11} /> রিসেট
-              </button>
-            )}
+            <button onClick={() => setFilters(EMPTY_FILTER)}
+              style={{height:30}} className={`flex items-center gap-1 text-xs font-medium rounded-lg px-2.5 border flex-shrink-0 transition-colors ${isFiltered ? 'text-red-600 border-red-300 bg-white hover:bg-red-50' : 'text-gray-300 border-gray-200 cursor-default'}`}
+              disabled={!isFiltered}>
+              <RotateCcw size={11} /> রিসেট
+            </button>
           </div>
           {/* Row 2: subject checkboxes */}
           {uniqueSubjects.length > 0 && (
