@@ -351,6 +351,9 @@ export const academyApi = {
   getAcademySettings: () => api.get('/api/academy/settings'),
   updateAcademySettings: (data) => api.put('/api/academy/settings', data),
 
+  // Follow batch
+  followBatch: (targetBatchId, data) => api.post(`/api/academy/batches/${targetBatchId}/follow`, data),
+
   // Reports
   getScheduleReport: (params) => api.get('/api/academy/reports/schedule', { params }),
 

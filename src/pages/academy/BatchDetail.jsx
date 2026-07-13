@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Plus, ArrowLeft, Edit2, Trash2, CheckCircle, Clock, Save, X, Wand2, FileDown, FileSpreadsheet } from 'lucide-react';
+import { Plus, ArrowLeft, Edit2, Trash2, CheckCircle, Clock, Save, X, Wand2, FileDown, FileSpreadsheet, GitMerge } from 'lucide-react';
 import { academyApi } from '../../api/client';
 import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
@@ -962,6 +962,10 @@ export default function BatchDetail() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showGenerator, setShowGenerator] = useState(false);
   const [showPdf, setShowPdf] = useState(false);
+  const [showFollowModal, setShowFollowModal] = useState(false);
+  const [allBatches, setAllBatches] = useState([]);
+  const [followForm, setFollowForm] = useState({ source_batch_id: '', cutoff_type: 'class_no', cutoff_value: '' });
+  const [following, setFollowing] = useState(false);
   const [insertAfterRowNo, setInsertAfterRowNo] = useState(null);
   const [addForm, setAddForm] = useState({
     row_type: 'class', scheduled_date: '', scheduled_time: '', topic: '', subject_name: '',
@@ -970,8 +974,27 @@ export default function BatchDetail() {
 
   const loadOutline = () => academyApi.getBatchOutline(id).then(r => setOutline(r.data || []));
 
+  const handleFollow = async () => {
+    if (!followForm.source_batch_id) return toast.error('উৎস ব্যাচ বেছে নিন');
+    if (!followForm.cutoff_value) return toast.error('কাটঅফ মান দিন');
+    setFollowing(true);
+    try {
+      const r = await academyApi.followBatch(id, followForm);
+      const { imported, from_cutoff, before_cutoff } = r.data || {};
+      toast.success(`${imported} টি সারি যুক্ত হয়েছে (${from_cutoff} টি প্রথমে, ${before_cutoff} টি শেষে)`);
+      setShowFollowModal(false);
+      setFollowForm({ source_batch_id: '', cutoff_type: 'class_no', cutoff_value: '' });
+      loadOutline();
+    } catch { toast.error('সমস্যা হয়েছে'); }
+    setFollowing(false);
+  };
+
   useEffect(() => {
-    academyApi.getBatches().then(r => setBatch((r.data || []).find(x => x.id === id) || null));
+    academyApi.getBatches().then(r => {
+      const list = r.data || [];
+      setBatch(list.find(x => x.id === id) || null);
+      setAllBatches(list);
+    });
     academyApi.getTeachers().then(r => setTeachers(r.data || []));
     academyApi.getZoomAccounts().then(r => setZooms(r.data || []));
     loadOutline();
@@ -1047,6 +1070,10 @@ export default function BatchDetail() {
         <button onClick={() => { setShowAddForm(s => !s); setShowGenerator(false); setInsertAfterRowNo(null); }}
           className="flex items-center gap-2 text-sm font-medium px-5 py-2 rounded-xl border-2 border-gray-200 bg-white hover:bg-gray-50 text-gray-600">
           <Plus size={14} /> ম্যানুয়াল সারি
+        </button>
+        <button onClick={() => setShowFollowModal(true)}
+          className="flex items-center gap-2 text-sm font-medium px-5 py-2 rounded-xl border-2 border-indigo-200 bg-white hover:bg-indigo-50 text-indigo-600">
+          <GitMerge size={14} /> ব্যাচ ফলো করুন
         </button>
         {outline.length > 0 && (
           <>
@@ -1155,6 +1182,79 @@ export default function BatchDetail() {
       {showPdf && outline.length > 0 && (
         <PdfModal rows={outline} batchName={batch?.batch_name || 'রুটিন'}
           teachers={teachers} zooms={zooms} onClose={() => setShowPdf(false)} />
+      )}
+
+      {showFollowModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 space-y-5">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-gray-800 flex items-center gap-2"><GitMerge size={18} /> ব্যাচ ফলো করুন</h3>
+              <button onClick={() => setShowFollowModal(false)}><X size={20} className="text-gray-400" /></button>
+            </div>
+
+            <p className="text-xs text-gray-500">
+              উৎস ব্যাচের রুটিন থেকে কাটঅফের পর থেকে আগে আসবে, আগেরগুলো শেষে যুক্ত হবে।
+              গাইডলাইন, সাবজেক্টিভ ও মডেল টেস্ট আসবে না।
+            </p>
+
+            <div className="space-y-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-gray-600">উৎস ব্যাচ</label>
+                <select className="input-field"
+                  value={followForm.source_batch_id}
+                  onChange={e => setFollowForm(f => ({ ...f, source_batch_id: e.target.value }))}>
+                  <option value="">বেছে নিন</option>
+                  {allBatches.filter(b => b.id !== id).map(b => (
+                    <option key={b.id} value={b.id}>{b.batch_name} — {b.course_name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-gray-600">কাটঅফ ধরন</label>
+                <div className="flex gap-3">
+                  {[['class_no', 'ক্লাস নম্বর'], ['date', 'তারিখ']].map(([v, l]) => (
+                    <label key={v} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                      <input type="radio" name="cutoff_type" value={v}
+                        checked={followForm.cutoff_type === v}
+                        onChange={() => setFollowForm(f => ({ ...f, cutoff_type: v, cutoff_value: '' }))} />
+                      {l}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-gray-600">
+                  {followForm.cutoff_type === 'class_no' ? 'কোন ক্লাস থেকে শুরু?' : 'কোন তারিখ থেকে শুরু?'}
+                </label>
+                {followForm.cutoff_type === 'class_no' ? (
+                  <input type="number" min="1" className="input-field" placeholder="যেমন: ১৫"
+                    value={followForm.cutoff_value}
+                    onChange={e => setFollowForm(f => ({ ...f, cutoff_value: e.target.value }))} />
+                ) : (
+                  <input type="date" className="input-field"
+                    value={followForm.cutoff_value}
+                    onChange={e => setFollowForm(f => ({ ...f, cutoff_value: e.target.value }))} />
+                )}
+                <p className="text-xs text-gray-400">
+                  এই {followForm.cutoff_type === 'class_no' ? 'নম্বর' : 'তারিখ'} থেকে শুরু হবে — আগেরগুলো শেষে যাবে
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-1">
+              <button onClick={handleFollow} disabled={following}
+                className="flex-1 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors">
+                {following ? 'যুক্ত হচ্ছে...' : 'রুটিন যুক্ত করুন'}
+              </button>
+              <button onClick={() => setShowFollowModal(false)}
+                className="px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 text-sm hover:bg-gray-50">
+                বাতিল
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
