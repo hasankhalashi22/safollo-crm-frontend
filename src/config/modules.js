@@ -86,7 +86,7 @@ export const MODULES = [
     sidebar: [
       { to: '/academy', icon: BarChart2, label: 'Dashboard', end: true },
       { to: '/academy/courses', icon: BookMarked, label: 'Courses & Plans' },
-      { to: '/academy/batches', icon: Layers, label: 'Batches' },
+      { to: '/academy/batches', icon: Layers, label: 'Routines' },
       { to: '/academy/teachers', icon: UserCheck, label: 'Teachers' },
       { to: '/academy/teacher-payments', icon: Banknote, label: 'Teacher Payments' },
       { to: '/academy/payment-rates', icon: DollarSign, label: 'Payment Rates' },
