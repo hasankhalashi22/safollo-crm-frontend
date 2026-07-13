@@ -54,9 +54,9 @@ export default function Batches() {
 
   return (
     <div className="p-3 md:p-6 space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-xl font-bold text-gray-800 whitespace-nowrap">ব্যাচ সমূহ</h1>
-        <button onClick={openNew} className="btn-primary flex items-center gap-1.5 text-sm whitespace-nowrap"><Plus size={15} /> নতুন ব্যাচ ও রুটিন তৈরি করুন</button>
+      <div className="flex items-center gap-4">
+        <h1 className="text-xl font-bold text-gray-800 flex-1">ব্যাচ সমূহ</h1>
+        <button onClick={openNew} className="btn-primary flex items-center justify-center gap-1.5 text-sm w-1/3"><Plus size={15} /> নতুন ব্যাচ ও রুটিন তৈরি করুন</button>
       </div>
 
       {showForm && (
