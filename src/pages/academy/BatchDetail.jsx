@@ -1134,11 +1134,15 @@ export default function BatchDetail() {
   const [filters, setFilters] = useState(EMPTY_FILTER);
   const ff = (k, v) => setFilters(f => ({ ...f, [k]: v }));
 
-  const uniqueSubjects = [...new Set(outline.map(r => r.subject_name).filter(Boolean))];
+  const uniqueSubjects = batchSubjects.map(s => s.subject_name);
   const DAY_NAMES = ['রবি','সোম','মঙ্গল','বুধ','বৃহ','শুক্র','শনি'];
 
   const filteredOutline = outline.filter(r => {
-    if (filters.subjects.length > 0 && !filters.subjects.includes(r.subject_name || '')) return false;
+    if (filters.subjects.length > 0) {
+      const sn = r.subject_name || '';
+      const matched = filters.subjects.some(s => sn === s || sn.startsWith(s + '-'));
+      if (!matched) return false;
+    }
     if (filters.teacher && r.teacher_id !== filters.teacher) return false;
     if (filters.dateFrom && r.scheduled_date && r.scheduled_date < filters.dateFrom) return false;
     if (filters.dateTo && r.scheduled_date && r.scheduled_date > filters.dateTo) return false;
