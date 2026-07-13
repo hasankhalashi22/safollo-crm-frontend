@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, ChevronRight, ChevronDown, Edit2, Trash2, BookMarked, Save, X, BookOpen, Upload, Download, FileSpreadsheet } from 'lucide-react';
+import { Plus, ChevronRight, ChevronDown, Edit2, Trash2, BookMarked, Save, X, BookOpen, Upload, Download, FileSpreadsheet, Lock, GitMerge } from 'lucide-react';
 import { academyApi } from '../../api/client';
 import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
@@ -237,17 +237,17 @@ function SubjectRow({ subject, colorIdx, onRefresh, onEditLectures, onImportExce
           </span>
 
           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
-            <button
-              title="Excel থেকে লেকচার ইমপোর্ট"
-              onClick={() => fileRef.current?.click()}
-              className="p-1.5 hover:bg-green-50 rounded-lg text-green-500"
-            >
-              <Upload size={14} />
-            </button>
-            <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden"
-              onChange={e => { if (e.target.files[0]) { onImportExcel(subject.id, e.target.files[0]); e.target.value = ''; } }} />
-            <button onClick={() => setEditing(true)} className="p-1.5 hover:bg-blue-50 rounded-lg text-blue-400"><Edit2 size={14} /></button>
-            <button onClick={del} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 size={14} /></button>
+            {subject.source_subject_id ? (
+              <span title="সোর্স প্ল্যান থেকে সিঙ্ক হয় — সেখানে এডিট করুন" className="p-1.5 text-amber-400 cursor-default"><Lock size={14} /></span>
+            ) : (
+              <>
+                <button title="Excel থেকে লেকচার ইমপোর্ট" onClick={() => fileRef.current?.click()} className="p-1.5 hover:bg-green-50 rounded-lg text-green-500"><Upload size={14} /></button>
+                <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden"
+                  onChange={e => { if (e.target.files[0]) { onImportExcel(subject.id, e.target.files[0]); e.target.value = ''; } }} />
+                <button onClick={() => setEditing(true)} className="p-1.5 hover:bg-blue-50 rounded-lg text-blue-400"><Edit2 size={14} /></button>
+                <button onClick={del} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 size={14} /></button>
+              </>
+            )}
           </div>
         </>
       )}
@@ -263,6 +263,13 @@ function PlanCard({ plan, onRefresh }) {
   const [newSubject, setNewSubject] = useState('');
   const [showAdd, setShowAdd] = useState(false);
   const [lectureModal, setLectureModal] = useState(null);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [allPlans, setAllPlans] = useState([]);
+  const [importMode, setImportMode] = useState('plan');
+  const [importSourcePlanId, setImportSourcePlanId] = useState('');
+  const [importSourceSubjectId, setImportSourceSubjectId] = useState('');
+  const [importSourceSubjects, setImportSourceSubjects] = useState([]);
+  const [importing, setImporting] = useState(false);
   const planFileRef = useRef();
 
   const loadSubjects = async () => {
@@ -305,6 +312,47 @@ function PlanCard({ plan, onRefresh }) {
     } catch { toast.dismiss(); toast.error('ইমপোর্ট ব্যর্থ হয়েছে'); }
   };
 
+  const openImportModal = async () => {
+    const r = await academyApi.getCourses();
+    const courses = r.data || [];
+    const plans = [];
+    for (const c of courses) {
+      const pr = await academyApi.getCoursePlans(c.id);
+      (pr.data || []).forEach(p => { if (p.id !== plan.id) plans.push({ ...p, course_name: c.course_name }); });
+    }
+    setAllPlans(plans);
+    setImportSourcePlanId(''); setImportSourceSubjectId(''); setImportSourceSubjects([]);
+    setImportMode('plan');
+    setShowImportModal(true);
+  };
+
+  const onImportSourcePlanChange = async (planId) => {
+    setImportSourcePlanId(planId);
+    setImportSourceSubjectId('');
+    if (planId) {
+      const r = await academyApi.getPlanSubjects(planId);
+      setImportSourceSubjects(r.data || []);
+    } else setImportSourceSubjects([]);
+  };
+
+  const handleImport = async () => {
+    setImporting(true);
+    try {
+      if (importMode === 'plan') {
+        if (!importSourcePlanId) return toast.error('প্ল্যান বেছে নিন');
+        const r = await academyApi.importPlanSubjects(plan.id, importSourcePlanId);
+        toast.success(`${r.data?.imported || 0} টি বিষয় যুক্ত হয়েছে`);
+      } else {
+        if (!importSourceSubjectId) return toast.error('বিষয় বেছে নিন');
+        await academyApi.importSubject(plan.id, importSourceSubjectId);
+        toast.success('বিষয় যুক্ত হয়েছে');
+      }
+      setShowImportModal(false);
+      if (!open) setOpen(true); else loadSubjects();
+    } catch { toast.error('সমস্যা হয়েছে'); }
+    setImporting(false);
+  };
+
   // Totals
   const subjectCount = subjects.length > 0 ? subjects.length : (plan.subject_count || 0);
   const totalLectures = subjects.reduce((s, sub) => s + Number(sub.lecture_count || 0), 0);
@@ -343,9 +391,13 @@ function PlanCard({ plan, onRefresh }) {
 
           {/* Import plan Excel */}
           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+            <button title="অন্য প্ল্যান থেকে বিষয় ইমপোর্ট" onClick={openImportModal}
+              className="p-1.5 hover:bg-indigo-50 rounded-lg text-indigo-500 flex items-center gap-1 text-xs">
+              <GitMerge size={14} /> সিঙ্ক ইমপোর্ট
+            </button>
             <button title="Excel দিয়ে পুরো প্ল্যান ইমপোর্ট" onClick={() => planFileRef.current?.click()}
               className="p-1.5 hover:bg-green-50 rounded-lg text-green-500 flex items-center gap-1 text-xs">
-              <FileSpreadsheet size={14} /> ইমপোর্ট
+              <FileSpreadsheet size={14} /> Excel
             </button>
             <input ref={planFileRef} type="file" accept=".xlsx,.xls" className="hidden"
               onChange={e => { if (e.target.files[0]) { importPlanFile(e.target.files[0]); e.target.value = ''; } }} />
@@ -426,6 +478,56 @@ function PlanCard({ plan, onRefresh }) {
           onClose={() => setLectureModal(null)}
           onSaved={() => { setLectureModal(null); loadSubjects(); }}
         />
+      )}
+
+      {showImportModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 space-y-5">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-gray-800 flex items-center gap-2"><GitMerge size={18} /> সিঙ্ক ইমপোর্ট</h3>
+              <button onClick={() => setShowImportModal(false)}><X size={20} className="text-gray-400" /></button>
+            </div>
+            <p className="text-xs text-gray-500">ইমপোর্ট হওয়া বিষয়গুলো সোর্স থেকে সিঙ্ক থাকবে — সোর্সে এডিট হলে এখানেও আপডেট হবে।</p>
+
+            <div className="flex gap-3">
+              {[['plan', 'পুরো প্ল্যান'], ['subject', 'একটি বিষয়']].map(([v, l]) => (
+                <label key={v} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                  <input type="radio" name="import_mode" value={v} checked={importMode === v}
+                    onChange={() => { setImportMode(v); setImportSourceSubjectId(''); }} />
+                  {l}
+                </label>
+              ))}
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-gray-600">সোর্স প্ল্যান</label>
+                <select className="input-field" value={importSourcePlanId} onChange={e => onImportSourcePlanChange(e.target.value)}>
+                  <option value="">বেছে নিন</option>
+                  {allPlans.map(p => <option key={p.id} value={p.id}>{p.course_name} — {p.plan_name}</option>)}
+                </select>
+              </div>
+
+              {importMode === 'subject' && importSourcePlanId && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-sm font-medium text-gray-600">বিষয় বেছে নিন</label>
+                  <select className="input-field" value={importSourceSubjectId} onChange={e => setImportSourceSubjectId(e.target.value)}>
+                    <option value="">বেছে নিন</option>
+                    {importSourceSubjects.map(s => <option key={s.id} value={s.id}>{s.subject_name}</option>)}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 pt-1">
+              <button onClick={handleImport} disabled={importing}
+                className="flex-1 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white font-semibold py-2.5 rounded-xl text-sm">
+                {importing ? 'যুক্ত হচ্ছে...' : 'ইমপোর্ট করুন'}
+              </button>
+              <button onClick={() => setShowImportModal(false)} className="px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 text-sm hover:bg-gray-50">বাতিল</button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

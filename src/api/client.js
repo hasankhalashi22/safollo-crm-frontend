@@ -319,6 +319,8 @@ export const academyApi = {
   createSubject: (planId, data) => api.post(`/api/academy/plans/${planId}/subjects`, data),
   updateSubject: (id, data) => api.put(`/api/academy/subjects/${id}`, data),
   deleteSubject: (id) => api.delete(`/api/academy/subjects/${id}`),
+  importSubject: (planId, sourceSubjectId) => api.post(`/api/academy/plans/${planId}/subjects/import`, { source_subject_id: sourceSubjectId }),
+  importPlanSubjects: (planId, sourcePlanId) => api.post(`/api/academy/plans/${planId}/import-subjects`, { source_plan_id: sourcePlanId }),
   saveLectures: (subjectId, lectures) => api.put(`/api/academy/subjects/${subjectId}/lectures`, { lectures }),
 
   // Batches
