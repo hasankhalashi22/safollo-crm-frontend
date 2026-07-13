@@ -7,6 +7,17 @@ import toast from 'react-hot-toast';
 const EMPTY = { batch_name: '', course_id: '', plan_id: '', start_date: '', max_students: '' };
 const STATUS_LABEL = { upcoming: 'আসছে', active: 'সক্রিয়', completed: 'সম্পন্ন', cancelled: 'বাতিল' };
 const STATUS_COLOR = { upcoming: 'bg-blue-100 text-blue-700', active: 'bg-green-100 text-green-700', completed: 'bg-gray-100 text-gray-600', cancelled: 'bg-red-100 text-red-600' };
+const CARD_COLORS = [
+  { border: '#7c3aed', btn: '#ede9fe', btnText: '#5b21b6' },
+  { border: '#0f766e', btn: '#ccfbf1', btnText: '#0f766e' },
+  { border: '#0284c7', btn: '#e0f2fe', btnText: '#0284c7' },
+  { border: '#be185d', btn: '#fce7f3', btnText: '#be185d' },
+  { border: '#b45309', btn: '#fef3c7', btnText: '#92400e' },
+  { border: '#15803d', btn: '#dcfce7', btnText: '#15803d' },
+  { border: '#4338ca', btn: '#e0e7ff', btnText: '#4338ca' },
+  { border: '#b91c1c', btn: '#fee2e2', btnText: '#b91c1c' },
+  { border: '#475569', btn: '#f1f5f9', btnText: '#334155' },
+];
 
 export default function Batches() {
   const navigate = useNavigate();
@@ -105,8 +116,10 @@ export default function Batches() {
           <div className="col-span-3 bg-white rounded-2xl p-12 text-center text-gray-400 shadow-sm border border-gray-100">
             <Layers size={40} className="mx-auto mb-3 opacity-30" /><p>কোনো ব্যাচ নেই</p>
           </div>
-        ) : list.map(b => (
-          <div key={b.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow flex flex-col">
+        ) : list.map((b, idx) => {
+          const clr = CARD_COLORS[idx % CARD_COLORS.length];
+          return (
+          <div key={b.id} className="bg-white rounded-2xl p-5 hover:shadow-md transition-shadow flex flex-col" style={{ border: `2px solid ${clr.border}` }}>
             <div className="flex items-start justify-between mb-3">
               <div>
                 <p className="font-semibold text-gray-800">{b.batch_name}</p>
@@ -119,18 +132,16 @@ export default function Batches() {
             <p className="text-xs text-gray-400 flex-1">{b.start_date ? `${new Date(b.start_date).toLocaleDateString('bn-BD')} থেকে` : ''}</p>
             <div className="flex gap-2 mt-4">
               <button onClick={() => navigate(`/academy/batches/${b.id}`)}
-                className={`flex-1 flex items-center justify-center gap-1.5 text-sm font-medium py-2 rounded-xl transition-colors ${
-                  Number(b.total_classes) > 0
-                    ? 'bg-primary-500 hover:bg-primary-600 text-white'
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                }`}>
+                className="flex-1 flex items-center justify-center gap-1.5 text-sm font-medium py-2 rounded-xl transition-colors"
+                style={{ background: clr.btn, color: clr.btnText }}>
                 {Number(b.total_classes) > 0 ? 'রুটিন দেখুন' : 'রুটিন তৈরি করুন'} <ChevronRight size={15} />
               </button>
               <button onClick={() => openEdit(b)} className="p-2 hover:bg-blue-50 rounded-lg text-blue-500"><Edit2 size={14} /></button>
               <button onClick={() => del(b.id)} className="p-2 hover:bg-red-50 rounded-lg text-red-500"><Trash2 size={14} /></button>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
