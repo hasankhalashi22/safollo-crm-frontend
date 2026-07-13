@@ -116,10 +116,15 @@ export default function Batches() {
                 {STATUS_LABEL[b.status] || b.status}
               </span>
             </div>
-            <p className="text-xs text-gray-400 mb-4">{b.start_date ? new Date(b.start_date).toLocaleDateString('bn-BD') : '—'} থেকে</p>
+            {b.start_date && <p className="text-xs text-gray-400 mb-4">{new Date(b.start_date).toLocaleDateString('bn-BD')} থেকে</p>}
             <div className="flex gap-2">
-              <button onClick={() => navigate(`/academy/batches/${b.id}`)} className="flex-1 flex items-center justify-center gap-1 text-xs text-primary-600 hover:bg-primary-50 py-2 rounded-lg transition-colors">
-                রুটিন তৈরি করুন <ChevronRight size={14} />
+              <button onClick={() => navigate(`/academy/batches/${b.id}`)}
+                className={`flex-1 flex items-center justify-center gap-1.5 text-sm font-medium py-2 rounded-xl transition-colors ${
+                  Number(b.total_classes) > 0
+                    ? 'bg-primary-500 hover:bg-primary-600 text-white'
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                }`}>
+                {Number(b.total_classes) > 0 ? 'রুটিন দেখুন' : 'রুটিন তৈরি করুন'} <ChevronRight size={15} />
               </button>
               <button onClick={() => openEdit(b)} className="p-2 hover:bg-blue-50 rounded-lg text-blue-500"><Edit2 size={14} /></button>
               <button onClick={() => del(b.id)} className="p-2 hover:bg-red-50 rounded-lg text-red-500"><Trash2 size={14} /></button>
