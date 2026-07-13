@@ -1313,19 +1313,19 @@ export default function BatchDetail() {
                 <div className="grid grid-cols-3 gap-3">
                   <div className="flex flex-col gap-1">
                     <label className="text-xs font-medium text-gray-600">গাইডলাইন ক্লাস</label>
-                    <input type="number" min="0" max="10" className="input-field text-sm"
+                    <input type="number" min="0" max="10" autoComplete="off" className="input-field text-sm"
                       value={followForm.guideline_classes}
                       onChange={e => setFollowForm(f => ({ ...f, guideline_classes: e.target.value }))} />
                   </div>
                   <div className="flex flex-col gap-1">
                     <label className="text-xs font-medium text-gray-600">সাবজেক্টিভ/সাবজেক্ট</label>
-                    <input type="number" min="0" max="10" className="input-field text-sm"
+                    <input type="number" min="0" max="10" autoComplete="off" className="input-field text-sm"
                       value={followForm.subjective_per_subject}
                       onChange={e => setFollowForm(f => ({ ...f, subjective_per_subject: e.target.value }))} />
                   </div>
                   <div className="flex flex-col gap-1">
                     <label className="text-xs font-medium text-gray-600">মডেল টেস্ট</label>
-                    <input type="number" min="0" max="20" className="input-field text-sm"
+                    <input type="number" min="0" max="20" autoComplete="off" className="input-field text-sm"
                       value={followForm.model_tests}
                       onChange={e => setFollowForm(f => ({ ...f, model_tests: e.target.value }))} />
                   </div>
