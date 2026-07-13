@@ -116,7 +116,7 @@ export default function Batches() {
                 {STATUS_LABEL[b.status] || b.status}
               </span>
             </div>
-            {b.start_date && <p className="text-xs text-gray-400 mb-4">{new Date(b.start_date).toLocaleDateString('bn-BD')} থেকে</p>}
+            <p className="text-xs text-gray-400 mb-4">{b.start_date ? `${new Date(b.start_date).toLocaleDateString('bn-BD')} থেকে` : ''}</p>
             <div className="flex gap-2">
               <button onClick={() => navigate(`/academy/batches/${b.id}`)}
                 className={`flex-1 flex items-center justify-center gap-1.5 text-sm font-medium py-2 rounded-xl transition-colors ${
