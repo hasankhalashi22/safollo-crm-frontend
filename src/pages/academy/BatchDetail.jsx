@@ -574,6 +574,9 @@ function AutoRoutineGenerator({ batch, teachers, zooms, onSaved }) {
   const [generatedRows, setGeneratedRows] = useState([]);
   const [saving, setSaving] = useState(false);
   const [showPdf, setShowPdf] = useState(false);
+  const EMPTY_GEN_FILTER = { keyword: '', rowType: '', subject: '' };
+  const [genFilter, setGenFilter] = useState(EMPTY_GEN_FILTER);
+  const gf = (k, v) => setGenFilter(p => ({ ...p, [k]: v }));
 
   // Sync batch start_date when batch prop loads (it arrives async)
   useEffect(() => {
@@ -913,40 +916,90 @@ function AutoRoutineGenerator({ batch, teachers, zooms, onSaved }) {
       </div>
 
       {/* Preview Table */}
-      {generatedRows.length > 0 && (
-        <div className="border border-gray-200 rounded-xl overflow-hidden">
-          <div className="bg-amber-50 border-b border-amber-100 px-4 py-2 flex items-center justify-between">
-            <span className="text-xs text-amber-700 font-medium">
+      {generatedRows.length > 0 && (() => {
+        const isGenFiltered = genFilter.keyword || genFilter.rowType || genFilter.subject;
+        const uniqueGenSubjects = [...new Set(generatedRows.map(r => {
+          const base = (r.subject_name || '').replace(/-\d+$/, '');
+          return base;
+        }).filter(Boolean))];
+        const filteredGen = generatedRows.filter((r, idx) => {
+          if (genFilter.rowType && r.row_type !== genFilter.rowType) return false;
+          if (genFilter.subject) {
+            const sn = r.subject_name || '';
+            const base = sn.replace(/-\d+$/, '');
+            if (base !== genFilter.subject && sn !== genFilter.subject) return false;
+          }
+          if (genFilter.keyword) {
+            const kw = genFilter.keyword.toLowerCase();
+            if (!(r.topic || '').toLowerCase().includes(kw) && !(r.notes || '').toLowerCase().includes(kw) && !(r.subject_name || '').toLowerCase().includes(kw)) return false;
+          }
+          return true;
+        });
+        // Map filtered rows back to original indices for onChange/onDelete/onInsertAfter
+        const filteredWithIdx = filteredGen.map(r => ({ r, idx: generatedRows.indexOf(r) }));
+
+        return (
+          <div className="border border-gray-200 rounded-xl overflow-hidden">
+            {/* Filter bar */}
+            <div className="bg-slate-50 border-b border-slate-200 px-3 py-2 flex flex-wrap gap-2 items-center">
+              <div className="flex items-center gap-1.5 border-2 border-violet-300 rounded-lg px-2.5 bg-violet-50 flex-1 min-w-[140px]" style={{height:28}}>
+                <Search size={12} className="text-violet-400 flex-shrink-0" />
+                <input className="text-xs outline-none w-full bg-transparent placeholder-violet-400"
+                  placeholder="শিরোনাম / সাবজেক্ট..."
+                  value={genFilter.keyword} onChange={e => gf('keyword', e.target.value)} />
+              </div>
+              <select style={{height:28}}
+                className="text-xs border-2 border-orange-300 bg-orange-50 text-orange-900 rounded-lg px-2 min-w-[90px]"
+                value={genFilter.rowType} onChange={e => gf('rowType', e.target.value)}>
+                <option value="">— ধরণ —</option>
+                <option value="class">ক্লাস</option>
+                <option value="exam">পরীক্ষা</option>
+              </select>
+              <select style={{height:28}}
+                className="text-xs border-2 border-teal-300 bg-teal-50 text-teal-900 rounded-lg px-2 min-w-[100px] flex-1"
+                value={genFilter.subject} onChange={e => gf('subject', e.target.value)}>
+                <option value="">— সাবজেক্ট —</option>
+                {uniqueGenSubjects.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+              <button onClick={() => setGenFilter(EMPTY_GEN_FILTER)} style={{height:28}}
+                className={`flex items-center gap-1 text-xs font-medium rounded-lg px-2.5 border flex-shrink-0 transition-colors ${isGenFiltered ? 'text-red-600 border-red-300 bg-white hover:bg-red-50' : 'text-gray-300 border-gray-200 cursor-default'}`}
+                disabled={!isGenFiltered}>
+                <RotateCcw size={11} /> রিসেট
+              </button>
+              <span className="text-xs text-gray-500 bg-white px-2 py-0.5 rounded-full border flex-shrink-0">
+                {isGenFiltered ? `${filteredGen.length} / ` : ''}{generatedRows.length} সারি
+              </span>
+            </div>
+            <div className="bg-amber-50 border-b border-amber-100 px-4 py-1.5 text-xs text-amber-700 font-medium">
               প্রিভিউ — যেকোনো ঘর সম্পাদনা করুন | <span className="text-primary-600">+ চাপলে নতুন সারি</span>
-            </span>
-            <span className="text-xs text-gray-500 bg-white px-2 py-0.5 rounded-full border">{generatedRows.length} সারি</span>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm" style={{minWidth: 1180}}>
-              <colgroup>
-                <col style={{width:88}}/><col style={{width:104}}/><col style={{width:38}}/>
-                <col style={{width:88}}/><col style={{width:140}}/><col style={{width:130}}/>
-                <col style={{width:120}}/><col style={{width:106}}/><col style={{width:100}}/>
-                <col style={{width:76}}/><col style={{width:90}}/><col style={{width:68}}/><col style={{width:46}}/>
-              </colgroup>
-              <thead>
-                <tr>
-                  {['ক্রম','তারিখ','বার','সময়','সাবজেক্ট নাম','শিরোনাম','বিস্তারিত','জুম একাউন্ট','টিচার নাম','ক্লাসের ধরণ','স্থান','ক্লাস স্ট্যাটাস',''].map((h, i) => (
-                    <th key={i} style={{background: CC[i]?.[0] || '#f1f5f9', color: '#374151', fontSize: 10, padding: '8px 6px', textAlign: 'left', fontWeight: 600, whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb'}}>{h}</th>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm" style={{minWidth: 1180}}>
+                <colgroup>
+                  <col style={{width:88}}/><col style={{width:104}}/><col style={{width:38}}/>
+                  <col style={{width:88}}/><col style={{width:140}}/><col style={{width:130}}/>
+                  <col style={{width:120}}/><col style={{width:106}}/><col style={{width:100}}/>
+                  <col style={{width:76}}/><col style={{width:90}}/><col style={{width:68}}/><col style={{width:46}}/>
+                </colgroup>
+                <thead>
+                  <tr>
+                    {['ক্রম','তারিখ','বার','সময়','সাবজেক্ট নাম','শিরোনাম','বিস্তারিত','জুম একাউন্ট','টিচার নাম','ক্লাসের ধরণ','স্থান','ক্লাস স্ট্যাটাস',''].map((h, i) => (
+                      <th key={i} style={{background: CC[i]?.[0] || '#f1f5f9', color: '#374151', fontSize: 10, padding: '8px 6px', textAlign: 'left', fontWeight: 600, whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb'}}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredWithIdx.map(({ r, idx }) => (
+                    <GenRow key={r._id} row={r} idx={idx}
+                      subjects={subjects} teachers={teachers} zooms={zooms}
+                      onChange={updateRow} onDelete={deleteRow} onInsertAfter={insertAfter} />
                   ))}
-                </tr>
-              </thead>
-              <tbody>
-                {generatedRows.map((row, idx) => (
-                  <GenRow key={row._id} row={row} idx={idx}
-                    subjects={subjects} teachers={teachers} zooms={zooms}
-                    onChange={updateRow} onDelete={deleteRow} onInsertAfter={insertAfter} />
-                ))}
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {showPdf && (
         <PdfModal rows={generatedRows} batchName={batch.batch_name} teachers={teachers} zooms={zooms} onClose={() => setShowPdf(false)} />
@@ -997,7 +1050,7 @@ function getRevisionTopics(rows, rowIdx) {
   return result;
 }
 
-function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved }) {
+function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCancel }) {
   const [step, setStep] = useState('config');
   const [cfg, setCfg] = useState({
     guidelineClasses: 3, subjectivePerSubject: 2, modelTests: 2,
@@ -1054,15 +1107,15 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved }) {
         newRows.push({
           _id: `cls-${classNo}`, row_type: 'class', label: null, class_no: classNo++, exam_no: null,
           scheduled_date: '', scheduled_time: cfg.classTime,
-          subject_name: subjLabel, _subj_id: subj.id,
-          topic: lec.title || '', notes: lec.details || '',
+          subject_name: '', _subj_id: subj.id,
+          topic: '', notes: '',
           teacher_id: '', zoom_account_id: cfg.zoomAccountId, ...base,
         });
         newRows.push({
           _id: `ex-${examNo}`, row_type: 'exam', label: null, class_no: null, exam_no: examNo++,
           scheduled_date: '', scheduled_time: cfg.examTime,
-          subject_name: subjLabel, _subj_id: subj.id,
-          topic: lec.title || '', notes: lec.details || '',
+          subject_name: '', _subj_id: subj.id,
+          topic: '', notes: '',
           teacher_id: '', zoom_account_id: '', ...base,
         });
       }
@@ -1074,7 +1127,7 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved }) {
           _id: `subj-${subj.id}-${q}`, row_type: 'exam', label: 'সাবজেক্টিভ', class_no: null, exam_no: examNo++,
           scheduled_date: '', scheduled_time: cfg.examTime,
           subject_name: subj.subject_name, _subj_id: subj.id,
-          topic: `সাবজেক্টিভ পরীক্ষা ${q} — ${subj.subject_name}`, notes: '',
+          topic: '', notes: '',
           teacher_id: '', zoom_account_id: '', ...base,
         });
       }
@@ -1085,7 +1138,7 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved }) {
         _id: `model-${m}`, row_type: 'exam', label: `মডেল-${m}`, class_no: null, exam_no: examNo++,
         scheduled_date: '', scheduled_time: cfg.examTime,
         subject_name: 'মডেল টেস্ট', _subj_id: null,
-        topic: `মডেল টেস্ট ${m}`, notes: '',
+        topic: '', notes: '',
         teacher_id: '', zoom_account_id: '', ...base,
       });
     }
@@ -1196,10 +1249,16 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved }) {
           </select>
         </div>
       </div>
-      <button onClick={generate}
-        className="bg-amber-500 hover:bg-amber-600 text-white font-semibold px-6 py-2.5 rounded-xl text-sm flex items-center gap-2">
-        <Plus size={14} /> রুটিন টেবিল তৈরি করুন
-      </button>
+      <div className="flex gap-3">
+        <button onClick={generate}
+          className="bg-amber-500 hover:bg-amber-600 text-white font-semibold px-6 py-2.5 rounded-xl text-sm flex items-center gap-2">
+          <Plus size={14} /> রুটিন টেবিল তৈরি করুন
+        </button>
+        <button onClick={onCancel}
+          className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 text-sm hover:bg-gray-50">
+          বাতিল
+        </button>
+      </div>
     </div>
   );
 
@@ -1233,6 +1292,10 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved }) {
           <button onClick={saveRoutine} disabled={saving}
             className="bg-green-500 hover:bg-green-600 disabled:opacity-50 text-white font-semibold px-4 py-1.5 rounded-xl text-xs flex items-center gap-1.5">
             <Save size={12} /> {saving ? 'সেভ হচ্ছে...' : 'রুটিন ফাইনাল করুন'}
+          </button>
+          <button onClick={onCancel}
+            className="px-3 py-1.5 rounded-xl border-2 border-gray-200 text-gray-600 text-xs hover:bg-gray-50">
+            বাতিল
           </button>
         </div>
       </div>
@@ -1708,7 +1771,8 @@ export default function BatchDetail() {
 
       {showManualBuilder && batch && (
         <ManualRoutineBuilder batch={batch} subjects={batchSubjects} teachers={teachers} zooms={zooms}
-          onSaved={() => { loadOutline(); setShowManualBuilder(false); }} />
+          onSaved={() => { loadOutline(); setShowManualBuilder(false); }}
+          onCancel={() => setShowManualBuilder(false)} />
       )}
 
       {showAddForm && (
