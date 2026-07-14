@@ -1086,14 +1086,34 @@ function getRevisionTopics(rows, rowIdx) {
   return result;
 }
 
-function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCancel }) {
-  const [step, setStep] = useState('config');
+function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCancel, initialRows }) {
+  const [step, setStep] = useState(initialRows?.length > 0 ? 'table' : 'config');
   const [cfg, setCfg] = useState({
     guidelineClasses: 3, subjectivePerSubject: 2, modelTests: 2,
     classTime: '21:00', examTime: '12:00',
     classMode: 'offline', location: 'ক্লাসরুম-১', zoomAccountId: '',
   });
-  const [rows, setRows] = useState([]);
+  const [rows, setRows] = useState(() => {
+    if (!initialRows?.length) return [];
+    return initialRows.map(r => ({
+      _id: r.id,
+      row_type: r.row_type,
+      label: r.label ?? null,
+      class_no: r.class_no ?? null,
+      exam_no: r.exam_no ?? null,
+      scheduled_date: (r.scheduled_date || '').split('T')[0],
+      scheduled_time: r.scheduled_time || '',
+      subject_name: r.subject_name || '',
+      _subj_id: subjects?.find(s => r.subject_name === s.subject_name || r.subject_name?.startsWith(s.subject_name + '-'))?.id || null,
+      topic: r.topic || '',
+      notes: r.notes || '',
+      teacher_id: r.teacher_id || '',
+      zoom_account_id: r.zoom_account_id || '',
+      class_mode: r.class_mode || 'online',
+      location: r.location || '',
+      is_active: r.is_active !== false,
+    }));
+  });
   const [saving, setSaving] = useState(false);
   const [showPdf, setShowPdf] = useState(false);
   const [insertMenu, setInsertMenu] = useState(null); // {idx, x, y}
@@ -1898,14 +1918,18 @@ export default function BatchDetail() {
 
       {/* Actions */}
       <div className="flex gap-2 flex-wrap">
-        <button onClick={() => { setShowGenerator(s => !s); setShowAddForm(false); }}
-          className={`flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-xl transition-colors ${showGenerator ? 'bg-primary-700 text-white' : 'bg-primary-500 hover:bg-primary-600 text-white'}`}>
-          <Wand2 size={14} /> অটো রুটিন তৈরি
-        </button>
-        <button onClick={() => { setShowManualBuilder(s => !s); setShowGenerator(false); setShowAddForm(false); }}
-          className={`flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-xl transition-colors ${showManualBuilder ? 'bg-amber-600 text-white' : 'bg-amber-500 hover:bg-amber-600 text-white'}`}>
-          <Plus size={14} /> ম্যানুয়াল তৈরি
-        </button>
+        {outline.length === 0 && (
+          <button onClick={() => { setShowManualBuilder(s => !s); setShowAddForm(false); }}
+            className={`flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-xl transition-colors ${showManualBuilder ? 'bg-amber-600 text-white' : 'bg-amber-500 hover:bg-amber-600 text-white'}`}>
+            <Plus size={14} /> ম্যানুয়াল তৈরি
+          </button>
+        )}
+        {outline.length > 0 && (
+          <button onClick={() => { setShowManualBuilder(s => !s); setShowAddForm(false); }}
+            className={`flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-xl transition-colors ${showManualBuilder ? 'bg-amber-600 text-white' : 'bg-amber-500 hover:bg-amber-600 text-white'}`}>
+            <Edit2 size={14} /> সম্পূর্ন রুটিন এডিট করুন
+          </button>
+        )}
         <button onClick={() => setShowFollowModal(true)}
           className="flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-xl bg-violet-500 hover:bg-violet-600 text-white transition-colors">
           <GitMerge size={14} /> ব্যাচ ফলো করুন
@@ -1941,6 +1965,7 @@ export default function BatchDetail() {
 
       {showManualBuilder && batch && (
         <ManualRoutineBuilder batch={batch} subjects={batchSubjects} teachers={teachers} zooms={zooms}
+          initialRows={outline.length > 0 ? outline : undefined}
           onSaved={() => { loadOutline(); setShowManualBuilder(false); }}
           onCancel={() => setShowManualBuilder(false)} />
       )}
