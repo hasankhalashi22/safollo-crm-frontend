@@ -264,7 +264,7 @@ function FeedbackModal({ outlineRow, teachers, onClose, onDone }) {
 }
 
 // ── Saved Outline Row ──────────────────────────────────────────────────────────
-function OutlineRow({ row, idx, teachers, zooms, allRows, onRefresh, onFeedback, onInsertAfter }) {
+function OutlineRow({ row, idx, teachers, zooms, allRows, subjects, onRefresh, onFeedback, onInsertAfter }) {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
     scheduled_date: (row.scheduled_date || '').split('T')[0],
@@ -280,9 +280,20 @@ function OutlineRow({ row, idx, teachers, zooms, allRows, onRefresh, onFeedback,
   });
   const f = (k, v) => setForm(p => ({ ...p, [k]: v }));
   const save = async () => {
-    try { await academyApi.updateOutlineRow(row.id, form); toast.success('আপডেট'); setEditing(false); onRefresh(); }
-    catch { toast.error('সমস্যা হয়েছে'); }
+    try {
+      await academyApi.updateOutlineRow(row.id, form);
+      toast.success('আপডেট');
+      setEditing(false);
+      onRefresh();
+    } catch (err) {
+      console.error('updateOutlineRow error:', err?.response?.data || err);
+      toast.error(err?.response?.data?.message || 'সমস্যা হয়েছে');
+    }
   };
+
+  // Cascading subject → topic
+  const baseSubj = subjects?.find(s => form.subject_name === s.subject_name || form.subject_name?.startsWith(s.subject_name + '-'));
+  const availableLectures = baseSubj?.lectures || [];
   const del = async () => {
     if (!confirm('মুছে ফেলবেন?')) return;
     await academyApi.deleteOutlineRow(row.id); onRefresh();
@@ -343,8 +354,34 @@ function OutlineRow({ row, idx, teachers, zooms, allRows, onRefresh, onFeedback,
             <td style={{background: CC[1][1]}} className="px-2 py-1"><input type="date" className={ic} value={form.scheduled_date} onChange={e => f('scheduled_date', e.target.value)} /></td>
             <td style={{background: CC[2][1]}} className="px-2 py-1 text-xs text-center">{dayLabel(form.scheduled_date)}</td>
             <td style={{background: CC[3][1]}} className="px-2 py-1"><input type="time" className={ic} value={form.scheduled_time} onChange={e => f('scheduled_time', e.target.value)} /></td>
-            <td style={{background: CC[4][1]}} className="px-2 py-1"><input className={ic} value={form.subject_name} onChange={e => f('subject_name', e.target.value)} placeholder="সাবজেক্ট" /></td>
-            <td style={{background: CC[5][1]}} className="px-2 py-1"><input className={ic} value={form.topic} onChange={e => f('topic', e.target.value)} placeholder="শিরোনাম" /></td>
+            <td style={{background: CC[4][1]}} className="px-2 py-1">
+              {subjects?.length > 0 ? (
+                <select className={sc} value={form.subject_name}
+                  onChange={e => { f('subject_name', e.target.value); f('topic', ''); }}>
+                  <option value="">— বেছে নিন</option>
+                  {subjects.map(s => (
+                    <optgroup key={s.id} label={s.subject_name}>
+                      <option value={s.subject_name}>{s.subject_name}</option>
+                      {(s.lectures || []).map((_, li) => (
+                        <option key={li} value={`${s.subject_name}-${li + 1}`}>{s.subject_name}-{li + 1}</option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+              ) : (
+                <input className={ic} value={form.subject_name} onChange={e => f('subject_name', e.target.value)} placeholder="সাবজেক্ট" />
+              )}
+            </td>
+            <td style={{background: CC[5][1]}} className="px-2 py-1">
+              {availableLectures.length > 0 ? (
+                <select className={sc} value={form.topic} onChange={e => f('topic', e.target.value)}>
+                  <option value="">— বেছে নিন</option>
+                  {availableLectures.map((l, i) => <option key={i} value={l.title}>{l.title}</option>)}
+                </select>
+              ) : (
+                <input className={ic} value={form.topic} onChange={e => f('topic', e.target.value)} placeholder="শিরোনাম" />
+              )}
+            </td>
             <td style={{background: CC[6][1]}} className="px-2 py-1"><input className={ic} value={form.notes} onChange={e => f('notes', e.target.value)} placeholder="বিস্তারিত" /></td>
             <td style={{background: CC[7][1]}} className="px-2 py-1">
               <select className={sc} value={form.zoom_account_id} onChange={e => f('zoom_account_id', e.target.value)}>
@@ -362,8 +399,10 @@ function OutlineRow({ row, idx, teachers, zooms, allRows, onRefresh, onFeedback,
               </select>
             </td>
             <td style={{background: CC[10][1]}} className="px-2 py-1">
-              <input list={`loc-s-${row.id}`} className={ic} value={form.location} onChange={e => f('location', e.target.value)} placeholder="ক্লাসরুম" />
-              <datalist id={`loc-s-${row.id}`}>{LOCATION_OPTIONS.map(l => <option key={l} value={l} />)}</datalist>
+              <select className={sc} value={form.location} onChange={e => f('location', e.target.value)}>
+                <option value="">—</option>
+                {LOCATION_OPTIONS.map(l => <option key={l} value={l}>{l}</option>)}
+              </select>
             </td>
             <td style={{background: CC[11][1]}} className="px-2 py-1">
               <select className={sc} value={form.status} onChange={e => f('status', e.target.value)}>
@@ -405,6 +444,7 @@ function OutlineRow({ row, idx, teachers, zooms, allRows, onRefresh, onFeedback,
             <td style={{background: CC[11][1]}} className="px-2 py-2"><span className={`text-xs px-2 py-0.5 rounded-full ${st.cls}`}>{st.label}</span></td>
             <td className="px-2 py-2">
               <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button onClick={() => onInsertAfter(idx)} className="p-1.5 text-primary-400 hover:bg-primary-50 rounded" title="পরে সারি যোগ"><Plus size={13} /></button>
                 {isSynced ? (
                   <span title="সোর্স রুটিন থেকে সিঙ্ক হয় — সেখানে এডিট করুন" className="p-1.5 text-amber-400 cursor-default"><Lock size={13} /></span>
                 ) : (
@@ -413,20 +453,10 @@ function OutlineRow({ row, idx, teachers, zooms, allRows, onRefresh, onFeedback,
                     <button onClick={del} className="p-1.5 text-red-400 hover:bg-red-50 rounded"><Trash2 size={13} /></button>
                   </>
                 )}
-
               </div>
             </td>
           </>
         )}
-      </tr>
-      {/* Insert-after strip */}
-      <tr>
-        <td colSpan={13} className="p-0">
-          <button onClick={() => onInsertAfter(idx)}
-            className="w-full flex items-center justify-center gap-1 text-[10px] text-primary-400 hover:bg-primary-50 opacity-0 hover:opacity-100 transition-opacity py-0.5">
-            <Plus size={10} /> এখানে সারি যোগ করুন
-          </button>
-        </td>
       </tr>
     </>
   );
@@ -2044,7 +2074,7 @@ export default function BatchDetail() {
               <tbody>
                 {filteredOutline.map((row, idx) => (
                   <OutlineRow key={row.id} row={row} idx={idx}
-                    teachers={teachers} zooms={zooms} allRows={outline}
+                    teachers={teachers} zooms={zooms} allRows={outline} subjects={subjects}
                     onRefresh={loadOutline} onFeedback={setFeedbackRow} onInsertAfter={handleInsertAfter} />
                 ))}
               </tbody>
