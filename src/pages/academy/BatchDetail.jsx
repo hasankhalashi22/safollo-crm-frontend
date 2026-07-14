@@ -1060,13 +1060,9 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
   const [rows, setRows] = useState([]);
   const [saving, setSaving] = useState(false);
   const [showPdf, setShowPdf] = useState(false);
-  const [examWarn, setExamWarn] = useState(false);
-  const examWarnTimer = useRef(null);
-  const triggerExamWarn = () => {
-    setExamWarn(true);
-    clearTimeout(examWarnTimer.current);
-    examWarnTimer.current = setTimeout(() => setExamWarn(false), 3000);
-  };
+  const [examWarnIdx, setExamWarnIdx] = useState(null);
+  const [unlockedExams, setUnlockedExams] = useState(new Set());
+  const unlockExam = (idx) => { setUnlockedExams(p => new Set([...p, idx])); setExamWarnIdx(null); };
 
   useEffect(() => {
     if (zooms.length > 0 && !cfg.zoomAccountId)
@@ -1295,9 +1291,24 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border-2 border-amber-100 p-4 space-y-4">
-      {examWarn && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-amber-50 border border-amber-300 text-amber-800 text-xs px-4 py-2 rounded-xl shadow-lg flex items-center gap-2 pointer-events-none">
-          ⚠ আগে ক্লাস সেট করুন — তারপর এক্সাম অটো ফিল হবে
+      {examWarnIdx !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20"
+          onClick={() => setExamWarnIdx(null)}>
+          <div className="bg-white border-2 border-amber-300 rounded-2xl p-5 shadow-2xl w-72 space-y-3"
+            onClick={e => e.stopPropagation()}>
+            <p className="text-sm font-semibold text-amber-800">⚠ আগে ক্লাস সেট করুন</p>
+            <p className="text-xs text-gray-500">এক্সাম রো স্বয়ংক্রিয়ভাবে ক্লাস থেকে ফিল হয়। তবুও ম্যানুয়ালি এডিট করতে চাইলে ইগনোর করুন।</p>
+            <div className="flex gap-2 pt-1">
+              <button onClick={() => unlockExam(examWarnIdx)}
+                className="flex-1 text-xs bg-amber-500 hover:bg-amber-600 text-white px-3 py-2 rounded-xl font-medium">
+                ইগনোর করুন
+              </button>
+              <button onClick={() => setExamWarnIdx(null)}
+                className="text-xs px-3 py-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50">
+                বাতিল
+              </button>
+            </div>
+          </div>
         </div>
       )}
       <div className="flex items-center gap-2 flex-wrap">
@@ -1358,6 +1369,10 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                 const isWarning = !isConflict && warnings.has(idx);
                 const isExam = row.row_type === 'exam';
                 const tdBg = (ccIdx) => isExam ? '#ede9fe' : CC[ccIdx][1];
+                const isLocked = isExam && !row.label && !unlockedExams.has(idx);
+                const lockOverlay = isLocked
+                  ? <div className="absolute inset-0 z-10 cursor-pointer rounded" onClick={() => setExamWarnIdx(idx)} />
+                  : null;
                 const isActive = row.is_active !== false;
                 const st = routineStatus(row);
                 const baseSubj = subjects.find(s => s.id === row._subj_id);
@@ -1424,21 +1439,24 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                         </div>
                       </td>
                       <td style={{background: tdBg(1)}} className="px-1 py-1">
-                        <input type="date" className={ic} value={row.scheduled_date}
-                          onFocus={() => isExam && !row.label && triggerExamWarn()}
-                          onChange={e => update(idx, { scheduled_date: e.target.value })} />
+                        <div className="relative">
+                          {lockOverlay}
+                          <input type="date" className={ic} value={row.scheduled_date}
+                            onChange={e => update(idx, { scheduled_date: e.target.value })} />
+                        </div>
                       </td>
                       <td style={{background: tdBg(2)}} className="px-2 py-1 text-xs text-center font-medium text-amber-700">
                         {dayLabel(row.scheduled_date)}
                       </td>
                       <td style={{background: tdBg(3)}} className="px-1 py-1">
+                        <div className="relative">
+                          {lockOverlay}
                         {(() => {
                           const PRESETS = ['21:00','19:00','12:00','00:00'];
                           const isPreset = PRESETS.includes(row.scheduled_time);
                           return (
                             <div className="flex flex-col gap-0.5">
                               <select className={sc} value={isPreset ? row.scheduled_time : '__'}
-                                onFocus={() => isExam && !row.label && triggerExamWarn()}
                                 onChange={e => { if (e.target.value !== '__') update(idx, { scheduled_time: e.target.value }); }}>
                                 <option value="21:00">09:00 PM</option>
                                 <option value="19:00">07:00 PM</option>
@@ -1453,8 +1471,11 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                             </div>
                           );
                         })()}
+                        </div>
                       </td>
                       <td style={{background: tdBg(4)}} className="px-1 py-1">
+                        <div className="relative">
+                          {lockOverlay}
                         <div className="flex gap-1">
                           <select className={sc} style={{flex:'1 1 0', minWidth:0}}
                             value={row._subj_id || (SPECIAL_SUBJECTS.includes(row.subject_name) ? `__${row.subject_name}__` : '')}
@@ -1481,8 +1502,10 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                         {lecLimitReached && (
                           <p className="text-[10px] text-red-500 mt-0.5">এই বিষয়ে আর কোন লেকচার নেই</p>
                         )}
+                        </div>
                       </td>
                       <td style={{background: tdBg(5)}} className="px-1 py-1">
+                        <div className="relative">{lockOverlay}
                         {isRevision ? (
                           <div className="flex gap-1">
                             <input className={ic} value={row.topic} onChange={e => update(idx, { topic: e.target.value })} placeholder="রিভিশন শিরোনাম" />
@@ -1496,14 +1519,16 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                           </select>
                         ) : (
                           <input className={ic} value={row.topic}
-                            onFocus={() => isExam && !row.label && triggerExamWarn()}
                             onChange={e => update(idx, { topic: e.target.value })} placeholder="শিরোনাম" />
                         )}
+                        </div>
                       </td>
                       <td style={{background: tdBg(6)}} className="px-1 py-1">
-                        <input className={ic} value={row.notes}
-                          onFocus={() => isExam && !row.label && triggerExamWarn()}
-                          onChange={e => update(idx, { notes: e.target.value })} placeholder="বিস্তারিত" />
+                        <div className="relative">
+                          {lockOverlay}
+                          <input className={ic} value={row.notes}
+                            onChange={e => update(idx, { notes: e.target.value })} placeholder="বিস্তারিত" />
+                        </div>
                       </td>
                       <td style={{background: isExam ? '#ddd6fe' : CC[7][1]}} className="px-1 py-1">
                         {isExam ? (
@@ -1542,11 +1567,10 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                         {isExam ? (
                           <span className="text-[10px] text-gray-300 px-1">—</span>
                         ) : (
-                          <>
-                            <input list={`mloc-${idx}`} className={ic} value={row.location}
-                              onChange={e => update(idx, { location: e.target.value })} placeholder="ক্লাসরুম" />
-                            <datalist id={`mloc-${idx}`}>{LOCATION_OPTIONS.map(l => <option key={l} value={l} />)}</datalist>
-                          </>
+                          <select className={sc} value={row.location}
+                            onChange={e => update(idx, { location: e.target.value })}>
+                            {LOCATION_OPTIONS.map(l => <option key={l} value={l}>{l}</option>)}
+                          </select>
                         )}
                       </td>
                       <td style={{background: tdBg(11)}} className="px-2 py-1 text-center">
