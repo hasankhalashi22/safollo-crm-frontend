@@ -10,7 +10,7 @@ const STATUS_LABEL = { scheduled: 'নির্ধারিত', done: 'সম�
 const DAY_LABELS = ['রবি', 'সোম', 'মঙ্গল', 'বুধ', 'বৃহ', 'শুক্র', 'শনি'];
 const TODAY = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
 
-const LOCATION_OPTIONS = ['রিমোট', 'ক্লাসরুম-১', 'ক্লাসরুম-২', 'অনলাইন', 'অন্যান্য'];
+const LOCATION_OPTIONS = ['ক্লাসরুম-১', 'ক্লাসরুম-২', 'রিমোট'];
 
 // Column colors [th-bg, td-bg]
 const CC = [
@@ -40,7 +40,7 @@ const PDF_COLS = [
   { key: 'zoom_account_name',label: 'জুম একাউন্ট' },
   { key: 'teacher_name',     label: 'টিচার' },
   { key: 'class_mode_label', label: 'ধরণ' },
-  { key: 'location',         label: 'স্থান' },
+  { key: 'location',         label: 'ক্লাসরুম' },
   { key: 'status_label',     label: 'স্ট্যাটাস' },
 ];
 
@@ -317,6 +317,7 @@ function OutlineRow({ row, idx, teachers, zooms, allRows, onRefresh, onFeedback,
   const isSynced = !!row.source_outline_id;
 
   const ic = 'w-full text-xs border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:border-primary-400';
+  const sc = 'w-full text-xs border border-gray-200 rounded-lg pl-2 pr-6 py-1 focus:outline-none focus:border-primary-400';
 
   return (
     <>
@@ -340,26 +341,26 @@ function OutlineRow({ row, idx, teachers, zooms, allRows, onRefresh, onFeedback,
             <td style={{background: CC[5][1]}} className="px-2 py-1"><input className={ic} value={form.topic} onChange={e => f('topic', e.target.value)} placeholder="শিরোনাম" /></td>
             <td style={{background: CC[6][1]}} className="px-2 py-1"><input className={ic} value={form.notes} onChange={e => f('notes', e.target.value)} placeholder="বিস্তারিত" /></td>
             <td style={{background: CC[7][1]}} className="px-2 py-1">
-              <select className={ic} value={form.zoom_account_id} onChange={e => f('zoom_account_id', e.target.value)}>
+              <select className={sc} value={form.zoom_account_id} onChange={e => f('zoom_account_id', e.target.value)}>
                 <option value="">—</option>{zooms.map(z => <option key={z.id} value={z.id}>{z.account_name}</option>)}
               </select>
             </td>
             <td style={{background: CC[8][1]}} className="px-2 py-1">
-              <select className={ic} value={form.teacher_id} onChange={e => f('teacher_id', e.target.value)}>
+              <select className={sc} value={form.teacher_id} onChange={e => f('teacher_id', e.target.value)}>
                 <option value="">—</option>{teachers.map(t => <option key={t.id} value={t.id}>{t.full_name}</option>)}
               </select>
             </td>
             <td style={{background: CC[9][1]}} className="px-2 py-1">
-              <select className={ic} value={form.class_mode} onChange={e => f('class_mode', e.target.value)}>
+              <select className={sc} value={form.class_mode} onChange={e => f('class_mode', e.target.value)}>
                 <option value="online">অনলাইন</option><option value="offline">অফলাইন</option>
               </select>
             </td>
             <td style={{background: CC[10][1]}} className="px-2 py-1">
-              <input list={`loc-s-${row.id}`} className={ic} value={form.location} onChange={e => f('location', e.target.value)} placeholder="স্থান" />
+              <input list={`loc-s-${row.id}`} className={ic} value={form.location} onChange={e => f('location', e.target.value)} placeholder="ক্লাসরুম" />
               <datalist id={`loc-s-${row.id}`}>{LOCATION_OPTIONS.map(l => <option key={l} value={l} />)}</datalist>
             </td>
             <td style={{background: CC[11][1]}} className="px-2 py-1">
-              <select className={ic} value={form.status} onChange={e => f('status', e.target.value)}>
+              <select className={sc} value={form.status} onChange={e => f('status', e.target.value)}>
                 {Object.entries(STATUS_LABEL).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
               </select>
             </td>
@@ -458,6 +459,7 @@ function GenRow({ row, idx, subjects, teachers, zooms, onChange, onDelete, onIns
   };
 
   const ic = 'w-full text-xs border border-gray-200 rounded-lg px-1.5 py-1 focus:outline-none focus:border-primary-400 bg-white';
+  const sc = 'w-full text-xs border border-gray-200 rounded-lg pl-1.5 pr-6 py-1 focus:outline-none focus:border-primary-400 bg-white';
 
   return (
     <tr className={`border-t border-gray-100 ${isExam ? 'opacity-90' : ''}`}>
@@ -481,7 +483,7 @@ function GenRow({ row, idx, subjects, teachers, zooms, onChange, onDelete, onIns
       {/* সাবজেক্ট — select base + text for seq */}
       <td style={{background: CC[4][1]}} className="px-1 py-1">
         <div className="flex gap-1">
-          <select className={ic} style={{flex:'1 1 0', minWidth:0}} value={row._subj_id || ''} onChange={e => handleSubjSelect(e.target.value)}>
+          <select className={sc} style={{flex:'1 1 0', minWidth:0}} value={row._subj_id || ''} onChange={e => handleSubjSelect(e.target.value)}>
             <option value="">— বেছে নিন</option>
             {subjects.map(s => <option key={s.id} value={s.id}>{s.subject_name}</option>)}
           </select>
@@ -496,7 +498,7 @@ function GenRow({ row, idx, subjects, teachers, zooms, onChange, onDelete, onIns
       {/* শিরোনাম — dropdown of lectures */}
       <td style={{background: CC[5][1]}} className="px-1 py-1">
         {lectures.length > 0 ? (
-          <select className={ic} value={row.topic} onChange={e => handleTitleSelect(e.target.value)}>
+          <select className={sc} value={row.topic} onChange={e => handleTitleSelect(e.target.value)}>
             <option value="">— বেছে নিন</option>
             {lectures.map((l, i) => <option key={i} value={l.title}>{l.title}</option>)}
           </select>
@@ -507,7 +509,7 @@ function GenRow({ row, idx, subjects, teachers, zooms, onChange, onDelete, onIns
       {/* বিস্তারিত — auto-fill, dropdown of details */}
       <td style={{background: CC[6][1]}} className="px-1 py-1">
         {lectures.length > 0 && lectures.some(l => l.details) ? (
-          <select className={ic} value={row.notes} onChange={e => set('notes', e.target.value)}>
+          <select className={sc} value={row.notes} onChange={e => set('notes', e.target.value)}>
             <option value="">— বেছে নিন</option>
             {lectures.filter(l => l.details).map((l, i) => <option key={i} value={l.details}>{l.details?.slice(0, 40)}</option>)}
           </select>
@@ -517,27 +519,27 @@ function GenRow({ row, idx, subjects, teachers, zooms, onChange, onDelete, onIns
       </td>
       {/* জুম */}
       <td style={{background: CC[7][1]}} className="px-1 py-1">
-        <select className={ic} value={row.zoom_account_id} onChange={e => set('zoom_account_id', e.target.value)} disabled={isExam}>
+        <select className={sc} value={row.zoom_account_id} onChange={e => set('zoom_account_id', e.target.value)} disabled={isExam}>
           <option value="">—</option>
           {zooms.map(z => <option key={z.id} value={z.id}>{z.account_name}</option>)}
         </select>
       </td>
       {/* টিচার */}
       <td style={{background: CC[8][1]}} className="px-1 py-1">
-        <select className={ic} value={row.teacher_id} onChange={e => set('teacher_id', e.target.value)} disabled={isExam}>
+        <select className={sc} value={row.teacher_id} onChange={e => set('teacher_id', e.target.value)} disabled={isExam}>
           <option value="">—</option>
           {teachers.map(t => <option key={t.id} value={t.id}>{t.full_name}</option>)}
         </select>
       </td>
       {/* ধরণ */}
       <td style={{background: CC[9][1]}} className="px-1 py-1">
-        <select className={ic} value={row.class_mode} onChange={e => set('class_mode', e.target.value)}>
+        <select className={sc} value={row.class_mode} onChange={e => set('class_mode', e.target.value)}>
           <option value="online">অনলাইন</option><option value="offline">অফলাইন</option>
         </select>
       </td>
       {/* স্থান — datalist */}
       <td style={{background: CC[10][1]}} className="px-1 py-1">
-        <input list={`loc-${idx}`} className={ic} value={row.location} onChange={e => set('location', e.target.value)} placeholder="স্থান" />
+        <input list={`loc-${idx}`} className={ic} value={row.location} onChange={e => set('location', e.target.value)} placeholder="ক্লাসরুম" />
         <datalist id={`loc-${idx}`}>{LOCATION_OPTIONS.map(l => <option key={l} value={l} />)}</datalist>
       </td>
       {/* স্ট্যাটাস */}
@@ -869,9 +871,7 @@ function AutoRoutineGenerator({ batch, teachers, zooms, onSaved }) {
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-gray-600">ডিফল্ট স্থান</label>
           <select className="input-field text-sm" value={cfg.location} onChange={e => setC('location', e.target.value)}>
-            <option value="রিমোট">রিমোট</option>
-            <option value="ক্লাসরুম-১">ক্লাসরুম-১</option>
-            <option value="ক্লাসরুম-২">ক্লাসরুম-২</option>
+            {LOCATION_OPTIONS.map(l => <option key={l} value={l}>{l}</option>)}
           </select>
         </div>
         <div className="col-span-2 flex flex-col gap-1">
@@ -983,7 +983,7 @@ function AutoRoutineGenerator({ batch, teachers, zooms, onSaved }) {
                 </colgroup>
                 <thead>
                   <tr>
-                    {['ক্রম','তারিখ','বার','সময়','সাবজেক্ট নাম','শিরোনাম','বিস্তারিত','জুম একাউন্ট','টিচার নাম','ক্লাসের ধরণ','স্থান','ক্লাস স্ট্যাটাস',''].map((h, i) => (
+                    {['ক্রম','তারিখ','বার','সময়','সাবজেক্ট নাম','শিরোনাম','বিস্তারিত','জুম একাউন্ট','টিচার নাম','ক্লাসের ধরণ','ক্লাসরুম','ক্লাস স্ট্যাটাস',''].map((h, i) => (
                       <th key={i} style={{background: CC[i]?.[0] || '#f1f5f9', color: '#374151', fontSize: 10, padding: '8px 6px', textAlign: 'left', fontWeight: 600, whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb'}}>{h}</th>
                     ))}
                   </tr>
@@ -1196,6 +1196,7 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
   });
 
   const ic = 'w-full text-xs border border-gray-200 rounded-lg px-1.5 py-1 focus:outline-none focus:border-primary-400 bg-white';
+  const sc = 'w-full text-xs border border-gray-200 rounded-lg pl-1.5 pr-6 py-1 focus:outline-none focus:border-primary-400 bg-white';
 
   if (step === 'config') return (
     <div className="bg-white rounded-2xl shadow-sm border-2 border-amber-100 p-5 space-y-5">
@@ -1311,7 +1312,7 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
             </colgroup>
             <thead>
               <tr>
-                {['ক্রম','তারিখ','বার','সময়','সাবজেক্ট','শিরোনাম','বিস্তারিত','জুম','টিচার','ধরণ','স্থান','স্ট্যাটাস',''].map((h, i) => (
+                {['ক্রম','তারিখ','বার','সময়','সাবজেক্ট','শিরোনাম','বিস্তারিত','জুম','টিচার','ধরণ','ক্লাসরুম','স্ট্যাটাস',''].map((h, i) => (
                   <th key={i} style={{background: CC[i]?.[0]||'#f1f5f9', color:'#374151', fontSize:10, padding:'8px 6px', textAlign:'left', fontWeight:600, whiteSpace:'nowrap', borderBottom:'1px solid #e5e7eb'}}>{h}</th>
                 ))}
               </tr>
@@ -1397,7 +1398,7 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                       </td>
                       <td style={{background: CC[4][1]}} className="px-1 py-1">
                         <div className="flex gap-1">
-                          <select className={ic} style={{flex:'1 1 0', minWidth:0}}
+                          <select className={sc} style={{flex:'1 1 0', minWidth:0}}
                             value={row._subj_id || (SPECIAL_SUBJECTS.includes(row.subject_name) ? `__${row.subject_name}__` : '')}
                             onChange={e => handleSubjSelect(e.target.value)}>
                             <option value="">— বেছে নিন</option>
@@ -1430,7 +1431,7 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                               className="text-[11px] text-blue-500 hover:bg-blue-50 rounded px-1 whitespace-nowrap">↻</button>
                           </div>
                         ) : availableLectures.length > 0 && row.row_type === 'class' ? (
-                          <select className={ic} value={row.topic} onChange={e => handleTitleSelect(e.target.value)}>
+                          <select className={sc} value={row.topic} onChange={e => handleTitleSelect(e.target.value)}>
                             <option value="">— বেছে নিন</option>
                             {availableLectures.map((l, i) => <option key={i} value={l.title}>{l.title}</option>)}
                           </select>
@@ -1442,21 +1443,21 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                         <input className={ic} value={row.notes} onChange={e => update(idx, { notes: e.target.value })} placeholder="বিস্তারিত" />
                       </td>
                       <td style={{background: CC[7][1]}} className="px-1 py-1">
-                        <select className={ic} value={row.zoom_account_id}
+                        <select className={sc} value={row.zoom_account_id}
                           onChange={e => update(idx, { zoom_account_id: e.target.value })}>
                           <option value="">—</option>
                           {zooms.map(z => <option key={z.id} value={z.id}>{z.account_name}</option>)}
                         </select>
                       </td>
                       <td style={{background: CC[8][1]}} className="px-1 py-1">
-                        <select className={ic} value={row.teacher_id}
+                        <select className={sc} value={row.teacher_id}
                           onChange={e => update(idx, { teacher_id: e.target.value })}>
                           <option value="">—</option>
                           {teachers.map(t => <option key={t.id} value={t.id}>{t.full_name}</option>)}
                         </select>
                       </td>
                       <td style={{background: CC[9][1]}} className="px-1 py-1">
-                        <select className={ic} value={row.class_mode}
+                        <select className={sc} value={row.class_mode}
                           onChange={e => update(idx, { class_mode: e.target.value })}>
                           <option value="offline">অফলাইন</option>
                           <option value="online">অনলাইন</option>
@@ -1464,7 +1465,7 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                       </td>
                       <td style={{background: CC[10][1]}} className="px-1 py-1">
                         <input list={`mloc-${idx}`} className={ic} value={row.location}
-                          onChange={e => update(idx, { location: e.target.value })} placeholder="স্থান" />
+                          onChange={e => update(idx, { location: e.target.value })} placeholder="ক্লাসরুম" />
                         <datalist id={`mloc-${idx}`}>{LOCATION_OPTIONS.map(l => <option key={l} value={l} />)}</datalist>
                       </td>
                       <td style={{background: CC[11][1]}} className="px-2 py-1 text-center">
@@ -1520,7 +1521,7 @@ export default function BatchDetail() {
   const [followForm, setFollowForm] = useState({
     source_batch_id: '', cutoff_type: 'class_no', cutoff_value: '',
     guideline_classes: 0, subjective_per_subject: 0, model_tests: 0,
-    class_mode: 'online', location: 'রিমোট', zoom_account_id: '',
+    class_mode: 'online', location: 'ক্লাসরুম-১', zoom_account_id: '',
     selected_subjects: null,
   });
   const [sourceSubjects, setSourceSubjects] = useState([]);
@@ -1609,7 +1610,7 @@ export default function BatchDetail() {
       toast.success(`${imported} টি রুটিন সারি যুক্ত হয়েছে (${from_cutoff} প্রথমে, ${before_cutoff} শেষে)${extras > 0 ? ` + ${extras} টি অতিরিক্ত সারি` : ''}`);
       setShowFollowModal(false);
       setSourceSubjects([]);
-      setFollowForm({ source_batch_id: '', cutoff_type: 'class_no', cutoff_value: '', guideline_classes: 0, subjective_per_subject: 0, model_tests: 0, class_mode: 'online', location: 'রিমোট', zoom_account_id: '', selected_subjects: null });
+      setFollowForm({ source_batch_id: '', cutoff_type: 'class_no', cutoff_value: '', guideline_classes: 0, subjective_per_subject: 0, model_tests: 0, class_mode: 'online', location: 'ক্লাসরুম-১', zoom_account_id: '', selected_subjects: null });
       loadOutline();
     } catch { toast.error('সমস্যা হয়েছে'); }
     setFollowing(false);
@@ -1809,7 +1810,7 @@ export default function BatchDetail() {
               </select>
             </div>
             <div className="flex flex-col gap-1"><label className="text-xs font-medium text-gray-600">স্থান</label>
-              <input list="loc-add" className="input-field text-sm" value={addForm.location} onChange={e => af('location', e.target.value)} placeholder="স্থান" />
+              <input list="loc-add" className="input-field text-sm" value={addForm.location} onChange={e => af('location', e.target.value)} placeholder="ক্লাসরুম" />
               <datalist id="loc-add">{LOCATION_OPTIONS.map(l => <option key={l} value={l} />)}</datalist>
             </div>
           </div>
@@ -1896,7 +1897,7 @@ export default function BatchDetail() {
               </colgroup>
               <thead>
                 <tr>
-                  {['ক্রম','তারিখ','বার','সময়','সাবজেক্ট','শিরোনাম','বিস্তারিত','জুম','টিচার','ধরণ','স্থান','স্ট্যাটাস',''].map((h, i) => (
+                  {['ক্রম','তারিখ','বার','সময়','সাবজেক্ট','শিরোনাম','বিস্তারিত','জুম','টিচার','ধরণ','ক্লাসরুম','স্ট্যাটাস',''].map((h, i) => (
                     <th key={i} style={{background: CC[i]?.[0] || '#f1f5f9', color: '#374151', fontSize: 10, padding: '8px 8px', textAlign: 'left', fontWeight: 600, whiteSpace: 'nowrap', borderBottom: '1px solid #e5e7eb'}}>{h}</th>
                   ))}
                 </tr>
@@ -2073,7 +2074,7 @@ export default function BatchDetail() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="flex flex-col gap-1">
-                    <label className="text-xs font-medium text-gray-600">স্থান</label>
+                    <label className="text-xs font-medium text-gray-600">ক্লাসরুম</label>
                     <select className="input-field text-sm"
                       value={followForm.location}
                       onChange={e => setFollowForm(f => ({ ...f, location: e.target.value }))}>
