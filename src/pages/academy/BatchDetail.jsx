@@ -1060,6 +1060,7 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
   const [rows, setRows] = useState([]);
   const [saving, setSaving] = useState(false);
   const [showPdf, setShowPdf] = useState(false);
+  const [insertMenu, setInsertMenu] = useState(null); // {idx, x, y}
   const [examWarn, setExamWarn] = useState(null); // {idx, x, y}
   const [unlockedExams, setUnlockedExams] = useState(new Set());
   const unlockExam = (idx) => { setUnlockedExams(p => new Set([...p, idx])); setExamWarn(null); };
@@ -1093,17 +1094,27 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
     }
     return next;
   });
-  const deleteRow = (idx) => setRows(prev => prev.filter((_, i) => i !== idx));
+  const deleteRow = (idx) => setRows(prev => resequence(prev.filter((_, i) => i !== idx)));
   const toggleActive = (idx) => setRows(prev => prev.map((r, i) => i === idx ? { ...r, is_active: !r.is_active } : r));
-  const insertAfter = (idx) => {
+  const insertAfter = (idx, row_type = 'class') => {
+    const isExamRow = row_type === 'exam';
     const blank = {
-      _id: `ins-${Date.now()}`, row_type: 'class', label: null, class_no: null, exam_no: null,
-      scheduled_date: '', scheduled_time: cfg.classTime,
+      _id: `ins-${Date.now()}`, row_type, label: null, class_no: null, exam_no: null,
+      scheduled_date: '', scheduled_time: isExamRow ? '00:00' : cfg.classTime,
       subject_name: '', _subj_id: null, topic: '', notes: '',
-      teacher_id: '', zoom_account_id: cfg.zoomAccountId,
-      class_mode: cfg.classMode, location: cfg.location, is_active: true,
+      teacher_id: '', zoom_account_id: isExamRow ? '' : cfg.zoomAccountId,
+      class_mode: isExamRow ? 'online' : cfg.classMode,
+      location: isExamRow ? '' : cfg.location, is_active: true,
     };
-    setRows(prev => [...prev.slice(0, idx + 1), blank, ...prev.slice(idx + 1)]);
+    setRows(prev => resequence([...prev.slice(0, idx + 1), blank, ...prev.slice(idx + 1)]));
+  };
+  const resequence = (rows) => {
+    let classNo = 1, examNo = 1;
+    return rows.map(r => {
+      if (r.row_type === 'class' && !r.label) return { ...r, class_no: classNo++ };
+      if (r.row_type === 'exam') return { ...r, exam_no: examNo++ };
+      return r;
+    });
   };
 
   const generate = () => {
@@ -1293,6 +1304,23 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border-2 border-amber-100 p-4 space-y-4">
+      {insertMenu !== null && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setInsertMenu(null)} />
+          <div className="fixed z-50 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden"
+            style={{ top: insertMenu.y + 8, left: insertMenu.x - 60 }}
+            onClick={e => e.stopPropagation()}>
+            <button onClick={() => { insertAfter(insertMenu.idx, 'class'); setInsertMenu(null); }}
+              className="flex items-center gap-2 w-full px-4 py-2 text-xs hover:bg-blue-50 text-blue-700 font-medium">
+              <span className="w-2 h-2 rounded-full bg-blue-400 inline-block" /> ক্লাস রো
+            </button>
+            <button onClick={() => { insertAfter(insertMenu.idx, 'exam'); setInsertMenu(null); }}
+              className="flex items-center gap-2 w-full px-4 py-2 text-xs hover:bg-violet-50 text-violet-700 font-medium border-t border-gray-100">
+              <span className="w-2 h-2 rounded-full bg-violet-400 inline-block" /> এক্সাম রো
+            </button>
+          </div>
+        </>
+      )}
       {examWarn !== null && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setExamWarn(null)} />
@@ -1582,17 +1610,13 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                       </td>
                       <td className="px-1 py-1">
                         <div className="flex gap-0.5">
-                          <button onClick={() => insertAfter(idx)} className="p-1 text-primary-400 hover:bg-primary-50 rounded" title="পরে সারি যোগ"><Plus size={11} /></button>
+                          <button
+                            onClick={e => setInsertMenu({ idx, x: e.clientX, y: e.clientY })}
+                            className="p-1 text-primary-400 hover:bg-primary-50 rounded" title="পরে সারি যোগ">
+                            <Plus size={11} />
+                          </button>
                           <button onClick={() => deleteRow(idx)} className="p-1 text-red-400 hover:bg-red-50 rounded"><Trash2 size={11} /></button>
                         </div>
-                      </td>
-                    </tr>
-                    <tr key={`ins-${row._id}`}>
-                      <td colSpan={13} className="p-0">
-                        <button onClick={() => insertAfter(idx)}
-                          className="w-full flex items-center justify-center gap-1 text-[10px] text-primary-400 hover:bg-primary-50 opacity-0 hover:opacity-100 transition-opacity py-0.5">
-                          <Plus size={10} /> এখানে সারি যোগ করুন
-                        </button>
                       </td>
                     </tr>
                   </>
