@@ -1,4 +1,24 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Component } from 'react';
+
+class ErrorBoundary extends Component {
+  state = { error: null };
+  static getDerivedStateFromError(error) { return { error }; }
+  render() {
+    if (this.state.error) return (
+      <div style={{ padding: 32, fontFamily: 'monospace' }}>
+        <h2 style={{ color: '#dc2626' }}>কিছু একটা ভুল হয়েছে</h2>
+        <pre style={{ background: '#fef2f2', padding: 16, borderRadius: 8, fontSize: 12, whiteSpace: 'pre-wrap' }}>
+          {this.state.error?.message}{'\n\n'}{this.state.error?.stack}
+        </pre>
+        <button onClick={() => window.location.href = '/'} style={{ marginTop: 16, padding: '8px 16px', background: '#1A7A6E', color: 'white', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
+          হোমে ফিরুন
+        </button>
+      </div>
+    );
+    return this.props.children;
+  }
+}
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { useNotifications } from './hooks/useNotifications';
@@ -229,7 +249,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <ErrorBoundary>
         <AppRoutes />
+        </ErrorBoundary>
         <Toaster
           position="top-center"
           toastOptions={{
