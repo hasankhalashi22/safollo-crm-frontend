@@ -1131,10 +1131,11 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
         });
         newRows.push({
           _id: `ex-${examNo}`, row_type: 'exam', label: null, class_no: null, exam_no: examNo++,
-          scheduled_date: '', scheduled_time: cfg.examTime,
+          scheduled_date: '', scheduled_time: '00:00',
           subject_name: '', _subj_id: subj.id,
           topic: '', notes: '',
-          teacher_id: '', zoom_account_id: '', ...base,
+          teacher_id: '', zoom_account_id: '',
+          class_mode: 'online', location: '', is_active: true,
         });
       }
     }
@@ -1143,10 +1144,11 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
       for (const subj of subjects) {
         newRows.push({
           _id: `subj-${subj.id}-${q}`, row_type: 'exam', label: 'সাবজেক্টিভ', class_no: null, exam_no: examNo++,
-          scheduled_date: '', scheduled_time: cfg.examTime,
+          scheduled_date: '', scheduled_time: '00:00',
           subject_name: subj.subject_name, _subj_id: subj.id,
           topic: '', notes: '',
-          teacher_id: '', zoom_account_id: '', ...base,
+          teacher_id: '', zoom_account_id: '',
+          class_mode: 'online', location: '', is_active: true,
         });
       }
     }
@@ -1157,7 +1159,8 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
         scheduled_date: '', scheduled_time: cfg.examTime,
         subject_name: 'মডেল টেস্ট', _subj_id: null,
         topic: '', notes: '',
-        teacher_id: '', zoom_account_id: '', ...base,
+        teacher_id: '', zoom_account_id: '',
+        class_mode: 'online', location: '', is_active: true,
       });
     }
 
@@ -1480,31 +1483,49 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                       <td style={{background: CC[6][1]}} className="px-1 py-1">
                         <input className={ic} value={row.notes} onChange={e => update(idx, { notes: e.target.value })} placeholder="বিস্তারিত" />
                       </td>
-                      <td style={{background: CC[7][1]}} className="px-1 py-1">
-                        <select className={sc} value={row.zoom_account_id}
-                          onChange={e => update(idx, { zoom_account_id: e.target.value })}>
-                          <option value="">—</option>
-                          {zooms.map(z => <option key={z.id} value={z.id}>{z.account_name}</option>)}
-                        </select>
+                      <td style={{background: isExam ? '#f3f4f6' : CC[7][1]}} className="px-1 py-1">
+                        {isExam ? (
+                          <span className="text-[10px] text-gray-300 px-1">—</span>
+                        ) : (
+                          <select className={sc} value={row.zoom_account_id}
+                            onChange={e => update(idx, { zoom_account_id: e.target.value })}>
+                            <option value="">—</option>
+                            {zooms.map(z => <option key={z.id} value={z.id}>{z.account_name}</option>)}
+                          </select>
+                        )}
                       </td>
-                      <td style={{background: CC[8][1]}} className="px-1 py-1">
-                        <select className={sc} value={row.teacher_id}
-                          onChange={e => update(idx, { teacher_id: e.target.value })}>
-                          <option value="">—</option>
-                          {teachers.map(t => <option key={t.id} value={t.id}>{t.full_name}</option>)}
-                        </select>
+                      <td style={{background: isExam ? '#f3f4f6' : CC[8][1]}} className="px-1 py-1">
+                        {isExam ? (
+                          <span className="text-[10px] text-gray-300 px-1">—</span>
+                        ) : (
+                          <select className={sc} value={row.teacher_id}
+                            onChange={e => update(idx, { teacher_id: e.target.value })}>
+                            <option value="">—</option>
+                            {teachers.map(t => <option key={t.id} value={t.id}>{t.full_name}</option>)}
+                          </select>
+                        )}
                       </td>
-                      <td style={{background: CC[9][1]}} className="px-1 py-1">
-                        <select className={sc} value={row.class_mode}
-                          onChange={e => update(idx, { class_mode: e.target.value })}>
-                          <option value="offline">অফলাইন</option>
-                          <option value="online">অনলাইন</option>
-                        </select>
+                      <td style={{background: isExam ? '#f3f4f6' : CC[9][1]}} className="px-1 py-1">
+                        {isExam ? (
+                          <span className="text-[10px] text-gray-400 px-1 font-medium">অনলাইন</span>
+                        ) : (
+                          <select className={sc} value={row.class_mode}
+                            onChange={e => update(idx, { class_mode: e.target.value })}>
+                            <option value="offline">অফলাইন</option>
+                            <option value="online">অনলাইন</option>
+                          </select>
+                        )}
                       </td>
-                      <td style={{background: CC[10][1]}} className="px-1 py-1">
-                        <input list={`mloc-${idx}`} className={ic} value={row.location}
-                          onChange={e => update(idx, { location: e.target.value })} placeholder="ক্লাসরুম" />
-                        <datalist id={`mloc-${idx}`}>{LOCATION_OPTIONS.map(l => <option key={l} value={l} />)}</datalist>
+                      <td style={{background: isExam ? '#f3f4f6' : CC[10][1]}} className="px-1 py-1">
+                        {isExam ? (
+                          <span className="text-[10px] text-gray-300 px-1">—</span>
+                        ) : (
+                          <>
+                            <input list={`mloc-${idx}`} className={ic} value={row.location}
+                              onChange={e => update(idx, { location: e.target.value })} placeholder="ক্লাসরুম" />
+                            <datalist id={`mloc-${idx}`}>{LOCATION_OPTIONS.map(l => <option key={l} value={l} />)}</datalist>
+                          </>
+                        )}
                       </td>
                       <td style={{background: CC[11][1]}} className="px-2 py-1 text-center">
                         <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${st.cls}`}>{st.label}</span>
