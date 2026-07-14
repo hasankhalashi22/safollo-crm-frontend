@@ -955,6 +955,489 @@ function AutoRoutineGenerator({ batch, teachers, zooms, onSaved }) {
   );
 }
 
+// ── Manual Routine Builder ─────────────────────────────────────────────────────
+const SPECIAL_SUBJECTS = ['গাইডলাইন', 'রিভিশন টেস্ট', 'সাবজেক্টিভ টেস্ট', 'মডেল টেস্ট'];
+
+function buildRowConflicts(rows) {
+  const conflicts = new Set();
+  const warnings = new Set();
+  const byDate = {};
+  rows.forEach((r, i) => {
+    if (!r.scheduled_date || r.is_active === false) return;
+    (byDate[r.scheduled_date] = byDate[r.scheduled_date] || []).push({ i, r });
+  });
+  Object.values(byDate).forEach(group => {
+    ['class', 'exam'].forEach(type => {
+      const same = group.filter(x => x.r.row_type === type);
+      for (let a = 0; a < same.length; a++) {
+        for (let b = a + 1; b < same.length; b++) {
+          const ta = same[a].r.scheduled_time, tb = same[b].r.scheduled_time;
+          if (ta && tb && ta === tb) {
+            conflicts.add(same[a].i); conflicts.add(same[b].i);
+          } else {
+            warnings.add(same[a].i); warnings.add(same[b].i);
+          }
+        }
+      }
+    });
+  });
+  return { conflicts, warnings };
+}
+
+function getRevisionTopics(rows, rowIdx) {
+  const result = [];
+  for (let i = rowIdx - 1; i >= 0; i--) {
+    const r = rows[i];
+    if (!r.is_active) continue;
+    if (r.row_type === 'exam' && (r.label === 'রিভিশন' || r.subject_name === 'রিভিশন টেস্ট')) break;
+    if (r.row_type === 'class' && r.topic && !r.label?.includes('গাইডলাইন')) {
+      result.unshift(`${r.subject_name || ''}: ${r.topic}`);
+    }
+  }
+  return result;
+}
+
+function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved }) {
+  const [step, setStep] = useState('config');
+  const [cfg, setCfg] = useState({
+    guidelineClasses: 3, subjectivePerSubject: 2, modelTests: 2,
+    classTime: '21:00', examTime: '12:00',
+    classMode: 'offline', location: 'ক্লাসরুম-১', zoomAccountId: '',
+  });
+  const [rows, setRows] = useState([]);
+  const [saving, setSaving] = useState(false);
+  const [showPdf, setShowPdf] = useState(false);
+
+  useEffect(() => {
+    if (zooms.length > 0 && !cfg.zoomAccountId)
+      setCfg(p => ({ ...p, zoomAccountId: zooms[0].id }));
+  }, [zooms]);
+
+  const setC = (k, v) => setCfg(p => ({ ...p, [k]: v }));
+  const update = (idx, updates) => setRows(prev => prev.map((r, i) => i === idx ? { ...r, ...updates } : r));
+  const deleteRow = (idx) => setRows(prev => prev.filter((_, i) => i !== idx));
+  const toggleActive = (idx) => setRows(prev => prev.map((r, i) => i === idx ? { ...r, is_active: !r.is_active } : r));
+  const insertAfter = (idx) => {
+    const blank = {
+      _id: `ins-${Date.now()}`, row_type: 'class', label: null, class_no: null, exam_no: null,
+      scheduled_date: '', scheduled_time: cfg.classTime,
+      subject_name: '', _subj_id: null, topic: '', notes: '',
+      teacher_id: '', zoom_account_id: cfg.zoomAccountId,
+      class_mode: cfg.classMode, location: cfg.location, is_active: true,
+    };
+    setRows(prev => [...prev.slice(0, idx + 1), blank, ...prev.slice(idx + 1)]);
+  };
+
+  const generate = () => {
+    if (subjects.length === 0) return toast.error('প্ল্যানে সাবজেক্ট নেই');
+    const newRows = [];
+    let classNo = 1, examNo = 1;
+    const base = { class_mode: cfg.classMode, location: cfg.location, is_active: true };
+
+    for (let i = 0; i < Number(cfg.guidelineClasses); i++) {
+      newRows.push({
+        _id: `g-${i}`, row_type: 'class', label: `গাইডলাইন-${i + 1}`, class_no: null, exam_no: null,
+        scheduled_date: '', scheduled_time: cfg.classTime,
+        subject_name: 'গাইডলাইন', _subj_id: null,
+        topic: `গাইডলাইন ক্লাস ${i + 1}`, notes: '',
+        teacher_id: '', zoom_account_id: cfg.zoomAccountId, ...base,
+      });
+    }
+
+    const maxRounds = Math.max(...subjects.map(s => s.lectures?.length || 0), 0);
+    for (let round = 0; round < maxRounds; round++) {
+      for (const subj of subjects) {
+        const lecs = subj.lectures || [];
+        if (round >= lecs.length) continue;
+        const lec = lecs[round];
+        const subjLabel = `${subj.subject_name}-${round + 1}`;
+        newRows.push({
+          _id: `cls-${classNo}`, row_type: 'class', label: null, class_no: classNo++, exam_no: null,
+          scheduled_date: '', scheduled_time: cfg.classTime,
+          subject_name: subjLabel, _subj_id: subj.id,
+          topic: lec.title || '', notes: lec.details || '',
+          teacher_id: '', zoom_account_id: cfg.zoomAccountId, ...base,
+        });
+        newRows.push({
+          _id: `ex-${examNo}`, row_type: 'exam', label: null, class_no: null, exam_no: examNo++,
+          scheduled_date: '', scheduled_time: cfg.examTime,
+          subject_name: subjLabel, _subj_id: subj.id,
+          topic: lec.title || '', notes: lec.details || '',
+          teacher_id: '', zoom_account_id: '', ...base,
+        });
+      }
+    }
+
+    for (let q = 1; q <= Number(cfg.subjectivePerSubject); q++) {
+      for (const subj of subjects) {
+        newRows.push({
+          _id: `subj-${subj.id}-${q}`, row_type: 'exam', label: 'সাবজেক্টিভ', class_no: null, exam_no: examNo++,
+          scheduled_date: '', scheduled_time: cfg.examTime,
+          subject_name: subj.subject_name, _subj_id: subj.id,
+          topic: `সাবজেক্টিভ পরীক্ষা ${q} — ${subj.subject_name}`, notes: '',
+          teacher_id: '', zoom_account_id: '', ...base,
+        });
+      }
+    }
+
+    for (let m = 1; m <= Number(cfg.modelTests); m++) {
+      newRows.push({
+        _id: `model-${m}`, row_type: 'exam', label: `মডেল-${m}`, class_no: null, exam_no: examNo++,
+        scheduled_date: '', scheduled_time: cfg.examTime,
+        subject_name: 'মডেল টেস্ট', _subj_id: null,
+        topic: `মডেল টেস্ট ${m}`, notes: '',
+        teacher_id: '', zoom_account_id: '', ...base,
+      });
+    }
+
+    setRows(newRows);
+    setStep('table');
+    toast.success(`${newRows.length} টি সারি তৈরি হয়েছে`);
+  };
+
+  const saveRoutine = async () => {
+    const active = rows.filter(r => r.is_active !== false);
+    if (!active.length) return toast.error('কোনো একটিভ সারি নেই');
+    const { conflicts } = buildRowConflicts(rows);
+    if (conflicts.size > 0 && !confirm(`${conflicts.size} টি সারিতে সময় conflict আছে। তবুও সেভ করবেন?`)) return;
+    setSaving(true);
+    try {
+      await academyApi.bulkAddOutlineRows(batch.id, active);
+      toast.success(`${active.length} টি সারি সেভ হয়েছে`);
+      setRows([]); setStep('config'); onSaved();
+    } catch { toast.error('সেভ করতে সমস্যা হয়েছে'); }
+    setSaving(false);
+  };
+
+  const downloadExcel = () => {
+    const data = rows.filter(r => r.is_active !== false).map(r => {
+      const t = teachers.find(x => x.id === r.teacher_id);
+      const z = zooms.find(x => x.id === r.zoom_account_id);
+      const isExam = r.row_type === 'exam';
+      const typeLabel = isExam ? (r.label ? `${r.label}-${r.exam_no||''}` : `এক্সাম-${r.exam_no||''}`) : (r.label || `ক্লাস-${r.class_no||''}`);
+      return {
+        'ক্রম': typeLabel, 'তারিখ': localDate(r.scheduled_date), 'বার': dayLabel(r.scheduled_date),
+        'সময়': r.scheduled_time, 'সাবজেক্ট': r.subject_name, 'শিরোনাম': r.topic, 'বিস্তারিত': r.notes,
+        'জুম': z?.account_name || '', 'টিচার': t?.full_name || '',
+        'ধরণ': r.class_mode === 'offline' ? 'অফলাইন' : 'অনলাইন',
+        'স্থান': r.location, 'স্ট্যাটাস': routineStatus(r).label,
+      };
+    });
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'রুটিন');
+    XLSX.writeFile(wb, `${batch.batch_name}_manual_routine.xlsx`);
+    toast.success('Excel ডাউনলোড হয়েছে');
+  };
+
+  const { conflicts, warnings } = buildRowConflicts(rows);
+
+  // Build used topics per subject (from active class rows)
+  const usedTopics = {};
+  subjects.forEach(s => { usedTopics[s.id] = new Set(); });
+  rows.forEach(r => {
+    if (r.is_active !== false && r.row_type === 'class' && r._subj_id && r.topic) {
+      if (!usedTopics[r._subj_id]) usedTopics[r._subj_id] = new Set();
+      usedTopics[r._subj_id].add(r.topic);
+    }
+  });
+
+  const ic = 'w-full text-xs border border-gray-200 rounded-lg px-1.5 py-1 focus:outline-none focus:border-primary-400 bg-white';
+
+  if (step === 'config') return (
+    <div className="bg-white rounded-2xl shadow-sm border-2 border-amber-100 p-5 space-y-5">
+      <div className="flex items-center gap-2">
+        <Plus size={16} className="text-amber-500" />
+        <p className="text-sm font-semibold text-gray-700">ম্যানুয়াল রুটিন কনফিগারেশন</p>
+        {subjects.length > 0 && (
+          <span className="ml-auto text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+            {subjects.length} সাবজেক্ট • {subjects.reduce((s, x) => s + (x.lectures?.length || 0), 0)} লেকচার
+          </span>
+        )}
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          ['guidelineClasses', 'গাইডলাইন ক্লাস', 'number', 0, 20],
+          ['subjectivePerSubject', 'সাবজেক্টিভ (প্রতি সাবজেক্টে)', 'number', 0, 10],
+          ['modelTests', 'মডেল টেস্ট', 'number', 0, 20],
+        ].map(([k, label, type, min, max]) => (
+          <div key={k} className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-gray-600">{label}</label>
+            <input type={type} className="input-field text-sm" min={min} max={max}
+              value={cfg[k]} onChange={e => setC(k, e.target.value)} />
+          </div>
+        ))}
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium text-gray-600">ক্লাস সময়</label>
+          <input type="time" className="input-field text-sm" value={cfg.classTime} onChange={e => setC('classTime', e.target.value)} />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium text-gray-600">পরীক্ষার সময়</label>
+          <input type="time" className="input-field text-sm" value={cfg.examTime} onChange={e => setC('examTime', e.target.value)} />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium text-gray-600">ডিফল্ট ধরণ</label>
+          <select className="input-field text-sm" value={cfg.classMode} onChange={e => setC('classMode', e.target.value)}>
+            <option value="offline">অফলাইন</option>
+            <option value="online">অনলাইন</option>
+          </select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium text-gray-600">ডিফল্ট স্থান</label>
+          <select className="input-field text-sm" value={cfg.location} onChange={e => setC('location', e.target.value)}>
+            {LOCATION_OPTIONS.map(l => <option key={l} value={l}>{l}</option>)}
+          </select>
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium text-gray-600">Zoom একাউন্ট</label>
+          <select className="input-field text-sm" value={cfg.zoomAccountId} onChange={e => setC('zoomAccountId', e.target.value)}>
+            <option value="">—</option>
+            {zooms.map(z => <option key={z.id} value={z.id}>{z.account_name}</option>)}
+          </select>
+        </div>
+      </div>
+      <button onClick={generate}
+        className="bg-amber-500 hover:bg-amber-600 text-white font-semibold px-6 py-2.5 rounded-xl text-sm flex items-center gap-2">
+        <Plus size={14} /> রুটিন টেবিল তৈরি করুন
+      </button>
+    </div>
+  );
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm border-2 border-amber-100 p-4 space-y-4">
+      <div className="flex items-center gap-2 flex-wrap">
+        <button onClick={() => setStep('config')} className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1">
+          <ArrowLeft size={12} /> কনফিগ
+        </button>
+        <span className="text-xs font-semibold text-gray-700">ম্যানুয়াল রুটিন টেবিল</span>
+        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{rows.length} সারি</span>
+        {conflicts.size > 0 && (
+          <span className="text-xs text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-200">
+            ⚠ {conflicts.size} conflict
+          </span>
+        )}
+        {warnings.size > 0 && (
+          <span className="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+            ! {warnings.size} warning
+          </span>
+        )}
+        <div className="ml-auto flex gap-2">
+          <button onClick={downloadExcel}
+            className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1">
+            <FileSpreadsheet size={12} /> Excel
+          </button>
+          <button onClick={() => setShowPdf(true)}
+            className="bg-red-500 hover:bg-red-600 text-white font-semibold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1">
+            <FileDown size={12} /> PDF
+          </button>
+          <button onClick={saveRoutine} disabled={saving}
+            className="bg-green-500 hover:bg-green-600 disabled:opacity-50 text-white font-semibold px-4 py-1.5 rounded-xl text-xs flex items-center gap-1.5">
+            <Save size={12} /> {saving ? 'সেভ হচ্ছে...' : 'রুটিন ফাইনাল করুন'}
+          </button>
+        </div>
+      </div>
+
+      <div className="border border-gray-200 rounded-xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm" style={{minWidth: 1180}}>
+            <colgroup>
+              <col style={{width:88}}/><col style={{width:104}}/><col style={{width:38}}/>
+              <col style={{width:88}}/><col style={{width:140}}/><col style={{width:130}}/>
+              <col style={{width:120}}/><col style={{width:106}}/><col style={{width:100}}/>
+              <col style={{width:76}}/><col style={{width:90}}/><col style={{width:68}}/><col style={{width:46}}/>
+            </colgroup>
+            <thead>
+              <tr>
+                {['ক্রম','তারিখ','বার','সময়','সাবজেক্ট','শিরোনাম','বিস্তারিত','জুম','টিচার','ধরণ','স্থান','স্ট্যাটাস',''].map((h, i) => (
+                  <th key={i} style={{background: CC[i]?.[0]||'#f1f5f9', color:'#374151', fontSize:10, padding:'8px 6px', textAlign:'left', fontWeight:600, whiteSpace:'nowrap', borderBottom:'1px solid #e5e7eb'}}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, idx) => {
+                const isConflict = conflicts.has(idx);
+                const isWarning = !isConflict && warnings.has(idx);
+                const isExam = row.row_type === 'exam';
+                const isActive = row.is_active !== false;
+                const st = routineStatus(row);
+                const baseSubj = subjects.find(s => s.id === row._subj_id);
+                const lectures = baseSubj?.lectures || [];
+                const isRevision = row.label === 'রিভিশন' || row.subject_name === 'রিভিশন টেস্ট';
+
+                const availableLectures = lectures.filter(l => {
+                  const used = usedTopics[row._subj_id] || new Set();
+                  return l.title === row.topic || !used.has(l.title);
+                });
+
+                const lecTotal = lectures.length;
+                const lecUsed = row._subj_id ? (usedTopics[row._subj_id]?.size || 0) : 0;
+                const lecLimitReached = lecTotal > 0 && lecUsed >= lecTotal && row.row_type === 'class' && !row.topic;
+
+                const typeLabel = isExam
+                  ? (row.label ? `${row.label}-${row.exam_no||''}` : `এক্সাম-${row.exam_no||''}`)
+                  : (row.label || `ক্লাস-${row.class_no||''}`);
+
+                const handleSubjSelect = (val) => {
+                  if (val.startsWith('__')) {
+                    const special = val.replace(/^__|__$/g, '');
+                    update(idx, { _subj_id: null, subject_name: special, topic: '', notes: '' });
+                  } else {
+                    const subj = subjects.find(s => s.id === val);
+                    const seq = (row.subject_name || '').match(/-(\d+)$/)?.[1] || '1';
+                    update(idx, {
+                      _subj_id: val,
+                      subject_name: subj ? `${subj.subject_name}-${seq}` : '',
+                      topic: '', notes: '',
+                    });
+                  }
+                };
+
+                const handleTitleSelect = (title) => {
+                  const lec = lectures.find(l => l.title === title);
+                  update(idx, { topic: title, notes: lec?.details || '' });
+                };
+
+                const handleRevisionFill = () => {
+                  const topics = getRevisionTopics(rows, idx);
+                  const topicStr = topics.length > 0 ? `রিভিশন: ${topics.join(' | ')}` : 'রিভিশন পরীক্ষা';
+                  update(idx, { topic: topicStr });
+                };
+
+                return (
+                  <>
+                    <tr key={row._id} className={`border-t border-gray-100 ${!isActive ? 'opacity-40' : ''}`}
+                      style={isConflict ? {outline:'2px solid #f87171',outlineOffset:'-1px'} : isWarning ? {outline:'2px solid #fbbf24',outlineOffset:'-1px'} : {}}>
+                      <td style={{background: isExam ? '#ede9fe' : CC[0][1]}} className="px-2 py-1">
+                        <div className="flex items-center gap-1">
+                          <button onClick={() => toggleActive(idx)}
+                            className={`text-[11px] leading-none ${isActive ? 'text-green-600' : 'text-gray-400'}`}>
+                            {isActive ? '●' : '○'}
+                          </button>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold whitespace-nowrap ${
+                            isConflict ? 'bg-red-200 text-red-800' :
+                            isWarning ? 'bg-yellow-200 text-yellow-800' :
+                            row.label?.includes('গাইডলাইন') ? 'bg-amber-200 text-amber-800' :
+                            isExam ? 'bg-purple-200 text-purple-800' : 'bg-blue-200 text-blue-800'
+                          }`}>{typeLabel}</span>
+                        </div>
+                      </td>
+                      <td style={{background: CC[1][1]}} className="px-1 py-1">
+                        <input type="date" className={ic} value={row.scheduled_date}
+                          onChange={e => update(idx, { scheduled_date: e.target.value })} />
+                      </td>
+                      <td style={{background: CC[2][1]}} className="px-2 py-1 text-xs text-center font-medium text-amber-700">
+                        {dayLabel(row.scheduled_date)}
+                      </td>
+                      <td style={{background: CC[3][1]}} className="px-1 py-1">
+                        <input type="time" className={ic} value={row.scheduled_time}
+                          onChange={e => update(idx, { scheduled_time: e.target.value })} />
+                      </td>
+                      <td style={{background: CC[4][1]}} className="px-1 py-1">
+                        <div className="flex gap-1">
+                          <select className={ic} style={{flex:'1 1 0', minWidth:0}}
+                            value={row._subj_id || (SPECIAL_SUBJECTS.includes(row.subject_name) ? `__${row.subject_name}__` : '')}
+                            onChange={e => handleSubjSelect(e.target.value)}>
+                            <option value="">— বেছে নিন</option>
+                            <optgroup label="প্ল্যান সাবজেক্ট">
+                              {subjects.map(s => <option key={s.id} value={s.id}>{s.subject_name}</option>)}
+                            </optgroup>
+                            <optgroup label="বিশেষ">
+                              {SPECIAL_SUBJECTS.map(s => <option key={s} value={`__${s}__`}>{s}</option>)}
+                            </optgroup>
+                          </select>
+                          {row._subj_id && (
+                            <input type="text" className={`${ic} text-center`} style={{width:'2rem', flexShrink:0}}
+                              value={(row.subject_name || '').match(/-(\d+)$/)?.[1] || ''}
+                              onChange={e => {
+                                const base = baseSubj ? baseSubj.subject_name : (row.subject_name || '').replace(/-\d+$/, '');
+                                update(idx, { subject_name: e.target.value ? `${base}-${e.target.value}` : base });
+                              }}
+                              placeholder="#" title="ক্রম নম্বর" />
+                          )}
+                        </div>
+                        {lecLimitReached && (
+                          <p className="text-[10px] text-red-500 mt-0.5">এই বিষয়ে আর কোন লেকচার নেই</p>
+                        )}
+                      </td>
+                      <td style={{background: CC[5][1]}} className="px-1 py-1">
+                        {isRevision ? (
+                          <div className="flex gap-1">
+                            <input className={ic} value={row.topic} onChange={e => update(idx, { topic: e.target.value })} placeholder="রিভিশন শিরোনাম" />
+                            <button onClick={handleRevisionFill} title="অটো ফিল"
+                              className="text-[11px] text-blue-500 hover:bg-blue-50 rounded px-1 whitespace-nowrap">↻</button>
+                          </div>
+                        ) : availableLectures.length > 0 && row.row_type === 'class' ? (
+                          <select className={ic} value={row.topic} onChange={e => handleTitleSelect(e.target.value)}>
+                            <option value="">— বেছে নিন</option>
+                            {availableLectures.map((l, i) => <option key={i} value={l.title}>{l.title}</option>)}
+                          </select>
+                        ) : (
+                          <input className={ic} value={row.topic} onChange={e => update(idx, { topic: e.target.value })} placeholder="শিরোনাম" />
+                        )}
+                      </td>
+                      <td style={{background: CC[6][1]}} className="px-1 py-1">
+                        <input className={ic} value={row.notes} onChange={e => update(idx, { notes: e.target.value })} placeholder="বিস্তারিত" />
+                      </td>
+                      <td style={{background: CC[7][1]}} className="px-1 py-1">
+                        <select className={ic} value={row.zoom_account_id}
+                          onChange={e => update(idx, { zoom_account_id: e.target.value })}>
+                          <option value="">—</option>
+                          {zooms.map(z => <option key={z.id} value={z.id}>{z.account_name}</option>)}
+                        </select>
+                      </td>
+                      <td style={{background: CC[8][1]}} className="px-1 py-1">
+                        <select className={ic} value={row.teacher_id}
+                          onChange={e => update(idx, { teacher_id: e.target.value })}>
+                          <option value="">—</option>
+                          {teachers.map(t => <option key={t.id} value={t.id}>{t.full_name}</option>)}
+                        </select>
+                      </td>
+                      <td style={{background: CC[9][1]}} className="px-1 py-1">
+                        <select className={ic} value={row.class_mode}
+                          onChange={e => update(idx, { class_mode: e.target.value })}>
+                          <option value="offline">অফলাইন</option>
+                          <option value="online">অনলাইন</option>
+                        </select>
+                      </td>
+                      <td style={{background: CC[10][1]}} className="px-1 py-1">
+                        <input list={`mloc-${idx}`} className={ic} value={row.location}
+                          onChange={e => update(idx, { location: e.target.value })} placeholder="স্থান" />
+                        <datalist id={`mloc-${idx}`}>{LOCATION_OPTIONS.map(l => <option key={l} value={l} />)}</datalist>
+                      </td>
+                      <td style={{background: CC[11][1]}} className="px-2 py-1 text-center">
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${st.cls}`}>{st.label}</span>
+                      </td>
+                      <td className="px-1 py-1">
+                        <div className="flex gap-0.5">
+                          <button onClick={() => insertAfter(idx)} className="p-1 text-primary-400 hover:bg-primary-50 rounded" title="পরে সারি যোগ"><Plus size={11} /></button>
+                          <button onClick={() => deleteRow(idx)} className="p-1 text-red-400 hover:bg-red-50 rounded"><Trash2 size={11} /></button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr key={`ins-${row._id}`}>
+                      <td colSpan={13} className="p-0">
+                        <button onClick={() => insertAfter(idx)}
+                          className="w-full flex items-center justify-center gap-1 text-[10px] text-primary-400 hover:bg-primary-50 opacity-0 hover:opacity-100 transition-opacity py-0.5">
+                          <Plus size={10} /> এখানে সারি যোগ করুন
+                        </button>
+                      </td>
+                    </tr>
+                  </>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {showPdf && (
+        <PdfModal rows={rows.filter(r => r.is_active !== false)} batchName={batch.batch_name}
+          teachers={teachers} zooms={zooms} onClose={() => setShowPdf(false)} />
+      )}
+    </div>
+  );
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function BatchDetail() {
   const { id } = useParams();
@@ -967,6 +1450,7 @@ export default function BatchDetail() {
   const [feedbackRow, setFeedbackRow] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showGenerator, setShowGenerator] = useState(false);
+  const [showManualBuilder, setShowManualBuilder] = useState(false);
   const [showPdf, setShowPdf] = useState(false);
   const [showFollowModal, setShowFollowModal] = useState(false);
   const [allBatches, setAllBatches] = useState([]);
@@ -1185,8 +1669,8 @@ export default function BatchDetail() {
           className={`flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-xl transition-colors ${showGenerator ? 'bg-primary-700 text-white' : 'bg-primary-500 hover:bg-primary-600 text-white'}`}>
           <Wand2 size={14} /> অটো রুটিন তৈরি
         </button>
-        <button onClick={() => { setShowAddForm(s => !s); setShowGenerator(false); setInsertAfterRowNo(null); }}
-          className={`flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-xl transition-colors ${showAddForm ? 'bg-amber-600 text-white' : 'bg-amber-500 hover:bg-amber-600 text-white'}`}>
+        <button onClick={() => { setShowManualBuilder(s => !s); setShowGenerator(false); setShowAddForm(false); }}
+          className={`flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-xl transition-colors ${showManualBuilder ? 'bg-amber-600 text-white' : 'bg-amber-500 hover:bg-amber-600 text-white'}`}>
           <Plus size={14} /> ম্যানুয়াল তৈরি
         </button>
         <button onClick={() => setShowFollowModal(true)}
@@ -1220,6 +1704,11 @@ export default function BatchDetail() {
       {showGenerator && batch && (
         <AutoRoutineGenerator batch={batch} teachers={teachers} zooms={zooms}
           onSaved={() => { loadOutline(); setShowGenerator(false); }} />
+      )}
+
+      {showManualBuilder && batch && (
+        <ManualRoutineBuilder batch={batch} subjects={batchSubjects} teachers={teachers} zooms={zooms}
+          onSaved={() => { loadOutline(); setShowManualBuilder(false); }} />
       )}
 
       {showAddForm && (
