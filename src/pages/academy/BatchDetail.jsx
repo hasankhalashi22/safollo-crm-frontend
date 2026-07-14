@@ -95,6 +95,12 @@ function routineStatus(row) {
   if (row.feedback_status === 'approved' || row.status === 'done')
     return { label: 'সম্পন্ন', cls: 'bg-green-100 text-green-700' };
   const d = (row.scheduled_date || '').split('T')[0];
+  if (d) {
+    const t = row.scheduled_time || '00:00';
+    const scheduledAt = new Date(`${d}T${t}`);
+    if (scheduledAt < new Date())
+      return { label: 'পেন্ডিং', cls: 'bg-yellow-100 text-yellow-700' };
+  }
   if (d === TODAY) return { label: 'আজ', cls: 'bg-blue-100 text-blue-700' };
   return { label: 'হবে', cls: 'bg-gray-100 text-gray-500' };
 }
