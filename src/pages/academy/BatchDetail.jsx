@@ -2074,7 +2074,7 @@ export default function BatchDetail() {
               <tbody>
                 {filteredOutline.map((row, idx) => (
                   <OutlineRow key={row.id} row={row} idx={idx}
-                    teachers={teachers} zooms={zooms} allRows={outline} subjects={subjects}
+                    teachers={teachers} zooms={zooms} allRows={outline} subjects={batchSubjects}
                     onRefresh={loadOutline} onFeedback={setFeedbackRow} onInsertAfter={handleInsertAfter} />
                 ))}
               </tbody>
