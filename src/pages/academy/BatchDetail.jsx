@@ -1067,7 +1067,25 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
   }, [zooms]);
 
   const setC = (k, v) => setCfg(p => ({ ...p, [k]: v }));
-  const update = (idx, updates) => setRows(prev => prev.map((r, i) => i === idx ? { ...r, ...updates } : r));
+  const update = (idx, updates) => setRows(prev => {
+    const next = prev.map((r, i) => i === idx ? { ...r, ...updates } : r);
+    // Sync subject/topic/notes to the immediately following regular exam row
+    const changed = next[idx];
+    const contentFields = ['_subj_id', 'subject_name', 'topic', 'notes'];
+    const hasContent = contentFields.some(k => k in updates);
+    if (hasContent && changed.row_type === 'class' && !changed.label) {
+      const examIdx = idx + 1;
+      if (examIdx < next.length && next[examIdx].row_type === 'exam' && !next[examIdx].label) {
+        const sync = {};
+        if ('_subj_id'     in updates) sync._subj_id     = updates._subj_id;
+        if ('subject_name' in updates) sync.subject_name = updates.subject_name;
+        if ('topic'        in updates) sync.topic        = updates.topic;
+        if ('notes'        in updates) sync.notes        = updates.notes;
+        next[examIdx] = { ...next[examIdx], ...sync };
+      }
+    }
+    return next;
+  });
   const deleteRow = (idx) => setRows(prev => prev.filter((_, i) => i !== idx));
   const toggleActive = (idx) => setRows(prev => prev.map((r, i) => i === idx ? { ...r, is_active: !r.is_active } : r));
   const insertAfter = (idx) => {
@@ -1347,7 +1365,9 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                     update(idx, { _subj_id: null, subject_name: special, topic: '', notes: '' });
                   } else {
                     const subj = subjects.find(s => s.id === val);
-                    const seq = (row.subject_name || '').match(/-(\d+)$/)?.[1] || '1';
+                    // Count active class rows before this index using this subject
+                    const count = rows.filter((r, i) => i < idx && r.is_active !== false && r.row_type === 'class' && r._subj_id === val).length;
+                    const seq = count + 1;
                     update(idx, {
                       _subj_id: val,
                       subject_name: subj ? `${subj.subject_name}-${seq}` : '',
@@ -1393,8 +1413,26 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                         {dayLabel(row.scheduled_date)}
                       </td>
                       <td style={{background: CC[3][1]}} className="px-1 py-1">
-                        <input type="time" className={ic} value={row.scheduled_time}
-                          onChange={e => update(idx, { scheduled_time: e.target.value })} />
+                        {(() => {
+                          const PRESETS = ['21:00','19:00','12:00','00:00'];
+                          const isPreset = PRESETS.includes(row.scheduled_time);
+                          return (
+                            <div className="flex flex-col gap-0.5">
+                              <select className={sc} value={isPreset ? row.scheduled_time : '__'}
+                                onChange={e => { if (e.target.value !== '__') update(idx, { scheduled_time: e.target.value }); }}>
+                                <option value="21:00">09:00 PM</option>
+                                <option value="19:00">07:00 PM</option>
+                                <option value="12:00">12:00 PM</option>
+                                <option value="00:00">12:00 AM</option>
+                                <option value="__">অন্য সময়...</option>
+                              </select>
+                              {!isPreset && (
+                                <input type="time" className={ic} value={row.scheduled_time}
+                                  onChange={e => update(idx, { scheduled_time: e.target.value })} />
+                              )}
+                            </div>
+                          );
+                        })()}
                       </td>
                       <td style={{background: CC[4][1]}} className="px-1 py-1">
                         <div className="flex gap-1">
