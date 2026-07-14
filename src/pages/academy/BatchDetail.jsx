@@ -1918,15 +1918,15 @@ export default function BatchDetail() {
 
       {/* Actions */}
       <div className="flex gap-2 flex-wrap">
-        {outline.length === 0 && (
-          <button onClick={() => { setShowManualBuilder(s => !s); setShowAddForm(false); }}
-            className={`flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-xl transition-colors ${showManualBuilder ? 'bg-amber-600 text-white' : 'bg-amber-500 hover:bg-amber-600 text-white'}`}>
+        {!showManualBuilder && outline.length === 0 && (
+          <button onClick={() => { setShowManualBuilder(true); setShowAddForm(false); }}
+            className="flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white transition-colors">
             <Plus size={14} /> ম্যানুয়াল তৈরি
           </button>
         )}
-        {outline.length > 0 && (
-          <button onClick={() => { setShowManualBuilder(s => !s); setShowAddForm(false); }}
-            className={`flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-xl transition-colors ${showManualBuilder ? 'bg-amber-600 text-white' : 'bg-amber-500 hover:bg-amber-600 text-white'}`}>
+        {!showManualBuilder && outline.length > 0 && (
+          <button onClick={() => { setShowManualBuilder(true); setShowAddForm(false); }}
+            className="flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white transition-colors">
             <Edit2 size={14} /> সম্পূর্ন রুটিন এডিট করুন
           </button>
         )}
