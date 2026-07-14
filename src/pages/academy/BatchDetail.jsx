@@ -1069,11 +1069,8 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
   const setC = (k, v) => setCfg(p => ({ ...p, [k]: v }));
   const update = (idx, updates) => setRows(prev => {
     const next = prev.map((r, i) => i === idx ? { ...r, ...updates } : r);
-    // Sync subject/topic/notes to the immediately following regular exam row
     const changed = next[idx];
-    const contentFields = ['_subj_id', 'subject_name', 'topic', 'notes'];
-    const hasContent = contentFields.some(k => k in updates);
-    if (hasContent && changed.row_type === 'class' && !changed.label) {
+    if (changed.row_type === 'class' && !changed.label) {
       const examIdx = idx + 1;
       if (examIdx < next.length && next[examIdx].row_type === 'exam' && !next[examIdx].label) {
         const sync = {};
@@ -1081,7 +1078,12 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
         if ('subject_name' in updates) sync.subject_name = updates.subject_name;
         if ('topic'        in updates) sync.topic        = updates.topic;
         if ('notes'        in updates) sync.notes        = updates.notes;
-        next[examIdx] = { ...next[examIdx], ...sync };
+        if ('scheduled_date' in updates && updates.scheduled_date) {
+          const d = new Date(updates.scheduled_date);
+          d.setDate(d.getDate() + 1);
+          sync.scheduled_date = d.toISOString().slice(0, 10);
+        }
+        if (Object.keys(sync).length) next[examIdx] = { ...next[examIdx], ...sync };
       }
     }
     return next;
@@ -1343,6 +1345,7 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                 const isConflict = conflicts.has(idx);
                 const isWarning = !isConflict && warnings.has(idx);
                 const isExam = row.row_type === 'exam';
+                const tdBg = (ccIdx) => isExam ? '#ede9fe' : CC[ccIdx][1];
                 const isActive = row.is_active !== false;
                 const st = routineStatus(row);
                 const baseSubj = subjects.find(s => s.id === row._subj_id);
@@ -1394,7 +1397,7 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                   <>
                     <tr key={row._id} className={`border-t border-gray-100 ${!isActive ? 'opacity-40' : ''}`}
                       style={isConflict ? {outline:'2px solid #f87171',outlineOffset:'-1px'} : isWarning ? {outline:'2px solid #fbbf24',outlineOffset:'-1px'} : {}}>
-                      <td style={{background: isExam ? '#ede9fe' : CC[0][1]}} className="px-2 py-1">
+                      <td style={{background: isExam ? '#c4b5fd' : CC[0][1]}} className="px-2 py-1">
                         <div className="flex items-center gap-1">
                           <button onClick={() => toggleActive(idx)}
                             className={`text-[11px] leading-none ${isActive ? 'text-green-600' : 'text-gray-400'}`}>
@@ -1408,14 +1411,14 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                           }`}>{typeLabel}</span>
                         </div>
                       </td>
-                      <td style={{background: CC[1][1]}} className="px-1 py-1">
+                      <td style={{background: tdBg(1)}} className="px-1 py-1">
                         <input type="date" className={ic} value={row.scheduled_date}
                           onChange={e => update(idx, { scheduled_date: e.target.value })} />
                       </td>
-                      <td style={{background: CC[2][1]}} className="px-2 py-1 text-xs text-center font-medium text-amber-700">
+                      <td style={{background: tdBg(2)}} className="px-2 py-1 text-xs text-center font-medium text-amber-700">
                         {dayLabel(row.scheduled_date)}
                       </td>
-                      <td style={{background: CC[3][1]}} className="px-1 py-1">
+                      <td style={{background: tdBg(3)}} className="px-1 py-1">
                         {(() => {
                           const PRESETS = ['21:00','19:00','12:00','00:00'];
                           const isPreset = PRESETS.includes(row.scheduled_time);
@@ -1437,7 +1440,7 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                           );
                         })()}
                       </td>
-                      <td style={{background: CC[4][1]}} className="px-1 py-1">
+                      <td style={{background: tdBg(4)}} className="px-1 py-1">
                         <div className="flex gap-1">
                           <select className={sc} style={{flex:'1 1 0', minWidth:0}}
                             value={row._subj_id || (SPECIAL_SUBJECTS.includes(row.subject_name) ? `__${row.subject_name}__` : '')}
@@ -1464,7 +1467,7 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                           <p className="text-[10px] text-red-500 mt-0.5">এই বিষয়ে আর কোন লেকচার নেই</p>
                         )}
                       </td>
-                      <td style={{background: CC[5][1]}} className="px-1 py-1">
+                      <td style={{background: tdBg(5)}} className="px-1 py-1">
                         {isRevision ? (
                           <div className="flex gap-1">
                             <input className={ic} value={row.topic} onChange={e => update(idx, { topic: e.target.value })} placeholder="রিভিশন শিরোনাম" />
@@ -1480,10 +1483,10 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                           <input className={ic} value={row.topic} onChange={e => update(idx, { topic: e.target.value })} placeholder="শিরোনাম" />
                         )}
                       </td>
-                      <td style={{background: CC[6][1]}} className="px-1 py-1">
+                      <td style={{background: tdBg(6)}} className="px-1 py-1">
                         <input className={ic} value={row.notes} onChange={e => update(idx, { notes: e.target.value })} placeholder="বিস্তারিত" />
                       </td>
-                      <td style={{background: isExam ? '#f3f4f6' : CC[7][1]}} className="px-1 py-1">
+                      <td style={{background: isExam ? '#ddd6fe' : CC[7][1]}} className="px-1 py-1">
                         {isExam ? (
                           <span className="text-[10px] text-gray-300 px-1">—</span>
                         ) : (
@@ -1494,7 +1497,7 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                           </select>
                         )}
                       </td>
-                      <td style={{background: isExam ? '#f3f4f6' : CC[8][1]}} className="px-1 py-1">
+                      <td style={{background: isExam ? '#ddd6fe' : CC[8][1]}} className="px-1 py-1">
                         {isExam ? (
                           <span className="text-[10px] text-gray-300 px-1">—</span>
                         ) : (
@@ -1505,7 +1508,7 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                           </select>
                         )}
                       </td>
-                      <td style={{background: isExam ? '#f3f4f6' : CC[9][1]}} className="px-1 py-1">
+                      <td style={{background: isExam ? '#ddd6fe' : CC[9][1]}} className="px-1 py-1">
                         {isExam ? (
                           <span className="text-[10px] text-gray-400 px-1 font-medium">অনলাইন</span>
                         ) : (
@@ -1516,7 +1519,7 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                           </select>
                         )}
                       </td>
-                      <td style={{background: isExam ? '#f3f4f6' : CC[10][1]}} className="px-1 py-1">
+                      <td style={{background: isExam ? '#ddd6fe' : CC[10][1]}} className="px-1 py-1">
                         {isExam ? (
                           <span className="text-[10px] text-gray-300 px-1">—</span>
                         ) : (
@@ -1527,7 +1530,7 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                           </>
                         )}
                       </td>
-                      <td style={{background: CC[11][1]}} className="px-2 py-1 text-center">
+                      <td style={{background: tdBg(11)}} className="px-2 py-1 text-center">
                         <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${st.cls}`}>{st.label}</span>
                       </td>
                       <td className="px-1 py-1">
