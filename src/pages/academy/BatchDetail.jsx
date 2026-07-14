@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Plus, ArrowLeft, Edit2, Trash2, CheckCircle, Clock, Save, X, Wand2, FileDown, FileSpreadsheet, GitMerge, Lock, RotateCcw, Search } from 'lucide-react';
 import { academyApi } from '../../api/client';
@@ -1060,6 +1060,13 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
   const [rows, setRows] = useState([]);
   const [saving, setSaving] = useState(false);
   const [showPdf, setShowPdf] = useState(false);
+  const [examWarn, setExamWarn] = useState(false);
+  const examWarnTimer = useRef(null);
+  const triggerExamWarn = () => {
+    setExamWarn(true);
+    clearTimeout(examWarnTimer.current);
+    examWarnTimer.current = setTimeout(() => setExamWarn(false), 3000);
+  };
 
   useEffect(() => {
     if (zooms.length > 0 && !cfg.zoomAccountId)
@@ -1288,6 +1295,11 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border-2 border-amber-100 p-4 space-y-4">
+      {examWarn && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-amber-50 border border-amber-300 text-amber-800 text-xs px-4 py-2 rounded-xl shadow-lg flex items-center gap-2 pointer-events-none">
+          ⚠ আগে ক্লাস সেট করুন — তারপর এক্সাম অটো ফিল হবে
+        </div>
+      )}
       <div className="flex items-center gap-2 flex-wrap">
         <button onClick={() => setStep('config')} className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1">
           <ArrowLeft size={12} /> কনফিগ
@@ -1413,6 +1425,7 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                       </td>
                       <td style={{background: tdBg(1)}} className="px-1 py-1">
                         <input type="date" className={ic} value={row.scheduled_date}
+                          onFocus={() => isExam && !row.label && triggerExamWarn()}
                           onChange={e => update(idx, { scheduled_date: e.target.value })} />
                       </td>
                       <td style={{background: tdBg(2)}} className="px-2 py-1 text-xs text-center font-medium text-amber-700">
@@ -1425,6 +1438,7 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                           return (
                             <div className="flex flex-col gap-0.5">
                               <select className={sc} value={isPreset ? row.scheduled_time : '__'}
+                                onFocus={() => isExam && !row.label && triggerExamWarn()}
                                 onChange={e => { if (e.target.value !== '__') update(idx, { scheduled_time: e.target.value }); }}>
                                 <option value="21:00">09:00 PM</option>
                                 <option value="19:00">07:00 PM</option>
@@ -1444,6 +1458,7 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                         <div className="flex gap-1">
                           <select className={sc} style={{flex:'1 1 0', minWidth:0}}
                             value={row._subj_id || (SPECIAL_SUBJECTS.includes(row.subject_name) ? `__${row.subject_name}__` : '')}
+                            onFocus={() => isExam && !row.label && triggerExamWarn()}
                             onChange={e => handleSubjSelect(e.target.value)}>
                             <option value="">— বেছে নিন</option>
                             <optgroup label="প্ল্যান সাবজেক্ট">
@@ -1480,11 +1495,15 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                             {availableLectures.map((l, i) => <option key={i} value={l.title}>{l.title}</option>)}
                           </select>
                         ) : (
-                          <input className={ic} value={row.topic} onChange={e => update(idx, { topic: e.target.value })} placeholder="শিরোনাম" />
+                          <input className={ic} value={row.topic}
+                            onFocus={() => isExam && !row.label && triggerExamWarn()}
+                            onChange={e => update(idx, { topic: e.target.value })} placeholder="শিরোনাম" />
                         )}
                       </td>
                       <td style={{background: tdBg(6)}} className="px-1 py-1">
-                        <input className={ic} value={row.notes} onChange={e => update(idx, { notes: e.target.value })} placeholder="বিস্তারিত" />
+                        <input className={ic} value={row.notes}
+                          onFocus={() => isExam && !row.label && triggerExamWarn()}
+                          onChange={e => update(idx, { notes: e.target.value })} placeholder="বিস্তারিত" />
                       </td>
                       <td style={{background: isExam ? '#ddd6fe' : CC[7][1]}} className="px-1 py-1">
                         {isExam ? (
