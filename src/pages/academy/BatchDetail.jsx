@@ -1186,11 +1186,11 @@ export default function BatchDetail() {
           <Wand2 size={14} /> অটো রুটিন তৈরি
         </button>
         <button onClick={() => { setShowAddForm(s => !s); setShowGenerator(false); setInsertAfterRowNo(null); }}
-          className="flex items-center gap-2 text-sm font-medium px-5 py-2 rounded-xl border-2 border-gray-200 bg-white hover:bg-gray-50 text-gray-600">
-          <Plus size={14} /> ম্যানুয়াল সারি
+          className={`flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-xl transition-colors ${showAddForm ? 'bg-amber-600 text-white' : 'bg-amber-500 hover:bg-amber-600 text-white'}`}>
+          <Plus size={14} /> ম্যানুয়াল তৈরি
         </button>
         <button onClick={() => setShowFollowModal(true)}
-          className="flex items-center gap-2 text-sm font-medium px-5 py-2 rounded-xl border-2 border-indigo-200 bg-white hover:bg-indigo-50 text-indigo-600">
+          className="flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-xl bg-violet-500 hover:bg-violet-600 text-white transition-colors">
           <GitMerge size={14} /> ব্যাচ ফলো করুন
         </button>
         {outline.length > 0 && (
