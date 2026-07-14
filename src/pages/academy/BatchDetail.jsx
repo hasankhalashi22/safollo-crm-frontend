@@ -1060,9 +1060,11 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
   const [rows, setRows] = useState([]);
   const [saving, setSaving] = useState(false);
   const [showPdf, setShowPdf] = useState(false);
-  const [examWarnIdx, setExamWarnIdx] = useState(null);
+  const [examWarn, setExamWarn] = useState(null); // {idx, x, y}
   const [unlockedExams, setUnlockedExams] = useState(new Set());
-  const unlockExam = (idx) => { setUnlockedExams(p => new Set([...p, idx])); setExamWarnIdx(null); };
+  const unlockExam = (idx) => { setUnlockedExams(p => new Set([...p, idx])); setExamWarn(null); };
+  const examWarnIdx = examWarn?.idx ?? null;
+  const setExamWarnIdx = (idx) => setExamWarn(idx === null ? null : { idx, x: examWarn?.x ?? 0, y: examWarn?.y ?? 0 });
 
   useEffect(() => {
     if (zooms.length > 0 && !cfg.zoomAccountId)
@@ -1291,25 +1293,26 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border-2 border-amber-100 p-4 space-y-4">
-      {examWarnIdx !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20"
-          onClick={() => setExamWarnIdx(null)}>
-          <div className="bg-white border-2 border-amber-300 rounded-2xl p-5 shadow-2xl w-72 space-y-3"
+      {examWarn !== null && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setExamWarn(null)} />
+          <div className="fixed z-50 bg-white border-2 border-amber-300 rounded-xl p-4 shadow-2xl w-64 space-y-2.5"
+            style={{ top: examWarn.y + 12, left: examWarn.x - 32 }}
             onClick={e => e.stopPropagation()}>
             <p className="text-sm font-semibold text-amber-800">⚠ আগে ক্লাস সেট করুন</p>
-            <p className="text-xs text-gray-500">এক্সাম রো স্বয়ংক্রিয়ভাবে ক্লাস থেকে ফিল হয়। তবুও ম্যানুয়ালি এডিট করতে চাইলে ইগনোর করুন।</p>
-            <div className="flex gap-2 pt-1">
-              <button onClick={() => unlockExam(examWarnIdx)}
-                className="flex-1 text-xs bg-amber-500 hover:bg-amber-600 text-white px-3 py-2 rounded-xl font-medium">
+            <p className="text-xs text-gray-500">এক্সাম রো স্বয়ংক্রিয়ভাবে ক্লাস থেকে ফিল হয়। তবুও এডিট করতে চাইলে ইগনোর করুন।</p>
+            <div className="flex gap-2 pt-0.5">
+              <button onClick={() => unlockExam(examWarn.idx)}
+                className="flex-1 text-xs bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg font-medium">
                 ইগনোর করুন
               </button>
-              <button onClick={() => setExamWarnIdx(null)}
-                className="text-xs px-3 py-2 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50">
+              <button onClick={() => setExamWarn(null)}
+                className="text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">
                 বাতিল
               </button>
             </div>
           </div>
-        </div>
+        </>
       )}
       <div className="flex items-center gap-2 flex-wrap">
         <button onClick={() => setStep('config')} className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1">
@@ -1371,7 +1374,8 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
                 const tdBg = (ccIdx) => isExam ? '#ede9fe' : CC[ccIdx][1];
                 const isLocked = isExam && !row.label && !unlockedExams.has(idx);
                 const lockOverlay = isLocked
-                  ? <div className="absolute inset-0 z-10 cursor-pointer rounded" onClick={() => setExamWarnIdx(idx)} />
+                  ? <div className="absolute inset-0 z-10 cursor-pointer rounded"
+                      onClick={e => setExamWarn({ idx, x: e.clientX, y: e.clientY })} />
                   : null;
                 const isActive = row.is_active !== false;
                 const st = routineStatus(row);
