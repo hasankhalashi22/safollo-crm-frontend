@@ -43,6 +43,7 @@ const MODULE_COLORS = {
   accounting: '#10b981',
   hr:         '#f59e0b',
   academy:    '#8b5cf6',
+  ess:        '#6b7280',
 };
 
 function TopModuleBar() {
@@ -50,10 +51,15 @@ function TopModuleBar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const visibleModules = getVisibleModules(user);
+  const visibleModules = [
+    ...getVisibleModules(user),
+    ...(user?.has_ess ? [{ key: 'ess', label: 'My Office', basePath: '/portal' }] : []),
+  ];
   if (visibleModules.length <= 1) return null;
 
-  const currentModule = getModuleForPath(location.pathname);
+  const currentModule = visibleModules.find(m =>
+    location.pathname === m.basePath || location.pathname.startsWith(m.basePath + '/')
+  ) || getModuleForPath(location.pathname);
   const activeColor = MODULE_COLORS[currentModule?.key] || '#6b7280';
 
   return (
