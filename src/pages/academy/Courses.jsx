@@ -578,16 +578,16 @@ function CourseCard({ course, onRefresh, index = 0 }) {
   return (
     <div className="rounded-2xl shadow-sm overflow-hidden" style={{border: '1px solid rgba(0,0,0,0.1)'}}>
       {/* Course header */}
-      <div className={`flex items-center gap-4 px-5 py-4 group ${cc.header}`}>
+      <div className={`flex items-center gap-3 px-3 py-3 group ${cc.header}`}>
         <button
           onClick={() => setOpen(o => !o)}
           className={`${cc.btnText} hover:text-white transition-colors flex-shrink-0`}
         >
-          {open ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+          {open ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
         </button>
 
-        <div className={`w-10 h-10 rounded-xl ${cc.icon} flex items-center justify-center flex-shrink-0`}>
-          <BookMarked size={18} className="text-white" />
+        <div className={`w-7 h-7 rounded-lg ${cc.icon} flex items-center justify-center flex-shrink-0`}>
+          <BookMarked size={14} className="text-white" />
         </div>
 
         {editing ? (
@@ -605,9 +605,9 @@ function CourseCard({ course, onRefresh, index = 0 }) {
         ) : (
           <>
             <div className="flex-1 cursor-pointer" onClick={() => setOpen(o => !o)}>
-              <p className={`font-semibold ${cc.text}`}>{course.course_name}</p>
+              <p className={`font-semibold text-sm ${cc.text}`}>{course.course_name}</p>
               <p className={`text-xs ${cc.sub} mt-0.5`}>
-                {course.course_code} · {course.plan_count || 0} টি প্ল্যান
+                {course.course_code} · {course.plan_count || 0} প্ল্যান
               </p>
             </div>
             <div className="flex gap-1 transition-opacity">
@@ -762,7 +762,7 @@ export default function Courses() {
           <p className="text-gray-400 text-sm mt-1">উপরে "নতুন কোর্স" বাটনে ক্লিক করে শুরু করুন</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {courses.map((c, idx) => <CourseCard key={c.id} course={c} onRefresh={load} index={idx} />)}
         </div>
       )}
