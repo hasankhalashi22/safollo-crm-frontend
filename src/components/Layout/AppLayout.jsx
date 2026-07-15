@@ -68,10 +68,11 @@ function TopModuleBar() {
           <button
             key={m.key}
             onClick={() => navigate(m.basePath)}
-            style={isActive ? { background: color, borderRadius: '6px 6px 0 0' } : {}}
-            className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition-all
-              ${isActive ? 'text-white' : 'hover:opacity-100'}`}
-            style={!isActive ? { color: '#FEF9EE', opacity: 0.85 } : {}}
+            style={isActive
+              ? { background: color, borderRadius: '6px 6px 0 0', color: '#fff' }
+              : { color: '#FEF9EE', opacity: 0.85 }
+            }
+            className="px-4 py-2 text-sm font-medium whitespace-nowrap transition-all hover:opacity-100"
           >
             {m.label}
           </button>
