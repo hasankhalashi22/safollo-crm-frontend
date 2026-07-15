@@ -86,7 +86,7 @@ export const MODULES = [
     roles: [
       { key: 'viewer', label: 'Academy Viewer (শুধু দেখতে পারবে)' },
       { key: 'editor', label: 'Academy Editor (তৈরি/এডিট ও ফিডব্যাক Approve)' },
-      { key: 'admin', label: 'Academy Admin (Editor + Settings + ডিলিট)' },
+      { key: 'admin', label: 'Academy Admin (Editor + Teacher/Zoom ডিলিট)' },
     ],
     sidebar: [
       { to: '/academy', icon: BarChart2, label: 'Dashboard', end: true },

@@ -763,7 +763,10 @@ function buildModuleList(user) {
   }
 
   if (moduleAccess.includes('academy')) {
-    list.push({ key: 'academy', label: 'Academy', icon: GraduationCap, basePath: '/academy', items: MODULES.find(m => m.key === 'academy')?.sidebar || [] });
+    const academyRole = (user.module_access || []).find(a => a.module_key === 'academy')?.role_key;
+    const academySidebar = (MODULES.find(m => m.key === 'academy')?.sidebar || [])
+      .filter(item => item.to !== '/academy/settings' || user.role === 'super_admin');
+    list.push({ key: 'academy', label: 'Academy', icon: GraduationCap, basePath: '/academy', items: academySidebar });
   }
 
   // My Office — সবার জন্য (ESS থাকলে অতিরিক্ত items)

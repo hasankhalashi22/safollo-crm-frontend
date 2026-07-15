@@ -3,11 +3,11 @@ import { academyApi, accountingApi } from '../../api/client';
 import toast from 'react-hot-toast';
 import { Settings } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import { canManageAcademySettings } from '../../utils/moduleAccess';
 
 export default function AcademySettings() {
   const { user } = useAuth();
-  const canSettings = canManageAcademySettings(user);
+  if (user?.role !== 'super_admin') return <div className="p-6 text-gray-400">এই পেজে প্রবেশের অনুমতি নেই।</div>;
+  const canSettings = true;
   const [accounts, setAccounts] = useState([]);
   const [form, setForm] = useState({ teacher_expense_account_id: '', teacher_payable_account_id: '' });
   const [loading, setLoading] = useState(true);
