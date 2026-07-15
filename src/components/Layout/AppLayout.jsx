@@ -928,7 +928,9 @@ export function UnifiedLayout({ children }) {
   );
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
+      <TopModuleBar />
+      <div className="flex flex-1 overflow-hidden">
       <aside className={`hidden lg:flex bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0 transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-56'}`}>
         <SidebarNav onClose={() => {}} collapsed={sidebarCollapsed} />
       </aside>
@@ -952,6 +954,7 @@ export function UnifiedLayout({ children }) {
           <img src="/logo.png" alt="সাফল্য একাডেমি" className="h-7" />
         </div>
         <main className="flex-1 overflow-y-auto overflow-x-hidden page-enter">{children}</main>
+      </div>
       </div>
     </div>
   );
