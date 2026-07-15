@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { academyApi } from '../../api/client';
 import toast from 'react-hot-toast';
 import { Save, Plus, Trash2, Info } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
 
 const COLS = [
   { mode: 'offline', cat: 'cadre',     label: 'ক্যাডার' },
@@ -13,6 +14,8 @@ const COLS = [
 ];
 
 export default function PaymentRates() {
+  const { user } = useAuth();
+  const canSuper = user?.role === 'super_admin';
   const [rates, setRates]     = useState({});
   const [dirty, setDirty]     = useState({});
   const [courses, setCourses] = useState([]); // [{ course_type: string }]
@@ -128,10 +131,10 @@ export default function PaymentRates() {
           <h1 className="text-xl font-bold text-gray-800">Payment Policy</h1>
           <p className="text-sm text-gray-400 mt-0.5">প্রতি ক্লাসের শিক্ষক পেমেন্ট রেট (৳)</p>
         </div>
-        <button onClick={saveAll} disabled={saving || !dirtyCount}
+        {canSuper && <button onClick={saveAll} disabled={saving || !dirtyCount}
           className="bg-primary-500 hover:bg-primary-600 disabled:opacity-40 text-white font-semibold px-6 py-2.5 rounded-xl flex items-center gap-2 text-sm transition-colors">
           <Save size={15} /> {saving ? 'সংরক্ষণ হচ্ছে...' : `সংরক্ষণ করুন${dirtyCount ? ` (${dirtyCount})` : ''}`}
-        </button>
+        </button>}
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
@@ -171,6 +174,7 @@ export default function PaymentRates() {
                         className="w-full text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-primary-400 bg-white"
                         value={course_type}
                         onChange={e => changeCourseType(course_type, e.target.value)}
+                        disabled={!canSuper}
                       >
                         <option value={course_type}>{course_type}</option>
                         {available.filter(p => p.label !== course_type).map(p => (
@@ -193,29 +197,30 @@ export default function PaymentRates() {
                               value={val ?? ''}
                               onChange={e => setVal(course_type, col.mode, col.cat, e.target.value)}
                               placeholder="—"
+                              readOnly={!canSuper}
                             />
                           </div>
                         </td>
                       );
                     })}
                     <td className="px-2 py-2 text-center">
-                      <button onClick={() => deleteCourse(course_type)}
+                      {canSuper && <button onClick={() => deleteCourse(course_type)}
                         className="p-1.5 text-red-300 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all">
                         <Trash2 size={14} />
-                      </button>
+                      </button>}
                     </td>
                   </tr>
                 );
               })}
 
-              <tr className="border-t-2 border-dashed border-gray-200 bg-gray-50/50">
+              {canSuper && <tr className="border-t-2 border-dashed border-gray-200 bg-gray-50/50">
                 <td colSpan={8} className="px-4 py-3">
                   <button onClick={addRow}
                     className="flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 transition-colors">
                     <Plus size={15} /> নতুন কোর্স যোগ করুন
                   </button>
                 </td>
-              </tr>
+              </tr>}
             </tbody>
           </table>
         </div>
@@ -228,7 +233,7 @@ export default function PaymentRates() {
         </div>
       </div>
 
-      {dirtyCount > 0 && (
+      {canSuper && dirtyCount > 0 && (
         <div className="fixed bottom-6 right-6 z-40">
           <button onClick={saveAll} disabled={saving}
             className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-6 py-3 rounded-2xl shadow-xl flex items-center gap-2 text-sm transition-colors">

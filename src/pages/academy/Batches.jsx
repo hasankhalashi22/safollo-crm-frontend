@@ -3,6 +3,8 @@ import { Plus, Edit2, Trash2, Layers, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { academyApi } from '../../api/client';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../hooks/useAuth';
+import { canEditAcademy } from '../../utils/moduleAccess';
 
 const EMPTY = { batch_name: '', course_id: '', plan_id: '', start_date: '', max_students: '' };
 const STATUS_LABEL = { upcoming: 'আসছে', active: 'সক্রিয়', completed: 'সম্পন্ন', cancelled: 'বাতিল' };
@@ -20,6 +22,9 @@ const CARD_COLORS = [
 ];
 
 export default function Batches() {
+  const { user } = useAuth();
+  const canEdit = canEditAcademy(user);
+  const canSuper = user?.role === 'super_admin';
   const navigate = useNavigate();
   const [list, setList] = useState([]);
   const [courses, setCourses] = useState([]);
@@ -67,10 +72,10 @@ export default function Batches() {
     <div className="p-3 md:p-6 space-y-4">
       <div className="flex items-center gap-4">
         <h1 className="text-xl font-bold text-gray-800 flex-1">ব্যাচ সমূহ</h1>
-        <button onClick={openNew} className="btn-primary flex items-center justify-center gap-1.5 text-sm w-1/3"><Plus size={15} /> নতুন ব্যাচ ও রুটিন তৈরি করুন</button>
+        {canEdit && <button onClick={openNew} className="btn-primary flex items-center justify-center gap-1.5 text-sm w-1/3"><Plus size={15} /> নতুন ব্যাচ ও রুটিন তৈরি করুন</button>}
       </div>
 
-      {showForm && (
+      {canEdit && showForm && (
         <div className="bg-white rounded-2xl p-6 shadow-sm border-2 border-primary-200 space-y-5">
           <div className="flex items-center gap-2">
             <div className="w-1 h-6 bg-primary-500 rounded-full"></div>
@@ -136,8 +141,8 @@ export default function Batches() {
                 style={{ background: clr.btn, color: clr.btnText }}>
                 {Number(b.total_classes) > 0 ? 'রুটিন দেখুন' : 'রুটিন তৈরি করুন'} <ChevronRight size={15} />
               </button>
-              <button onClick={() => openEdit(b)} className="p-2 hover:bg-blue-50 rounded-lg text-blue-500"><Edit2 size={14} /></button>
-              <button onClick={() => del(b.id)} className="p-2 hover:bg-red-50 rounded-lg text-red-500"><Trash2 size={14} /></button>
+              {canEdit && <button onClick={() => openEdit(b)} className="p-2 hover:bg-blue-50 rounded-lg text-blue-500"><Edit2 size={14} /></button>}
+              {canSuper && <button onClick={() => del(b.id)} className="p-2 hover:bg-red-50 rounded-lg text-red-500"><Trash2 size={14} /></button>}
             </div>
           </div>
           );

@@ -4,6 +4,8 @@ import { Plus, ArrowLeft, Edit2, Trash2, CheckCircle, Clock, Save, X, Wand2, Fil
 import { academyApi } from '../../api/client';
 import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
+import { useAuth } from '../../hooks/useAuth';
+import { canEditAcademy } from '../../utils/moduleAccess';
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 const STATUS_LABEL = { scheduled: 'নির্ধারিত', done: 'সম্পন্ন', cancelled: 'বাতিল', rescheduled: 'পুনর্নির্ধারিত' };
@@ -264,7 +266,7 @@ function FeedbackModal({ outlineRow, teachers, onClose, onDone }) {
 }
 
 // ── Saved Outline Row ──────────────────────────────────────────────────────────
-function OutlineRow({ row, idx, teachers, zooms, allRows, subjects, onRefresh, onFeedback, onInsertAfter }) {
+function OutlineRow({ row, idx, teachers, zooms, allRows, subjects, onRefresh, onFeedback, onInsertAfter, canEdit = false }) {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
     scheduled_date: (row.scheduled_date || '').split('T')[0],
@@ -444,13 +446,13 @@ function OutlineRow({ row, idx, teachers, zooms, allRows, subjects, onRefresh, o
             <td style={{background: CC[11][1]}} className="px-2 py-2"><span className={`text-xs px-2 py-0.5 rounded-full ${st.cls}`}>{st.label}</span></td>
             <td className="px-2 py-2">
               <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onClick={() => onInsertAfter(idx)} className="p-1.5 text-primary-400 hover:bg-primary-50 rounded" title="পরে সারি যোগ"><Plus size={13} /></button>
+                {canEdit && <button onClick={() => onInsertAfter(idx)} className="p-1.5 text-primary-400 hover:bg-primary-50 rounded" title="পরে সারি যোগ"><Plus size={13} /></button>}
                 {isSynced ? (
                   <span title="সোর্স রুটিন থেকে সিঙ্ক হয় — সেখানে এডিট করুন" className="p-1.5 text-amber-400 cursor-default"><Lock size={13} /></span>
                 ) : (
                   <>
-                    <button onClick={() => setEditing(true)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded"><Edit2 size={13} /></button>
-                    <button onClick={del} className="p-1.5 text-red-400 hover:bg-red-50 rounded"><Trash2 size={13} /></button>
+                    {canEdit && <button onClick={() => setEditing(true)} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded"><Edit2 size={13} /></button>}
+                    {canEdit && <button onClick={del} className="p-1.5 text-red-400 hover:bg-red-50 rounded"><Trash2 size={13} /></button>}
                   </>
                 )}
               </div>
@@ -1693,6 +1695,9 @@ function ManualRoutineBuilder({ batch, subjects, teachers, zooms, onSaved, onCan
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function BatchDetail() {
+  const { user } = useAuth();
+  const canEdit = canEditAcademy(user);
+  const canSuper = user?.role === 'super_admin';
   const { id } = useParams();
   const navigate = useNavigate();
   const [batch, setBatch] = useState(null);
@@ -1918,7 +1923,7 @@ export default function BatchDetail() {
 
       {/* Actions */}
       <div className="flex gap-2 flex-wrap items-center">
-        {!showManualBuilder && (
+        {canEdit && !showManualBuilder && (
           <button onClick={() => setShowFollowModal(true)}
             className="flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-xl bg-violet-500 hover:bg-violet-600 text-white transition-colors">
             <GitMerge size={14} /> ব্যাচ ফলো করুন
@@ -1934,7 +1939,7 @@ export default function BatchDetail() {
               className="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-xl border-2 border-emerald-200 bg-white hover:bg-emerald-50 text-emerald-600">
               <FileSpreadsheet size={14} /> Excel
             </button>
-            <button onClick={async () => {
+            {canSuper && <button onClick={async () => {
               if (!confirm(`পুরো রুটিন (${outline.length} টি সারি) মুছে ফেলবেন?`)) return;
               try {
                 await academyApi.clearBatchOutline(id);
@@ -1943,10 +1948,10 @@ export default function BatchDetail() {
               } catch { toast.error('সমস্যা হয়েছে'); }
             }} className="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-xl border-2 border-red-300 bg-white hover:bg-red-50 text-red-700">
               <Trash2 size={14} /> রুটিন মুছুন
-            </button>
+            </button>}
           </>
         )}
-        {!showManualBuilder && (
+        {canEdit && !showManualBuilder && (
           <button onClick={() => { setShowManualBuilder(true); setShowAddForm(false); }}
             className="ml-auto flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white transition-colors">
             {outline.length > 0 ? <><Edit2 size={14} /> সম্পূর্ন রুটিন এডিট করুন</> : <><Plus size={14} /> ম্যানুয়াল তৈরি</>}
@@ -1966,7 +1971,7 @@ export default function BatchDetail() {
           onCancel={() => setShowManualBuilder(false)} />
       )}
 
-      {showAddForm && (
+      {canEdit && showAddForm && (
         <div className="bg-white rounded-2xl p-5 shadow-sm border-2 border-gray-200 space-y-4">
           <p className="text-sm font-semibold text-gray-700">
             {insertAfterRowNo !== null ? `সারি ${insertAfterRowNo} এর পরে যোগ করুন` : 'ম্যানুয়াল সারি'}
@@ -2096,7 +2101,8 @@ export default function BatchDetail() {
                 {filteredOutline.map((row, idx) => (
                   <OutlineRow key={row.id} row={row} idx={idx}
                     teachers={teachers} zooms={zooms} allRows={outline} subjects={batchSubjects}
-                    onRefresh={loadOutline} onFeedback={setFeedbackRow} onInsertAfter={handleInsertAfter} />
+                    onRefresh={loadOutline} onFeedback={canEdit ? setFeedbackRow : null} onInsertAfter={handleInsertAfter}
+                    canEdit={canEdit} />
                 ))}
               </tbody>
             </table>

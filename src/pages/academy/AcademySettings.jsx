@@ -2,8 +2,12 @@ import { useState, useEffect } from 'react';
 import { academyApi, accountingApi } from '../../api/client';
 import toast from 'react-hot-toast';
 import { Settings } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
+import { canManageAcademySettings } from '../../utils/moduleAccess';
 
 export default function AcademySettings() {
+  const { user } = useAuth();
+  const canSettings = canManageAcademySettings(user);
   const [accounts, setAccounts] = useState([]);
   const [form, setForm] = useState({ teacher_expense_account_id: '', teacher_payable_account_id: '' });
   const [loading, setLoading] = useState(true);
@@ -89,12 +93,14 @@ export default function AcademySettings() {
           </div>
         </div>
 
-        <div className="pt-1 border-t border-gray-100">
-          <button onClick={save} disabled={saving}
-            className="bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition-colors">
-            {saving ? 'সংরক্ষণ হচ্ছে...' : 'সংরক্ষণ করুন'}
-          </button>
-        </div>
+        {canSettings && (
+          <div className="pt-1 border-t border-gray-100">
+            <button onClick={save} disabled={saving}
+              className="bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition-colors">
+              {saving ? 'সংরক্ষণ হচ্ছে...' : 'সংরক্ষণ করুন'}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

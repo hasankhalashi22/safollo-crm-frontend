@@ -2,10 +2,15 @@ import { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Video } from 'lucide-react';
 import { academyApi } from '../../api/client';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../hooks/useAuth';
+import { canEditAcademy, canDeleteAcademy } from '../../utils/moduleAccess';
 
 const EMPTY = { account_name: '', email: '', host_key: '', zoom_user_id: '', notes: '' };
 
 export default function ZoomAccounts() {
+  const { user } = useAuth();
+  const canEdit = canEditAcademy(user);
+  const canDelete = canDeleteAcademy(user);
   const [list, setList] = useState([]);
   const [form, setForm] = useState(EMPTY);
   const [editId, setEditId] = useState(null);
@@ -40,12 +45,12 @@ export default function ZoomAccounts() {
     <div className="p-3 md:p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-800">Zoom Accounts</h1>
-        <button onClick={openNew} className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2 text-sm transition-colors">
+        {canEdit && <button onClick={openNew} className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2 text-sm transition-colors">
           <Plus size={16} /> নতুন
-        </button>
+        </button>}
       </div>
 
-      {showForm && (
+      {canEdit && showForm && (
         <div className="bg-white rounded-2xl p-6 shadow-sm border-2 border-primary-200 space-y-5">
           <div className="flex items-center gap-2">
             <div className="w-1 h-6 bg-primary-500 rounded-full"></div>
@@ -88,8 +93,8 @@ export default function ZoomAccounts() {
                     <td className="px-4 py-3 font-mono text-xs">{row.zoom_user_id || '—'}</td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2 justify-end">
-                        <button onClick={() => openEdit(row)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-500"><Edit2 size={14} /></button>
-                        <button onClick={() => del(row.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-500"><Trash2 size={14} /></button>
+                        {canEdit && <button onClick={() => openEdit(row)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-500"><Edit2 size={14} /></button>}
+                        {canDelete && <button onClick={() => del(row.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-500"><Trash2 size={14} /></button>}
                       </div>
                     </td>
                   </tr>

@@ -3,12 +3,17 @@ import { Plus, Edit2, Trash2, UserCheck, CheckCircle, XCircle, Key, Clock } from
 import { academyApi } from '../../api/client';
 import { AdminProfileView } from '../teacher/TeacherProfileView';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../hooks/useAuth';
+import { canEditAcademy, canDeleteAcademy } from '../../utils/moduleAccess';
 
 const EMPTY = { full_name: '', phone: '', email: '', teacher_type: 'junior', teacher_category: 'non_cadre', specialization: '', bio: '', zoom_display_name: '', fixed_rate: '' };
 const TEACHER_TYPE_LABEL = { senior: 'সিনিয়র', junior: 'জুনিয়র', guest: 'গেস্ট' };
 const CAT_LABEL = { cadre: 'ক্যাডার', non_cadre: 'নন-ক্যাডার', others: 'অন্যান্য' };
 
 export default function Teachers() {
+  const { user } = useAuth();
+  const canEdit = canEditAcademy(user);
+  const canDelete = canDeleteAcademy(user);
   const [list, setList] = useState([]);
   const [pending, setPending] = useState([]);
   const [form, setForm] = useState(EMPTY);
@@ -66,12 +71,12 @@ export default function Teachers() {
     <div className="p-3 md:p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-gray-800">শিক্ষকবৃন্দ</h1>
-        <button onClick={openNew} className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2 text-sm transition-colors">
+        {canEdit && <button onClick={openNew} className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2 text-sm transition-colors">
           <Plus size={16} /> নতুন শিক্ষক
-        </button>
+        </button>}
       </div>
 
-      {showForm && (
+      {canEdit && showForm && (
         <div className="bg-white rounded-2xl p-6 shadow-sm border-2 border-primary-200 space-y-5">
           <div className="flex items-center gap-2">
             <div className="w-1 h-6 bg-primary-500 rounded-full"></div>
@@ -160,7 +165,7 @@ export default function Teachers() {
                     {t.address ? ` • ${t.address}` : ''}
                   </p>
                 </div>
-                <div className="flex gap-2">
+                {canEdit && <div className="flex gap-2">
                   <button
                     onClick={() => approve(t.id, true)}
                     className="flex items-center gap-1 px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs font-medium rounded-lg transition-colors"
@@ -173,7 +178,7 @@ export default function Teachers() {
                   >
                     <XCircle size={13} /> প্রত্যাখ্যান
                   </button>
-                </div>
+                </div>}
               </div>
             ))}
           </div>
@@ -213,13 +218,13 @@ export default function Teachers() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2 justify-end" onClick={e => e.stopPropagation()}>
-                        {row.password_hash && (
+                        {canEdit && row.password_hash && (
                           <button onClick={() => { setResetModal({ id: row.id, name: row.full_name }); setNewPassword(''); }} className="p-1.5 rounded-lg hover:bg-amber-50 text-amber-500" title="পাসওয়ার্ড রিসেট">
                             <Key size={14} />
                           </button>
                         )}
-                        <button onClick={() => openEdit(row)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-500"><Edit2 size={14} /></button>
-                        <button onClick={() => del(row.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-500"><Trash2 size={14} /></button>
+                        {canEdit && <button onClick={() => openEdit(row)} className="p-1.5 rounded-lg hover:bg-blue-50 text-blue-500"><Edit2 size={14} /></button>}
+                        {canDelete && <button onClick={() => del(row.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-500"><Trash2 size={14} /></button>}
                       </div>
                     </td>
                   </tr>

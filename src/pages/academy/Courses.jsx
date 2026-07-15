@@ -1,9 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, createContext, useContext } from 'react';
 import { createPortal } from 'react-dom';
 import { Plus, ChevronRight, ChevronDown, Edit2, Trash2, BookMarked, Save, X, BookOpen, Upload, Download, FileSpreadsheet, Lock, GitMerge } from 'lucide-react';
 import { academyApi } from '../../api/client';
 import toast from 'react-hot-toast';
 import * as XLSX from 'xlsx';
+import { useAuth } from '../../hooks/useAuth';
+import { canEditAcademy } from '../../utils/moduleAccess';
+
+const AcademyPermsCtx = createContext({ canEdit: false, canSuper: false });
 
 // ── Template download helpers ─────────────────────────────────────────────────
 function downloadPlanTemplate() {
@@ -188,6 +192,7 @@ function LecturesModal({ subject, colorIdx, onClose, onSaved }) {
 
 // ── Subject row ───────────────────────────────────────────────────────────────
 function SubjectRow({ subject, colorIdx, onRefresh, onEditLectures, onImportExcel }) {
+  const { canEdit, canSuper } = useContext(AcademyPermsCtx);
   const clr = SUBJECT_COLORS[colorIdx % SUBJECT_COLORS.length];
   const fileRef = useRef();
   const [editing, setEditing] = useState(false);
@@ -245,11 +250,11 @@ function SubjectRow({ subject, colorIdx, onRefresh, onEditLectures, onImportExce
               <span title="সোর্স প্ল্যান থেকে সিঙ্ক হয় — সেখানে এডিট করুন" className="p-1.5 text-amber-400 cursor-default"><Lock size={14} /></span>
             ) : (
               <>
-                <button title="Excel থেকে লেকচার ইমপোর্ট" onClick={() => fileRef.current?.click()} className="p-1.5 hover:bg-green-50 rounded-lg text-green-500"><Upload size={14} /></button>
+                {canEdit && <button title="Excel থেকে লেকচার ইমপোর্ট" onClick={() => fileRef.current?.click()} className="p-1.5 hover:bg-green-50 rounded-lg text-green-500"><Upload size={14} /></button>}
                 <input ref={fileRef} type="file" accept=".xlsx,.xls" className="hidden"
                   onChange={e => { if (e.target.files[0]) { onImportExcel(subject.id, e.target.files[0]); e.target.value = ''; } }} />
-                <button onClick={() => setEditing(true)} className="p-1.5 hover:bg-blue-50 rounded-lg text-blue-400"><Edit2 size={14} /></button>
-                <button onClick={del} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 size={14} /></button>
+                {canEdit && <button onClick={() => setEditing(true)} className="p-1.5 hover:bg-blue-50 rounded-lg text-blue-400"><Edit2 size={14} /></button>}
+                {canSuper && <button onClick={del} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 size={14} /></button>}
               </>
             )}
           </div>
@@ -261,6 +266,7 @@ function SubjectRow({ subject, colorIdx, onRefresh, onEditLectures, onImportExce
 
 // ── Plan card ─────────────────────────────────────────────────────────────────
 function PlanCard({ plan, onRefresh }) {
+  const { canEdit, canSuper } = useContext(AcademyPermsCtx);
   const [open, setOpen] = useState(false);
   const [subjects, setSubjects] = useState([]);
   const [loadingSubjects, setLoadingSubjects] = useState(false);
@@ -395,19 +401,19 @@ function PlanCard({ plan, onRefresh }) {
 
           {/* Actions */}
           <div className="flex gap-1 transition-opacity" onClick={e => e.stopPropagation()}>
-            <button title="অন্য প্ল্যান থেকে বিষয় ইমপোর্ট" onClick={openImportModal}
+            {canEdit && <button title="অন্য প্ল্যান থেকে বিষয় ইমপোর্ট" onClick={openImportModal}
               className="p-1.5 hover:bg-indigo-400 rounded-lg text-indigo-100 flex items-center gap-1 text-xs">
               <GitMerge size={14} /> সিঙ্ক ইমপোর্ট
-            </button>
-            <button title="Excel দিয়ে পুরো প্ল্যান ইমপোর্ট" onClick={() => planFileRef.current?.click()}
+            </button>}
+            {canEdit && <button title="Excel দিয়ে পুরো প্ল্যান ইমপোর্ট" onClick={() => planFileRef.current?.click()}
               className="p-1.5 hover:bg-indigo-400 rounded-lg text-indigo-100 flex items-center gap-1 text-xs">
               <FileSpreadsheet size={14} /> Excel
-            </button>
+            </button>}
             <input ref={planFileRef} type="file" accept=".xlsx,.xls" className="hidden"
               onChange={e => { if (e.target.files[0]) { importPlanFile(e.target.files[0]); e.target.value = ''; } }} />
-            <button onClick={delPlan} className="p-1.5 hover:bg-indigo-400 rounded-lg text-indigo-100">
+            {canSuper && <button onClick={delPlan} className="p-1.5 hover:bg-indigo-400 rounded-lg text-indigo-100">
               <Trash2 size={14} />
-            </button>
+            </button>}
           </div>
         </div>
 
@@ -440,7 +446,7 @@ function PlanCard({ plan, onRefresh }) {
 
             {/* Add subject + template download */}
             <div className="pt-1 flex items-center gap-3">
-              {showAdd ? (
+              {canEdit && showAdd ? (
                 <div className="flex gap-2 flex-1">
                   <input
                     className="input-field flex-1 text-sm"
@@ -455,11 +461,11 @@ function PlanCard({ plan, onRefresh }) {
                 </div>
               ) : (
                 <>
-                  <button onClick={() => setShowAdd(true)}
+                  {canEdit && <button onClick={() => setShowAdd(true)}
                     className="flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-700">
                     <Plus size={14} /> নতুন বিষয়
-                  </button>
-                  <span className="text-gray-200">|</span>
+                  </button>}
+                  {canEdit && <span className="text-gray-200">|</span>}
                   <button onClick={downloadPlanTemplate}
                     className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600">
                     <Download size={12} /> প্ল্যান টেমপ্লেট
@@ -540,6 +546,7 @@ function PlanCard({ plan, onRefresh }) {
 
 // ── Course card ───────────────────────────────────────────────────────────────
 function CourseCard({ course, onRefresh, index = 0 }) {
+  const { canEdit, canSuper } = useContext(AcademyPermsCtx);
   const COURSE_COLORS = [
     { header: 'bg-[#be185d]', icon: 'bg-[#9d174d]', iconText: 'text-pink-200', text: 'text-pink-50', sub: 'text-pink-200', btn: 'hover:bg-[#9d174d]', btnText: 'text-pink-200' },
     { header: 'bg-[#b45309]', icon: 'bg-[#92400e]', iconText: 'text-amber-200', text: 'text-amber-50', sub: 'text-amber-200', btn: 'hover:bg-[#92400e]', btnText: 'text-amber-200' },
@@ -614,8 +621,8 @@ function CourseCard({ course, onRefresh, index = 0 }) {
               </p>
             </div>
             <div className="flex gap-1 transition-opacity">
-              <button onClick={() => setEditing(true)} className={`p-2 ${cc.btn} rounded-xl ${cc.btnText}`}><Edit2 size={15} /></button>
-              <button onClick={delCourse} className={`p-2 ${cc.btn} rounded-xl ${cc.btnText}`}><Trash2 size={15} /></button>
+              {canEdit && <button onClick={() => setEditing(true)} className={`p-2 ${cc.btn} rounded-xl ${cc.btnText}`}><Edit2 size={15} /></button>}
+              {canSuper && <button onClick={delCourse} className={`p-2 ${cc.btn} rounded-xl ${cc.btnText}`}><Trash2 size={15} /></button>}
             </div>
           </>
         )}
@@ -633,7 +640,7 @@ function CourseCard({ course, onRefresh, index = 0 }) {
           ))}
 
           {/* Add plan form */}
-          {showPlanForm ? (
+          {canEdit && showPlanForm ? (
             <div className="border-2 border-primary-200 rounded-2xl p-5 space-y-4 bg-primary-50/40">
               <div className="flex items-center gap-2">
                 <div className="w-1 h-6 bg-primary-500 rounded-full"></div>
@@ -666,14 +673,14 @@ function CourseCard({ course, onRefresh, index = 0 }) {
                 <button onClick={() => setShowPlanForm(false)} className="bg-white hover:bg-gray-50 text-gray-600 font-medium px-5 py-2.5 rounded-xl border-2 border-gray-200 transition-colors text-sm">বাতিল</button>
               </div>
             </div>
-          ) : (
+          ) : canEdit ? (
             <button
               onClick={() => setShowPlanForm(true)}
               className="flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 border border-dashed border-primary-200 hover:border-primary-300 rounded-xl px-4 py-2.5 w-full justify-center transition-colors"
             >
               <Plus size={15} /> নতুন প্ল্যান যোগ করুন
             </button>
-          )}
+          ) : null}
         </div>
       )}
     </div>
@@ -682,6 +689,9 @@ function CourseCard({ course, onRefresh, index = 0 }) {
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function Courses() {
+  const { user } = useAuth();
+  const canEdit = canEditAcademy(user);
+  const canSuper = user?.role === 'super_admin';
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showNew, setShowNew] = useState(false);
@@ -707,6 +717,7 @@ export default function Courses() {
   };
 
   return (
+    <AcademyPermsCtx.Provider value={{ canEdit, canSuper }}>
     <div className="p-3 md:p-6 space-y-4">
       {/* Header */}
       <div className="flex items-center gap-4">
@@ -714,13 +725,13 @@ export default function Courses() {
           <h1 className="text-xl font-bold text-gray-800">কোর্স ও প্ল্যান</h1>
           <p className="text-sm text-gray-400 mt-0.5">কোর্স → প্ল্যান → বিষয় → লেকচার</p>
         </div>
-        <button onClick={() => { setShowNew(true); }} className="btn-primary flex items-center justify-center gap-2 w-1/4">
+        {canEdit && <button onClick={() => { setShowNew(true); }} className="btn-primary flex items-center justify-center gap-2 w-1/4">
           <Plus size={16} /> নতুন কোর্স
-        </button>
+        </button>}
       </div>
 
       {/* New course form */}
-      {showNew && (
+      {canEdit && showNew && (
         <div className="bg-white rounded-2xl p-5 shadow-sm border-2 border-primary-200">
           <div className="flex items-center gap-2 mb-4">
             <div className="w-1 h-5 bg-primary-500 rounded-full"></div>
@@ -770,5 +781,6 @@ export default function Courses() {
         </div>
       )}
     </div>
+    </AcademyPermsCtx.Provider>
   );
 }
