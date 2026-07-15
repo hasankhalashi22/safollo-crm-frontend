@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect, useMemo } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { Home, Plus, Clock, User, BarChart2, Users, BookOpen, Settings, LogOut, TrendingUp, Shield, Menu, X, Activity, CheckSquare, Wallet, FileText, BookText, Landmark, CreditCard, ChevronLeft, ChevronRight, ChevronDown, Calendar, Briefcase } from 'lucide-react';
+import { Home, Plus, Clock, User, BarChart2, Users, BookOpen, Settings, LogOut, TrendingUp, Shield, Menu, X, Activity, CheckSquare, Wallet, FileText, BookText, Landmark, CreditCard, ChevronLeft, ChevronRight, ChevronDown, Calendar, Briefcase, GraduationCap } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { MODULES, getModuleForPath, getVisibleModules } from '../../config/modules';
@@ -760,6 +760,10 @@ function buildModuleList(user) {
 
   if (moduleAccess.includes('accounting')) {
     list.push({ key: 'accounting', label: 'Accounting', icon: Wallet, basePath: '/accounting', items: MODULES.find(m => m.key === 'accounting')?.sidebar || [] });
+  }
+
+  if (moduleAccess.includes('academy')) {
+    list.push({ key: 'academy', label: 'Academy', icon: GraduationCap, basePath: '/academy', items: MODULES.find(m => m.key === 'academy')?.sidebar || [] });
   }
 
   // My Office — সবার জন্য (ESS থাকলে অতিরিক্ত items)
