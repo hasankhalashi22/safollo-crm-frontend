@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Plus, ChevronRight, ChevronDown, Edit2, Trash2, BookMarked, Save, X, BookOpen, Upload, Download, FileSpreadsheet, Lock, GitMerge } from 'lucide-react';
 import { academyApi } from '../../api/client';
 import toast from 'react-hot-toast';
@@ -86,7 +87,7 @@ function LecturesModal({ subject, colorIdx, onClose, onSaved }) {
 
   const validCount = rows.filter(r => r.title.trim()).length;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 bg-black/60 z-50 flex items-start justify-center p-4 pt-12 overflow-y-auto">
       <div className="bg-white rounded-2xl w-full max-w-3xl shadow-2xl">
 
@@ -180,7 +181,8 @@ function LecturesModal({ subject, colorIdx, onClose, onSaved }) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -482,7 +484,7 @@ function PlanCard({ plan, onRefresh }) {
         />
       )}
 
-      {showImportModal && (
+      {showImportModal && createPortal(
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-md p-6 space-y-5">
             <div className="flex items-center justify-between">
@@ -529,7 +531,8 @@ function PlanCard({ plan, onRefresh }) {
               <button onClick={() => setShowImportModal(false)} className="px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 text-sm hover:bg-gray-50">বাতিল</button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
