@@ -1148,35 +1148,111 @@ function EssAccessTab({ employee, onSuccess }) {
 function EssCheckboxRow({ employee, onSuccess }) {
   const [hasEss, setHasEss] = useState(!!employee.user_id);
   const [loading, setLoading] = useState(false);
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [unlinkedUsers, setUnlinkedUsers] = useState([]);
+  const [selectedUserId, setSelectedUserId] = useState('');
+  const [linking, setLinking] = useState(false);
 
-  const toggle = async () => {
-    if (loading) return;
+  const openLinkModal = async () => {
+    try {
+      const r = await hrApi.getUnlinkedCrmUsers();
+      setUnlinkedUsers(r.data || r || []);
+      setSelectedUserId('');
+      setShowLinkModal(true);
+    } catch { toast.error('CRM User লোড করতে সমস্যা হয়েছে'); }
+  };
+
+  const doLink = async () => {
+    if (!selectedUserId) return toast.error('একটি CRM User বেছে নিন');
+    setLinking(true);
+    try {
+      await hrApi.linkEssUser(employee.id, selectedUserId);
+      setHasEss(true);
+      setShowLinkModal(false);
+      toast.success('CRM User লিঙ্ক হয়েছে ✅ — এখন Module Access কাজ করবে');
+      onSuccess();
+    } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
+    finally { setLinking(false); }
+  };
+
+  const unlink = async () => {
+    if (!confirm('CRM User লিঙ্ক সরিয়ে দেবেন? Module Access কাজ করা বন্ধ হবে।')) return;
     setLoading(true);
     try {
-      if (hasEss) {
-        if (!confirm('ESS Access সরিয়ে দেবেন?')) { setLoading(false); return; }
-        await hrApi.unlinkEssUser(employee.id);
-        setHasEss(false);
-        toast.success('ESS Access সরানো হয়েছে');
-      } else {
-        if (!employee.phone) return toast.error('আগে ফোন নম্বর যোগ করুন');
-        await hrApi.createEssLogin(employee.id);
-        setHasEss(true);
-        toast.success('ESS Access চালু হয়েছে ✅');
-      }
+      await hrApi.unlinkEssUser(employee.id);
+      setHasEss(false);
+      toast.success('CRM User লিঙ্ক সরানো হয়েছে');
+      onSuccess();
+    } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
+    finally { setLoading(false); }
+  };
+
+  const createEss = async () => {
+    if (!employee.phone) return toast.error('আগে ফোন নম্বর যোগ করুন');
+    setLoading(true);
+    try {
+      await hrApi.createEssLogin(employee.id);
+      setHasEss(true);
+      toast.success('ESS Account তৈরি হয়েছে ✅');
       onSuccess();
     } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
     finally { setLoading(false); }
   };
 
   return (
-    <div className="border border-gray-100 rounded-xl p-3">
-      <div className="flex items-center gap-2">
-        <input type="checkbox" checked={hasEss} onChange={toggle} disabled={loading} />
-        <span className="text-sm font-medium flex-1">ESS Portal (Employee Self Service)</span>
-        {hasEss && <span className="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full">সক্রিয়</span>}
+    <>
+      <div className="border border-gray-100 rounded-xl p-3 space-y-2">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium flex-1">CRM / ESS Account লিঙ্ক</span>
+          {hasEss
+            ? <span className="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full font-medium">✓ লিঙ্ক আছে — Module Access সক্রিয়</span>
+            : <span className="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full font-medium">⚠ লিঙ্ক নেই — Module Access কাজ করবে না</span>
+          }
+        </div>
+        {hasEss ? (
+          <button onClick={unlink} disabled={loading} className="text-xs text-red-500 hover:text-red-700 underline">
+            লিঙ্ক সরান
+          </button>
+        ) : (
+          <div className="flex gap-2 pt-1">
+            <button onClick={openLinkModal} className="text-xs bg-primary-50 text-primary-600 hover:bg-primary-100 px-3 py-1.5 rounded-lg border border-primary-200 font-medium transition-colors">
+              বিদ্যমান CRM User লিঙ্ক করুন
+            </button>
+            <button onClick={createEss} disabled={loading} className="text-xs bg-gray-50 text-gray-600 hover:bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200 font-medium transition-colors">
+              নতুন ESS Account তৈরি
+            </button>
+          </div>
+        )}
       </div>
-    </div>
+
+      {showLinkModal && createPortal(
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+            <h3 className="font-semibold text-gray-800">বিদ্যমান CRM User লিঙ্ক করুন</h3>
+            <p className="text-xs text-gray-500">এই কর্মীকে একটি বিদ্যমান CRM অ্যাকাউন্টের সাথে যুক্ত করুন। এরপর Module Access কাজ করবে।</p>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-gray-600">CRM User বেছে নিন</label>
+              <select className="input-field" value={selectedUserId} onChange={e => setSelectedUserId(e.target.value)}>
+                <option value="">-- বেছে নিন --</option>
+                {unlinkedUsers.map(u => (
+                  <option key={u.id} value={u.id}>{u.full_name || '(নাম নেই)'} — {u.phone} ({u.role_label})</option>
+                ))}
+              </select>
+              {unlinkedUsers.length === 0 && <p className="text-xs text-gray-400">কোনো unlinked CRM user পাওয়া যায়নি।</p>}
+            </div>
+            <div className="flex gap-3 pt-1">
+              <button onClick={doLink} disabled={linking || !selectedUserId} className="flex-1 bg-primary-500 hover:bg-primary-600 disabled:opacity-40 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors">
+                {linking ? 'লিঙ্ক হচ্ছে...' : 'লিঙ্ক করুন'}
+              </button>
+              <button onClick={() => setShowLinkModal(false)} className="px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 text-sm hover:bg-gray-50">
+                বাতিল
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
   );
 }
 
