@@ -38,6 +38,13 @@ function AdminGroupItem({ item, collapsed, anyActive, onClose, location, isOpen:
   );
 }
 
+const MODULE_COLORS = {
+  crm:        '#3b82f6',
+  accounting: '#10b981',
+  hr:         '#f59e0b',
+  academy:    '#8b5cf6',
+};
+
 function TopModuleBar() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -47,15 +54,28 @@ function TopModuleBar() {
   if (visibleModules.length <= 1) return null;
 
   const currentModule = getModuleForPath(location.pathname);
+  const activeColor = MODULE_COLORS[currentModule?.key] || '#6b7280';
 
   return (
-    <div className="bg-gray-900 px-4 flex items-center gap-1 overflow-x-auto">
-      {visibleModules.map(m => (
-        <button key={m.key} onClick={() => navigate(m.basePath)}
-          className={`px-4 py-2.5 text-sm font-medium transition-all border-b-2 whitespace-nowrap ${currentModule.key === m.key ? 'text-white border-primary-400' : 'text-gray-400 border-transparent hover:text-gray-200'}`}>
-          {m.label}
-        </button>
-      ))}
+    <div
+      style={{ background: '#111827', borderBottom: `3px solid ${activeColor}` }}
+      className="flex items-end px-4 gap-1 overflow-x-auto flex-shrink-0 transition-colors duration-200"
+    >
+      {visibleModules.map(m => {
+        const isActive = currentModule?.key === m.key;
+        const color = MODULE_COLORS[m.key] || '#6b7280';
+        return (
+          <button
+            key={m.key}
+            onClick={() => navigate(m.basePath)}
+            style={isActive ? { background: color, borderRadius: '6px 6px 0 0' } : {}}
+            className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition-all
+              ${isActive ? 'text-white' : 'text-gray-400 hover:text-gray-200'}`}
+          >
+            {m.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
