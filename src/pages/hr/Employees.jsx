@@ -974,17 +974,13 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
 
             {tab === 'access' && (
               <div className="space-y-5">
-                {/* ESS Access */}
-                <section>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">ESS Portal Access</p>
-                  <EssAccessTab employee={employee} onSuccess={onSuccess} />
-                </section>
-
-                {/* Module Access — hr_advisor ও super_admin only */}
+                {/* Module Access */}
                 {canManageAccess && (
                 <section>
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Module Access</p>
                   <div className="space-y-2">
+                    {/* ESS Portal — checkbox, no role */}
+                    <EssCheckboxRow employee={employee} onSuccess={onSuccess} />
                     {MODULES.map(m => {
                       const hasAccess = !!moduleAccess[m.key];
                       const roleOptions = m.key === 'crm' ? crmRoles.map(r => ({ key: r.name, label: r.label })) : (m.roles || []);
@@ -1145,6 +1141,41 @@ function EssAccessTab({ employee, onSuccess }) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function EssCheckboxRow({ employee, onSuccess }) {
+  const [hasEss, setHasEss] = useState(!!employee.user_id);
+  const [loading, setLoading] = useState(false);
+
+  const toggle = async () => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      if (hasEss) {
+        if (!confirm('ESS Access সরিয়ে দেবেন?')) { setLoading(false); return; }
+        await hrApi.unlinkEssUser(employee.id);
+        setHasEss(false);
+        toast.success('ESS Access সরানো হয়েছে');
+      } else {
+        if (!employee.phone) return toast.error('আগে ফোন নম্বর যোগ করুন');
+        await hrApi.createEssLogin(employee.id);
+        setHasEss(true);
+        toast.success('ESS Access চালু হয়েছে ✅');
+      }
+      onSuccess();
+    } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
+    finally { setLoading(false); }
+  };
+
+  return (
+    <div className="border border-gray-100 rounded-xl p-3">
+      <div className="flex items-center gap-2">
+        <input type="checkbox" checked={hasEss} onChange={toggle} disabled={loading} />
+        <span className="text-sm font-medium flex-1">ESS Portal (Employee Self Service)</span>
+        {hasEss && <span className="text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full">সক্রিয়</span>}
+      </div>
     </div>
   );
 }
