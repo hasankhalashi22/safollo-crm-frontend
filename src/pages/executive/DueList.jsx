@@ -553,7 +553,12 @@ function PaymentHistoryModal({ due, onClose, onPay }) {
             className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-green-50 text-green-600 rounded-xl text-sm font-medium">
             <Phone size={16} /> কল করুন
           </a>
-          {!due.is_book && (
+          {due.is_book ? (
+            <button onClick={() => onPay(due)}
+              className="flex-1 py-2.5 bg-amber-500 text-white rounded-xl text-sm font-medium">
+              📦 ডেলিভারি আপডেট
+            </button>
+          ) : (
             <button onClick={() => onPay(due)}
               className="flex-1 py-2.5 bg-primary-500 text-white rounded-xl text-sm font-medium">
               পেমেন্ট নিন
