@@ -188,7 +188,7 @@ function PaymentModal({ due, onClose, onSuccess }) {
     }
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
       <div className="bg-white w-full rounded-t-3xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center">
@@ -283,7 +283,8 @@ function PaymentModal({ due, onClose, onSuccess }) {
           </button>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
@@ -314,7 +315,7 @@ function BookDeliveryModal({ due, onClose, onSuccess }) {
     } finally { setLoading(false); }
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
       <div className="bg-white w-full rounded-t-3xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center">
@@ -356,7 +357,8 @@ function BookDeliveryModal({ due, onClose, onSuccess }) {
           </button>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 function PaymentHistoryModal({ due, onClose, onPay }) {
