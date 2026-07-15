@@ -765,7 +765,7 @@ export default function Courses() {
           <p className="text-gray-400 text-sm mt-1">উপরে "নতুন কোর্স" বাটনে ক্লিক করে শুরু করুন</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
           {courses.map((c, idx) => <CourseCard key={c.id} course={c} onRefresh={load} index={idx} />)}
         </div>
       )}
