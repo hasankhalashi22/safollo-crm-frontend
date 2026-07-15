@@ -869,42 +869,21 @@ export function UnifiedLayout({ children }) {
         </button>
       </div>
       <nav className="flex-1 p-2 overflow-y-auto space-y-0.5">
-        {moduleList.map(mod => {
-          const ModIcon = mod.icon;
-          const isOpen = !!openModules[mod.key];
-          const isActive = mod.key === activeModuleKey;
+        {(moduleList.find(m => m.key === activeModuleKey)?.items || []).map(item => {
+          if (item.group) {
+            return <UnifiedSubGroup key={item.group} item={item} onClose={onClose} pendingCount={pendingLeaveCount} />;
+          }
+          const ItemIcon = item.icon;
+          const badge = item.to.includes('/approvals') ? pendingApprovalCount : item.to.includes('/due') ? pendingDueCount : item.to.includes('/notices') ? unreadNoticeCount : 0;
           return (
-            <div key={mod.key}>
-              <button onClick={() => !col && setOpenModules(prev => ({ [mod.key]: !prev[mod.key] }))}
-                title={col ? mod.label : undefined}
-                className={`w-full flex items-center gap-2.5 px-2.5 py-2.5 rounded-xl text-sm font-semibold transition-all ${col ? 'justify-center' : ''}
-                  ${isActive ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'}`}>
-                <ModIcon size={17} className="flex-shrink-0" />
-                {!col && <span className="flex-1 text-left" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{mod.label}</span>}
-                {!col && <ChevronDown size={14} className={`flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />}
-              </button>
-              {isOpen && !col && (
-                <div className="mt-1 ml-3 pl-3 border-l-2 border-gray-100 space-y-0.5 mb-1">
-                  {mod.items.map(item => {
-                    if (item.group) {
-                      return <UnifiedSubGroup key={item.group} item={item} onClose={onClose} pendingCount={pendingLeaveCount} />;
-                    }
-                    const ItemIcon = item.icon;
-                    const badge = item.to.includes('/approvals') ? pendingApprovalCount : item.to.includes('/due') ? pendingDueCount : item.to.includes('/notices') ? unreadNoticeCount : 0;
-                    return (
-                      <NavLink key={item.to} to={item.to} end={item.end} onClick={onClose}
-                        className={({ isActive: ia }) =>
-                          `flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-sm font-medium transition-all
-                           ${ia ? 'bg-primary-100 text-primary-700' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'}`}>
-                        <ItemIcon size={14} className="flex-shrink-0" />
-                        <span className="flex-1" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>
-                        {badge > 0 && <span className="bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] text-center flex-shrink-0">{badge}</span>}
-                      </NavLink>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+            <NavLink key={item.to} to={item.to} end={item.end} onClick={onClose}
+              className={({ isActive: ia }) =>
+                `flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-sm font-medium transition-all
+                 ${ia ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}>
+              <ItemIcon size={16} className="flex-shrink-0" />
+              {!col && <span className="flex-1" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.label}</span>}
+              {badge > 0 && !col && <span className="bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] text-center flex-shrink-0">{badge}</span>}
+            </NavLink>
           );
         })}
       </nav>
