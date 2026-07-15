@@ -83,6 +83,11 @@ export const MODULES = [
     label: 'Academy',
     basePath: '/academy',
     allowedRoles: ['super_admin'],
+    roles: [
+      { key: 'viewer', label: 'Academy Viewer (শুধু দেখতে পারবে)' },
+      { key: 'editor', label: 'Academy Editor (তৈরি/এডিট ও ফিডব্যাক Approve)' },
+      { key: 'admin', label: 'Academy Admin (Editor + Settings + ডিলিট)' },
+    ],
     sidebar: [
       { to: '/academy', icon: BarChart2, label: 'Dashboard', end: true },
       { to: '/academy/courses', icon: BookMarked, label: 'Courses & Plans' },

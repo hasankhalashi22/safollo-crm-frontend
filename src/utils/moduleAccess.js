@@ -23,3 +23,27 @@ export function canUpdateModule(user, moduleKey) {
   const role = getModuleRole(user, moduleKey);
   return role === 'admin' || role === 'hr_manager';
 }
+
+// ── Academy-specific permission helpers ──────────────────────────────────────
+// viewer/editor/admin can view; super_admin always via getModuleRole returning 'admin'
+export function canViewAcademy(user) {
+  return !!getModuleRole(user, 'academy');
+}
+// editor and admin can create/edit; not viewer
+export function canEditAcademy(user) {
+  const role = getModuleRole(user, 'academy');
+  return role === 'editor' || role === 'admin';
+}
+// admin can delete teachers and zoom accounts; courses/batches/payments nobody can delete
+export function canDeleteAcademy(user) {
+  return getModuleRole(user, 'academy') === 'admin';
+}
+// editor and admin can approve feedback
+export function canApproveFeedback(user) {
+  const role = getModuleRole(user, 'academy');
+  return role === 'editor' || role === 'admin';
+}
+// only admin can access settings
+export function canManageAcademySettings(user) {
+  return getModuleRole(user, 'academy') === 'admin';
+}

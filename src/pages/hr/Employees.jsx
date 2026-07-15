@@ -638,7 +638,7 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
       (r.data || []).forEach(a => { map[a.module_key] = a.role_key; });
       setModuleAccess(map);
     });
-    usersApi.getRoles().then(r => setCrmRoles(r.data || []));
+    usersApi.getRoles().then(r => setCrmRoles((r.data || []).filter(role => role.name !== 'super_admin')));
   }, []);
 
   const toggleModuleAccess = (moduleKey, defaultRole) => {
