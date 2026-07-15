@@ -160,11 +160,11 @@ export default function TeacherPayments() {
             <p className="text-xs text-gray-400">{selected.teacher_code}</p>
           </div>
         </div>
-        {remaining > 0 && (
-          {canEdit && <button onClick={() => setShowEntryModal(true)}
+        {remaining > 0 && canEdit && (
+          <button onClick={() => setShowEntryModal(true)}
             className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2 text-sm transition-colors">
             <Banknote size={15} /> পরিশোধ করুন
-          </button>}
+          </button>
         )}
       </div>
 

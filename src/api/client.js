@@ -1,4 +1,5 @@
 import axios from 'axios';
+import toast from 'react-hot-toast';
 
 const BASE_URL = 'https://safollo-crm-backend.onrender.com';
 
@@ -20,6 +21,9 @@ api.interceptors.response.use(
       localStorage.removeItem('crm_token');
       localStorage.removeItem('crm_user');
       window.location.href = '/login';
+    }
+    if (error.response?.status === 403) {
+      toast.error('আপনার এই বিষয়ে পারমিশন নেই');
     }
     return Promise.reject(error.response?.data || error);
   }
