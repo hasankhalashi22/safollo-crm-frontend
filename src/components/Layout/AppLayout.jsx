@@ -70,7 +70,8 @@ function TopModuleBar() {
             onClick={() => navigate(m.basePath)}
             style={isActive ? { background: color, borderRadius: '6px 6px 0 0' } : {}}
             className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition-all
-              ${isActive ? 'text-white' : 'text-gray-400 hover:text-gray-200'}`}
+              ${isActive ? 'text-white' : 'hover:opacity-100'}`}
+            style={!isActive ? { color: '#FEF9EE', opacity: 0.85 } : {}}
           >
             {m.label}
           </button>
