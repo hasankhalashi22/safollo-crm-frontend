@@ -43,7 +43,7 @@ const MODULE_COLORS = {
   accounting: '#10b981',
   hr:         '#f59e0b',
   academy:    '#8b5cf6',
-  ess:        '#6b7280',
+  ess:        '#ec4899',
 };
 
 function TopModuleBar() {
