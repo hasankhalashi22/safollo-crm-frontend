@@ -222,16 +222,16 @@ useNotifications();
 <Route path="/hr/notices" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><UnifiedLayout><Notices /></UnifiedLayout></ProtectedRoute>} />
 
 
-      <Route path="/academy" element={<ProtectedRoute allowedLevels={[1]}><AcademyLayout><AcademyDashboard /></AcademyLayout></ProtectedRoute>} />
-      <Route path="/academy/courses" element={<ProtectedRoute allowedLevels={[1]}><AcademyLayout><Courses /></AcademyLayout></ProtectedRoute>} />
-      <Route path="/academy/batches" element={<ProtectedRoute allowedLevels={[1]}><AcademyLayout><Batches /></AcademyLayout></ProtectedRoute>} />
-      <Route path="/academy/batches/:id" element={<ProtectedRoute allowedLevels={[1]}><AcademyLayout><BatchDetail /></AcademyLayout></ProtectedRoute>} />
-      <Route path="/academy/teachers" element={<ProtectedRoute allowedLevels={[1]}><AcademyLayout><Teachers /></AcademyLayout></ProtectedRoute>} />
-      <Route path="/academy/teacher-payments" element={<ProtectedRoute allowedLevels={[1]}><AcademyLayout><TeacherPayments /></AcademyLayout></ProtectedRoute>} />
-      <Route path="/academy/payment-rates" element={<ProtectedRoute allowedLevels={[1]}><AcademyLayout><PaymentRates /></AcademyLayout></ProtectedRoute>} />
-      <Route path="/academy/zoom-accounts" element={<ProtectedRoute allowedLevels={[1]}><AcademyLayout><ZoomAccounts /></AcademyLayout></ProtectedRoute>} />
-      <Route path="/academy/schedule-report" element={<ProtectedRoute allowedLevels={[1]}><AcademyLayout><ScheduleReport /></AcademyLayout></ProtectedRoute>} />
-      <Route path="/academy/settings" element={<ProtectedRoute allowedLevels={[1]}><AcademyLayout><AcademySettings /></AcademyLayout></ProtectedRoute>} />
+      <Route path="/academy" element={<ProtectedRoute moduleKey="academy"><AcademyLayout><AcademyDashboard /></AcademyLayout></ProtectedRoute>} />
+      <Route path="/academy/courses" element={<ProtectedRoute moduleKey="academy"><AcademyLayout><Courses /></AcademyLayout></ProtectedRoute>} />
+      <Route path="/academy/batches" element={<ProtectedRoute moduleKey="academy"><AcademyLayout><Batches /></AcademyLayout></ProtectedRoute>} />
+      <Route path="/academy/batches/:id" element={<ProtectedRoute moduleKey="academy"><AcademyLayout><BatchDetail /></AcademyLayout></ProtectedRoute>} />
+      <Route path="/academy/teachers" element={<ProtectedRoute moduleKey="academy"><AcademyLayout><Teachers /></AcademyLayout></ProtectedRoute>} />
+      <Route path="/academy/teacher-payments" element={<ProtectedRoute moduleKey="academy"><AcademyLayout><TeacherPayments /></AcademyLayout></ProtectedRoute>} />
+      <Route path="/academy/payment-rates" element={<ProtectedRoute moduleKey="academy"><AcademyLayout><PaymentRates /></AcademyLayout></ProtectedRoute>} />
+      <Route path="/academy/zoom-accounts" element={<ProtectedRoute moduleKey="academy"><AcademyLayout><ZoomAccounts /></AcademyLayout></ProtectedRoute>} />
+      <Route path="/academy/schedule-report" element={<ProtectedRoute moduleKey="academy"><AcademyLayout><ScheduleReport /></AcademyLayout></ProtectedRoute>} />
+      <Route path="/academy/settings" element={<ProtectedRoute moduleKey="academy"><AcademyLayout><AcademySettings /></AcademyLayout></ProtectedRoute>} />
 
       {/* Teacher portal — public */}
       <Route path="/teacher/register"          element={<TeacherRegister />} />
