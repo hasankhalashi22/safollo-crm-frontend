@@ -58,7 +58,7 @@ function TopModuleBar() {
 
   return (
     <div
-      style={{ background: '#111827', borderBottom: `3px solid ${activeColor}` }}
+      style={{ background: '#1A7A6E', borderBottom: `3px solid ${activeColor}` }}
       className="flex items-end px-4 gap-1 overflow-x-auto flex-shrink-0 transition-colors duration-200"
     >
       {visibleModules.map(m => {
