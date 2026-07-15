@@ -3,6 +3,8 @@ import { Banknote, ChevronRight, ArrowLeft, RefreshCw } from 'lucide-react';
 import { academyApi } from '../../api/client';
 import EntryModal from '../../components/accounting/EntryModal';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../hooks/useAuth';
+import { canEditAcademy } from '../../utils/moduleAccess';
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function fmtDate(d) {
@@ -12,6 +14,8 @@ function fmtDate(d) {
 }
 
 export default function TeacherPayments() {
+  const { user } = useAuth();
+  const canEdit = canEditAcademy(user);
   const [teachers, setTeachers] = useState([]);
   const [selected, setSelected] = useState(null); // { id, full_name, teacher_code }
   const [detail, setDetail] = useState(null);
@@ -85,11 +89,11 @@ export default function TeacherPayments() {
       <div className="p-3 md:p-6 space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <h1 className="text-xl font-bold text-gray-800">শিক্ষক পেমেন্ট</h1>
-          <button onClick={recalculate} disabled={recalculating}
+          {canEdit && <button onClick={recalculate} disabled={recalculating}
             className="bg-gray-100 hover:bg-gray-200 disabled:opacity-50 text-gray-700 font-medium px-4 py-2.5 rounded-xl flex items-center gap-2 text-sm transition-colors">
             <RefreshCw size={14} className={recalculating ? 'animate-spin' : ''} />
             রেট পুনরায় প্রয়োগ করুন
-          </button>
+          </button>}
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -157,10 +161,10 @@ export default function TeacherPayments() {
           </div>
         </div>
         {remaining > 0 && (
-          <button onClick={() => setShowEntryModal(true)}
+          {canEdit && <button onClick={() => setShowEntryModal(true)}
             className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2 text-sm transition-colors">
             <Banknote size={15} /> পরিশোধ করুন
-          </button>
+          </button>}
         )}
       </div>
 
