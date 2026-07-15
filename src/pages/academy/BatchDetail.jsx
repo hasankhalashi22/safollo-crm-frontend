@@ -1917,24 +1917,14 @@ export default function BatchDetail() {
       </div>
 
       {/* Actions */}
-      <div className="flex gap-2 flex-wrap">
-        {!showManualBuilder && outline.length === 0 && (
-          <button onClick={() => { setShowManualBuilder(true); setShowAddForm(false); }}
-            className="flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white transition-colors">
-            <Plus size={14} /> ম্যানুয়াল তৈরি
+      <div className="flex gap-2 flex-wrap items-center">
+        {!showManualBuilder && (
+          <button onClick={() => setShowFollowModal(true)}
+            className="flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-xl bg-violet-500 hover:bg-violet-600 text-white transition-colors">
+            <GitMerge size={14} /> ব্যাচ ফলো করুন
           </button>
         )}
-        {!showManualBuilder && outline.length > 0 && (
-          <button onClick={() => { setShowManualBuilder(true); setShowAddForm(false); }}
-            className="flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white transition-colors">
-            <Edit2 size={14} /> সম্পূর্ন রুটিন এডিট করুন
-          </button>
-        )}
-        <button onClick={() => setShowFollowModal(true)}
-          className="flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-xl bg-violet-500 hover:bg-violet-600 text-white transition-colors">
-          <GitMerge size={14} /> ব্যাচ ফলো করুন
-        </button>
-        {outline.length > 0 && (
+        {outline.length > 0 && !showManualBuilder && (
           <>
             <button onClick={() => setShowPdf(true)}
               className="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-xl border-2 border-red-200 bg-white hover:bg-red-50 text-red-600">
@@ -1955,6 +1945,12 @@ export default function BatchDetail() {
               <Trash2 size={14} /> রুটিন মুছুন
             </button>
           </>
+        )}
+        {!showManualBuilder && (
+          <button onClick={() => { setShowManualBuilder(true); setShowAddForm(false); }}
+            className="ml-auto flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white transition-colors">
+            {outline.length > 0 ? <><Edit2 size={14} /> সম্পূর্ন রুটিন এডিট করুন</> : <><Plus size={14} /> ম্যানুয়াল তৈরি</>}
+          </button>
         )}
       </div>
 
