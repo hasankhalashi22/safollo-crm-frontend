@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import EntryModal from '../../components/accounting/EntryModal';
+import EntryModal, { useScrollLock } from '../../components/accounting/EntryModal';
 import { accountingApi } from '../../api/client';
 import { useAuth } from '../../hooks/useAuth';
 import { canEditModule, canUpdateModule } from '../../utils/moduleAccess';

@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { Camera, X } from 'lucide-react';
 
-function useScrollLock() {
+export function useScrollLock() {
   useEffect(() => {
     const y = window.scrollY;
     document.body.style.position = 'fixed';
