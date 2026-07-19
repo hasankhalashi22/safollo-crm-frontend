@@ -254,6 +254,19 @@ export const attendanceApi = {
     if (params.status) q.append('status', params.status);
     return api.get(`/api/attendance/all?${q.toString()}`);
   },
+  getUnmappedPunches: () => api.get('/api/attendance/device/unmapped-punches'),
+  getDeviceMappings: () => api.get('/api/attendance/device/mappings'),
+  assignDeviceMapping: (employeeId, devicePin) => api.post('/api/attendance/device/mappings', { employeeId, devicePin }),
+  clearDeviceMapping: (employeeId) => api.delete(`/api/attendance/device/mappings/${employeeId}`),
+  getRecentPunches: (params = {}) => {
+    const q = new URLSearchParams();
+    if (params.limit) q.append('limit', params.limit);
+    if (params.employeeId) q.append('employeeId', params.employeeId);
+    return api.get(`/api/attendance/device/punches?${q.toString()}`);
+  },
+  getDevices: () => api.get('/api/attendance/device/registry'),
+  registerDevice: (data) => api.post('/api/attendance/device/registry', data),
+  updateDevice: (id, data) => api.patch(`/api/attendance/device/registry/${id}`, data),
 };
 export const payrollApi = {
   getEmployeeComponents: (employeeId) => api.get(`/api/payroll/employees/${employeeId}/components`),

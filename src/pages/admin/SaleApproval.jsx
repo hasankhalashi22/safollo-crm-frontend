@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { approvalsApi } from '../../api/client';
+import { approvalsApi, coursesApi } from '../../api/client';
 import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
@@ -212,12 +212,19 @@ export default function SaleApproval() {
 
 function ApprovalModal({ sale, onApprove, onReject, onClose, onZoom }) {
   const [editMode, setEditMode] = useState(false);
+  const [courses, setCourses] = useState([]);
   const [editData, setEditData] = useState({
     course_price: sale.course_price,
     collected_amount: sale.total_collected,
     reference: sale.reference || '',
     notes: sale.notes || '',
+    sale_date: sale.created_at ? sale.created_at.slice(0, 10) : '',
+    course_id: sale.course_id || '',
   });
+
+  useEffect(() => {
+    coursesApi.getAll().then(r => setCourses(r.data || [])).catch(() => {});
+  }, []);
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -242,15 +249,31 @@ function ApprovalModal({ sale, onApprove, onReject, onClose, onZoom }) {
             <h3 className="font-semibold mb-3">পেমেন্ট তথ্য</h3>
            {editMode ? (
               <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-medium mb-1">কোর্স মূল্য</label>
-                  <input type="number" className="input-field" value={editData.course_price}
-                    onChange={e => setEditData(p => ({ ...p, course_price: e.target.value }))} />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">সেলের তারিখ</label>
+                    <input type="date" className="input-field" value={editData.sale_date}
+                      onChange={e => setEditData(p => ({ ...p, sale_date: e.target.value }))} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">কোর্স</label>
+                    <select className="input-field" value={editData.course_id}
+                      onChange={e => setEditData(p => ({ ...p, course_id: e.target.value }))}>
+                      {courses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">সংগৃহীত টাকা</label>
-                  <input type="number" className="input-field" value={editData.collected_amount}
-                    onChange={e => setEditData(p => ({ ...p, collected_amount: e.target.value }))} />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">কোর্স মূল্য</label>
+                    <input type="number" className="input-field" value={editData.course_price}
+                      onChange={e => setEditData(p => ({ ...p, course_price: e.target.value }))} />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">সংগৃহীত টাকা</label>
+                    <input type="number" className="input-field" value={editData.collected_amount}
+                      onChange={e => setEditData(p => ({ ...p, collected_amount: e.target.value }))} />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">রেফারেন্স</label>

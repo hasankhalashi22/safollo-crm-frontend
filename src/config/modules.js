@@ -1,4 +1,4 @@
-import { BarChart2, Wallet, FileText, BookText, Landmark, CreditCard, TrendingUp, Users, Activity, CheckSquare, Plus, Clock, Shield, BookOpen, Settings, User, DollarSign, Calendar, GraduationCap, BookMarked, Layers, UserCheck, Banknote, Video } from 'lucide-react';
+import { BarChart2, Wallet, FileText, BookText, Landmark, CreditCard, TrendingUp, Users, Activity, CheckSquare, Plus, Clock, Shield, BookOpen, Settings, User, DollarSign, Calendar, GraduationCap, BookMarked, Layers, UserCheck, Banknote, Video, Fingerprint } from 'lucide-react';
 
 // Central registry of all modules in the system.
 // Adding a new module = adding one entry here (plus its pages/routes).
@@ -70,6 +70,7 @@ export const MODULES = [
       { group: 'attendance', icon: Clock, label: 'Attendance', children: [
         { to: '/hr/attendance', icon: Clock, label: 'Attendance Overview' },
         { to: '/hr/attendance-settings', icon: Settings, label: 'Attendance Settings' },
+        { to: '/hr/device-sync', icon: Fingerprint, label: 'Device Sync' },
       ]},
       { group: 'payroll', icon: DollarSign, label: 'Payroll', children: [
         { to: '/hr/payroll', icon: DollarSign, label: 'Payroll' },

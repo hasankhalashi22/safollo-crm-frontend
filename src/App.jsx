@@ -45,6 +45,7 @@ import LeaveApplications from './pages/hr/LeaveApplications';
 import LeaveRegister from './pages/hr/LeaveRegister';
 import AttendanceOverview from './pages/hr/AttendanceOverview';
 import AttendanceSettings from './pages/hr/AttendanceSettings';
+import DeviceAttendanceSync from './pages/hr/DeviceAttendanceSync';
 import Payroll from './pages/hr/Payroll';
 import PayrollSettings from './pages/hr/PayrollSettings';
 
@@ -214,6 +215,8 @@ useNotifications();
 <Route path="/hr/attendance" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><UnifiedLayout><AttendanceOverview /></UnifiedLayout></ProtectedRoute>} />
 
 <Route path="/hr/attendance-settings" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><UnifiedLayout><AttendanceSettings /></UnifiedLayout></ProtectedRoute>} />
+
+<Route path="/hr/device-sync" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><UnifiedLayout><DeviceAttendanceSync /></UnifiedLayout></ProtectedRoute>} />
 
 <Route path="/hr/payroll" element={<ProtectedRoute allowedLevels={[1]} moduleKey="hr"><UnifiedLayout><Payroll /></UnifiedLayout></ProtectedRoute>} />
 
