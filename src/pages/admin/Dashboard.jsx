@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { reportsApi } from '../../api/client';
-import { TrendingUp, Users, Clock, BookOpen } from 'lucide-react';
+import { BookOpen } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function AdminDashboard() {
@@ -25,39 +25,85 @@ export default function AdminDashboard() {
   const t = overview?.totals || {};
   const today = overview?.today || {};
 
+  const fmt = (n) => Number(n || 0).toLocaleString('bn-BD');
+  const fmtLakh = (n) => {
+    const val = Number(n || 0);
+    if (val >= 100000) return `৳${(val / 100000).toFixed(1)}লাখ`;
+    return `৳${val.toLocaleString('bn-BD')}`;
+  };
+
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 space-y-4 max-w-2xl">
       <div>
         <h1 className="text-2xl font-display font-bold text-dark">ড্যাশবোর্ড</h1>
-        <p className="text-gray-500 text-sm mt-1">সাফল্য একাডেমি CRM Overview</p>
+        <p className="text-gray-500 text-sm mt-0.5">সাফল্য একাডেমি CRM Overview</p>
       </div>
 
-      {/* Today stats */}
-      <div>
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">আজকের সারসংক্ষেপ</h2>
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-          <StatCard icon={<TrendingUp size={20} className="text-primary-500" />} label="আজকের সংগ্রহ" value={`৳${Number(today.today_collected || 0).toLocaleString()}`} bg="bg-primary-50" />
-          <StatCard icon={<Users size={20} className="text-blue-500" />} label="আজকের লেনদেন" value={today.today_transactions || '০'} bg="bg-blue-50" />
-          <StatCard icon={<TrendingUp size={20} className="text-green-500" />} label="মোট রেভিনিউ" value={`৳${Number(t.total_revenue || 0).toLocaleString()}`} bg="bg-green-50" />
-          <StatCard icon={<Clock size={20} className="text-red-500" />} label="মোট বকেয়া" value={`৳${Number(t.total_due || 0).toLocaleString()}`} bg="bg-red-50" />
+      {/* Hero card — today's collection */}
+      <div className="rounded-2xl p-4" style={{ background: '#1A7A6E' }}>
+        <div className="flex items-center gap-2 mb-1">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
+          </svg>
+          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.85)' }}>আজকের সংগ্রহ</p>
+        </div>
+        <p className="text-3xl font-bold text-white mt-1">৳{fmt(today.today_collected)}</p>
+      </div>
+
+      {/* 2-col stats row 1 */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-2xl p-4 bg-white border border-gray-100">
+          <p className="text-xs text-gray-400 mb-1">আজকের লেনদেন</p>
+          <p className="text-2xl font-bold text-dark">{today.today_transactions || '০'}</p>
+        </div>
+        <div className="rounded-2xl p-4 bg-white border border-gray-100">
+          <p className="text-xs text-gray-400 mb-1">এই মাসের রেভিনিউ</p>
+          <p className="text-2xl font-bold text-dark">{fmtLakh(monthly?.summary?.total_collected)}</p>
         </div>
       </div>
 
-      {/* Overall stats */}
+      {/* 2-col stats row 2 — colored */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-2xl p-4" style={{ background: '#EEF2FF' }}>
+          <p className="text-xs mb-1" style={{ color: '#6366f1' }}>মোট রেভিনিউ</p>
+          <p className="text-2xl font-bold" style={{ color: '#4338ca' }}>{fmtLakh(t.total_revenue)}</p>
+        </div>
+        <div className="rounded-2xl p-4" style={{ background: '#FFF1F2' }}>
+          <p className="text-xs mb-1" style={{ color: '#f43f5e' }}>মোট বকেয়া</p>
+          <p className="text-2xl font-bold" style={{ color: '#be123c' }}>{fmtLakh(t.total_due)}</p>
+        </div>
+      </div>
+
+      {/* সামগ্রিক পরিসংখ্যান */}
       <div>
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">সামগ্রিক পরিসংখ্যান</h2>
-        <div className="grid grid-cols-3 gap-4">
-          <div className="card text-center">
-            <p className="text-3xl font-bold text-dark">{t.total_students || '০'}</p>
-            <p className="text-sm text-gray-500 mt-1">মোট এনরোলমেন্ট</p>
+        <h2 className="text-base font-bold text-dark mb-3">সামগ্রিক পরিসংখ্যান</h2>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="rounded-2xl p-4" style={{ background: '#F0FDF4' }}>
+            <div className="flex items-center gap-1.5 mb-2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
+              </svg>
+            </div>
+            <p className="text-2xl font-bold text-dark">{t.total_students || '০'}</p>
+            <p className="text-xs text-gray-400 mt-0.5">মোট এনরোলমেন্ট</p>
           </div>
-          <div className="card text-center">
-            <p className="text-3xl font-bold text-green-600">{t.paid_students || '০'}</p>
-            <p className="text-sm text-gray-500 mt-1">পেইড</p>
+          <div className="rounded-2xl p-4" style={{ background: '#F0FDF4' }}>
+            <div className="flex items-center gap-1.5 mb-2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
+            <p className="text-2xl font-bold" style={{ color: '#16a34a' }}>{t.paid_students || '০'}</p>
+            <p className="text-xs text-gray-400 mt-0.5">মোট পেইড</p>
           </div>
-          <div className="card text-center">
-            <p className="text-3xl font-bold text-red-500">{t.due_students || '০'}</p>
-            <p className="text-sm text-gray-500 mt-1">বকেয়া</p>
+          <div className="rounded-2xl p-4" style={{ background: '#FFF7ED' }}>
+            <div className="flex items-center gap-1.5 mb-2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+            </div>
+            <p className="text-2xl font-bold" style={{ color: '#ea580c' }}>{t.due_students || '০'}</p>
+            <p className="text-xs text-gray-400 mt-0.5">মোট বকেয়া (শিক্ষার্থী)</p>
           </div>
         </div>
       </div>
@@ -127,16 +173,6 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function StatCard({ icon, label, value, bg }) {
-  return (
-    <div className={`${bg} rounded-2xl p-4`}>
-      <div className="mb-2">{icon}</div>
-      <p className="text-2xl font-bold text-dark">{value}</p>
-      <p className="text-xs text-gray-500 mt-0.5">{label}</p>
     </div>
   );
 }
