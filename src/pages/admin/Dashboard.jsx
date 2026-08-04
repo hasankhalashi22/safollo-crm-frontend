@@ -39,14 +39,14 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
 
         {/* Hero — today's collection */}
-        <div className="col-span-2 md:col-span-1 rounded-2xl p-4" style={{ background: '#1A7A6E' }}>
-          <div className="flex items-center gap-2 mb-1">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <div className="col-span-2 md:col-span-1 rounded-2xl p-4 flex flex-col items-center justify-center text-center" style={{ background: '#1A7A6E', minHeight: '100px' }}>
+          <div className="flex items-center gap-1.5 mb-1">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
             </svg>
             <p className="text-xs" style={{ color: 'rgba(255,255,255,0.85)' }}>আজকের সংগ্রহ</p>
           </div>
-          <p className="text-2xl font-bold text-white mt-1">{fmtMoney(today.today_collected)}</p>
+          <p className="text-2xl font-bold text-white">{fmtMoney(today.today_collected)}</p>
         </div>
 
         {/* Today transactions */}
