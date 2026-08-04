@@ -62,7 +62,7 @@ const MODULE_LABELS = {
   ess:        'OFFICE',
 };
 
-function TopModuleBar() {
+function BottomModuleBar() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -78,7 +78,7 @@ function TopModuleBar() {
   ) || getModuleForPath(location.pathname);
 
   return (
-    <div className="bg-white border-b border-gray-100 flex items-center px-2 gap-1 overflow-x-auto flex-shrink-0 shadow-sm">
+    <div className="bg-white border-t border-gray-100 flex items-center justify-around px-2 gap-1 overflow-x-auto flex-shrink-0 shadow-[0_-2px_8px_rgba(0,0,0,0.06)]">
       {visibleModules.map(m => {
         const isActive = currentModule?.key === m.key;
         const color = MODULE_COLORS[m.key] || '#6b7280';
@@ -335,7 +335,6 @@ export function AdminLayout({ children }) {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
-      <TopModuleBar />
       <div className="flex flex-1 overflow-hidden">
         <aside className={`hidden lg:flex bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0 transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'}`}>
           <SidebarContent />
@@ -364,6 +363,7 @@ export function AdminLayout({ children }) {
           <main className="flex-1 overflow-y-auto overflow-x-hidden page-enter">{children}</main>
         </div>
       </div>
+      <BottomModuleBar />
     </div>
   );
 }
@@ -455,7 +455,6 @@ export function AccountingLayout({ children }) {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
-      <TopModuleBar />
       <div className="flex flex-1 overflow-hidden">
         <aside className={`hidden lg:flex bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0 transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'}`}>
           <SidebarContent />
@@ -484,6 +483,7 @@ export function AccountingLayout({ children }) {
           <main className="flex-1 overflow-y-auto overflow-x-hidden page-enter">{children}</main>
         </div>
       </div>
+      <BottomModuleBar />
     </div>
   );
 }
@@ -609,7 +609,6 @@ export function HrLayout({ children }) {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
-      <TopModuleBar />
       <div className="flex flex-1 overflow-hidden">
         <aside className={`hidden lg:flex bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0 transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'}`}>
           <SidebarContent />
@@ -638,6 +637,7 @@ export function HrLayout({ children }) {
           <main className="flex-1 overflow-y-auto overflow-x-hidden page-enter">{children}</main>
         </div>
       </div>
+      <BottomModuleBar />
     </div>
   );
 }
@@ -693,7 +693,6 @@ export function AcademyLayout({ children }) {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
-      <TopModuleBar />
       <div className="flex flex-1 overflow-hidden">
         <aside className={`hidden lg:flex bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0 transition-all duration-300 ${collapsed ? 'w-16' : 'w-64'}`}>
           <SidebarContent />
@@ -715,6 +714,7 @@ export function AcademyLayout({ children }) {
           <main className="flex-1 overflow-y-auto overflow-x-hidden page-enter">{children}</main>
         </div>
       </div>
+      <BottomModuleBar />
     </div>
   );
 }
@@ -942,7 +942,6 @@ export function UnifiedLayout({ children }) {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50 overflow-hidden">
-      <TopModuleBar />
       <div className="flex flex-1 overflow-hidden">
       <aside className={`hidden lg:flex bg-white border-r border-gray-100 flex-col shadow-sm flex-shrink-0 transition-all duration-300 ${sidebarCollapsed ? 'w-16' : 'w-56'}`}>
         <SidebarNav onClose={() => {}} collapsed={sidebarCollapsed} />
@@ -969,6 +968,7 @@ export function UnifiedLayout({ children }) {
         <main className="flex-1 overflow-y-auto overflow-x-hidden page-enter">{children}</main>
       </div>
       </div>
+      <BottomModuleBar />
     </div>
   );
 }
