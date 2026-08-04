@@ -35,11 +35,37 @@ export default function AdminDashboard() {
         <p className="text-gray-500 text-sm mt-0.5">সাফল্য একাডেমি CRM Overview</p>
       </div>
 
-      {/* Top stat cards — mobile: stacked, desktop: single row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      {/* Mobile: stacked 2-col */}
+      <div className="md:hidden space-y-3">
+        <div className="rounded-2xl p-4 flex flex-col items-center justify-center text-center" style={{ background: '#1A7A6E', minHeight: '90px' }}>
+          <p className="text-xs mb-1" style={{ color: 'rgba(255,255,255,0.85)' }}>আজকের সংগ্রহ</p>
+          <p className="text-2xl font-bold text-white">{fmtMoney(today.today_collected)}</p>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-2xl p-4 bg-white border border-gray-100">
+            <p className="text-xs text-gray-400 mb-1">আজকের লেনদেন</p>
+            <p className="text-2xl font-bold text-dark">{fmtNum(today.today_transactions)}</p>
+          </div>
+          <div className="rounded-2xl p-4 bg-white border border-gray-100">
+            <p className="text-xs text-gray-400 mb-1">এই মাসের রেভিনিউ</p>
+            <p className="text-2xl font-bold text-dark">{fmtMoney(monthly?.summary?.total_collected)}</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-2xl p-4" style={{ background: '#EEF2FF' }}>
+            <p className="text-xs mb-1" style={{ color: '#6366f1' }}>মোট রেভিনিউ</p>
+            <p className="text-2xl font-bold" style={{ color: '#4338ca' }}>{fmtMoney(t.total_revenue)}</p>
+          </div>
+          <div className="rounded-2xl p-4" style={{ background: '#FFF1F2' }}>
+            <p className="text-xs mb-1" style={{ color: '#f43f5e' }}>মোট বকেয়া</p>
+            <p className="text-2xl font-bold" style={{ color: '#be123c' }}>{fmtMoney(t.total_due)}</p>
+          </div>
+        </div>
+      </div>
 
-        {/* Hero — today's collection */}
-        <div className="col-span-2 md:col-span-1 rounded-2xl p-4 flex flex-col items-center justify-center text-center" style={{ background: '#1A7A6E', minHeight: '100px' }}>
+      {/* Desktop: row 1 — 2 boxes */}
+      <div className="hidden md:grid grid-cols-2 gap-3">
+        <div className="rounded-2xl p-4 flex flex-col items-center justify-center text-center" style={{ background: '#1A7A6E', minHeight: '100px' }}>
           <div className="flex items-center gap-1.5 mb-1">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
@@ -48,28 +74,18 @@ export default function AdminDashboard() {
           </div>
           <p className="text-2xl font-bold text-white">{fmtMoney(today.today_collected)}</p>
         </div>
+        <div className="rounded-2xl p-4 bg-white border border-gray-100 flex flex-col justify-center">
+          <p className="text-xs text-gray-400 mb-1">এই মাসের রেভিনিউ</p>
+          <p className="text-2xl font-bold text-dark">{fmtMoney(monthly?.summary?.total_collected)}</p>
+        </div>
+      </div>
 
-        {/* Today transactions */}
+      {/* Desktop: row 2 — 3 boxes */}
+      <div className="hidden md:grid grid-cols-3 gap-3">
         <div className="rounded-2xl p-4 bg-white border border-gray-100">
           <p className="text-xs text-gray-400 mb-1">আজকের লেনদেন</p>
           <p className="text-2xl font-bold text-dark">{fmtNum(today.today_transactions)}</p>
         </div>
-
-        {/* Monthly revenue */}
-        <div className="rounded-2xl p-4 bg-white border border-gray-100">
-          <p className="text-xs text-gray-400 mb-1">এই মাসের রেভিনিউ</p>
-          <p className="text-2xl font-bold text-dark">{fmtMoney(monthly?.summary?.total_collected)}</p>
-        </div>
-
-        {/* Total due — hidden on mobile (shown below), visible on desktop */}
-        <div className="hidden md:block rounded-2xl p-4" style={{ background: '#FFF1F2' }}>
-          <p className="text-xs mb-1" style={{ color: '#f43f5e' }}>মোট বকেয়া</p>
-          <p className="text-2xl font-bold" style={{ color: '#be123c' }}>{fmtMoney(t.total_due)}</p>
-        </div>
-      </div>
-
-      {/* Total revenue + due — mobile only (desktop shows due above) */}
-      <div className="grid grid-cols-2 gap-3 md:hidden">
         <div className="rounded-2xl p-4" style={{ background: '#EEF2FF' }}>
           <p className="text-xs mb-1" style={{ color: '#6366f1' }}>মোট রেভিনিউ</p>
           <p className="text-2xl font-bold" style={{ color: '#4338ca' }}>{fmtMoney(t.total_revenue)}</p>
@@ -77,16 +93,6 @@ export default function AdminDashboard() {
         <div className="rounded-2xl p-4" style={{ background: '#FFF1F2' }}>
           <p className="text-xs mb-1" style={{ color: '#f43f5e' }}>মোট বকেয়া</p>
           <p className="text-2xl font-bold" style={{ color: '#be123c' }}>{fmtMoney(t.total_due)}</p>
-        </div>
-      </div>
-
-      {/* Desktop: total revenue card (full row) */}
-      <div className="hidden md:block rounded-2xl p-4" style={{ background: '#EEF2FF' }}>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs mb-1" style={{ color: '#6366f1' }}>মোট রেভিনিউ</p>
-            <p className="text-2xl font-bold" style={{ color: '#4338ca' }}>{fmtMoney(t.total_revenue)}</p>
-          </div>
         </div>
       </div>
 
