@@ -25,12 +25,8 @@ export default function AdminDashboard() {
   const t = overview?.totals || {};
   const today = overview?.today || {};
 
-  const fmt = (n) => Number(n || 0).toLocaleString('bn-BD');
-  const fmtLakh = (n) => {
-    const val = Number(n || 0);
-    if (val >= 100000) return `৳${(val / 100000).toFixed(1)}লাখ`;
-    return `৳${val.toLocaleString('bn-BD')}`;
-  };
+  const fmt = (n) => Number(n || 0).toLocaleString('en-US');
+  const fmtMoney = (n) => `৳${Number(n || 0).toLocaleString('en-US')}`;
 
   return (
     <div className="p-4 space-y-4 max-w-2xl">
@@ -47,18 +43,18 @@ export default function AdminDashboard() {
           </svg>
           <p className="text-sm" style={{ color: 'rgba(255,255,255,0.85)' }}>আজকের সংগ্রহ</p>
         </div>
-        <p className="text-3xl font-bold text-white mt-1">৳{fmt(today.today_collected)}</p>
+        <p className="text-3xl font-bold text-white mt-1">{fmtMoney(today.today_collected)}</p>
       </div>
 
       {/* 2-col stats row 1 */}
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-2xl p-4 bg-white border border-gray-100">
           <p className="text-xs text-gray-400 mb-1">আজকের লেনদেন</p>
-          <p className="text-2xl font-bold text-dark">{today.today_transactions || '০'}</p>
+          <p className="text-2xl font-bold text-dark">{Number(today.today_transactions || 0).toLocaleString('en-US')}</p>
         </div>
         <div className="rounded-2xl p-4 bg-white border border-gray-100">
           <p className="text-xs text-gray-400 mb-1">এই মাসের রেভিনিউ</p>
-          <p className="text-2xl font-bold text-dark">{fmtLakh(monthly?.summary?.total_collected)}</p>
+          <p className="text-2xl font-bold text-dark">{fmtMoney(monthly?.summary?.total_collected)}</p>
         </div>
       </div>
 
@@ -66,11 +62,11 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-2xl p-4" style={{ background: '#EEF2FF' }}>
           <p className="text-xs mb-1" style={{ color: '#6366f1' }}>মোট রেভিনিউ</p>
-          <p className="text-2xl font-bold" style={{ color: '#4338ca' }}>{fmtLakh(t.total_revenue)}</p>
+          <p className="text-2xl font-bold" style={{ color: '#4338ca' }}>{fmtMoney(t.total_revenue)}</p>
         </div>
         <div className="rounded-2xl p-4" style={{ background: '#FFF1F2' }}>
           <p className="text-xs mb-1" style={{ color: '#f43f5e' }}>মোট বকেয়া</p>
-          <p className="text-2xl font-bold" style={{ color: '#be123c' }}>{fmtLakh(t.total_due)}</p>
+          <p className="text-2xl font-bold" style={{ color: '#be123c' }}>{fmtMoney(t.total_due)}</p>
         </div>
       </div>
 
