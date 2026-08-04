@@ -30,6 +30,20 @@ export default function AdminDashboard() {
 
   return (
     <div className="p-4 md:p-6 space-y-4">
+      <style>{`
+        .stat-teal { background: #1A7A6E; transition: background 0.2s; }
+        .stat-teal:hover { background: #145f56; }
+        .stat-white { background: #ffffff; border: 1px solid #f1f5f9; transition: background 0.2s; }
+        .stat-white:hover { background: #f0fdf4; }
+        .stat-indigo { background: #EEF2FF; transition: background 0.2s; }
+        .stat-indigo:hover { background: #e0e7ff; }
+        .stat-red { background: #FFF1F2; transition: background 0.2s; }
+        .stat-red:hover { background: #ffe4e6; }
+        .stat-orange { background: #FFF7ED; transition: background 0.2s; }
+        .stat-orange:hover { background: #ffedd5; }
+        .stat-green { background: #F0FDF4; transition: background 0.2s; }
+        .stat-green:hover { background: #dcfce7; }
+      `}</style>
       <div>
         <h1 className="text-2xl font-display font-bold text-dark">ড্যাশবোর্ড</h1>
         <p className="text-gray-500 text-sm mt-0.5">সাফল্য একাডেমি CRM Overview</p>
@@ -37,26 +51,26 @@ export default function AdminDashboard() {
 
       {/* Mobile: stacked 2-col */}
       <div className="md:hidden space-y-3">
-        <div className="rounded-2xl p-4 flex flex-col items-center justify-center text-center" style={{ background: '#1A7A6E', minHeight: '90px' }}>
+        <div className="stat-teal rounded-2xl p-4 flex flex-col items-center justify-center text-center" style={{ minHeight: '90px' }}>
           <p className="text-xs mb-1" style={{ color: 'rgba(255,255,255,0.85)' }}>আজকের সংগ্রহ</p>
           <p className="text-2xl font-bold text-white">{fmtMoney(today.today_collected)}</p>
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-2xl p-4 bg-white border border-gray-100">
+          <div className="stat-white rounded-2xl p-4">
             <p className="text-xs text-gray-400 mb-1">আজকের লেনদেন</p>
             <p className="text-2xl font-bold text-dark">{fmtNum(today.today_transactions)}</p>
           </div>
-          <div className="rounded-2xl p-4 bg-white border border-gray-100">
+          <div className="stat-white rounded-2xl p-4">
             <p className="text-xs text-gray-400 mb-1">এই মাসের রেভিনিউ</p>
             <p className="text-2xl font-bold text-dark">{fmtMoney(monthly?.summary?.total_collected)}</p>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-2xl p-4" style={{ background: '#EEF2FF' }}>
+          <div className="stat-indigo rounded-2xl p-4">
             <p className="text-xs mb-1" style={{ color: '#6366f1' }}>মোট রেভিনিউ</p>
             <p className="text-2xl font-bold" style={{ color: '#4338ca' }}>{fmtMoney(t.total_revenue)}</p>
           </div>
-          <div className="rounded-2xl p-4" style={{ background: '#FFF1F2' }}>
+          <div className="stat-red rounded-2xl p-4">
             <p className="text-xs mb-1" style={{ color: '#f43f5e' }}>মোট বকেয়া</p>
             <p className="text-2xl font-bold" style={{ color: '#be123c' }}>{fmtMoney(t.total_due)}</p>
           </div>
@@ -65,7 +79,7 @@ export default function AdminDashboard() {
 
       {/* Desktop: row 1 — 2 boxes */}
       <div className="hidden md:grid grid-cols-2 gap-3">
-        <div className="rounded-2xl p-4 flex flex-col items-center justify-center text-center" style={{ background: '#1A7A6E', minHeight: '100px' }}>
+        <div className="stat-teal rounded-2xl p-4 flex flex-col items-center justify-center text-center" style={{ minHeight: '100px' }}>
           <div className="flex items-center gap-1.5 mb-1">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
@@ -74,7 +88,7 @@ export default function AdminDashboard() {
           </div>
           <p className="text-2xl font-bold text-white">{fmtMoney(today.today_collected)}</p>
         </div>
-        <div className="rounded-2xl p-4 bg-white border border-gray-100 flex flex-col justify-center">
+        <div className="stat-white rounded-2xl p-4 flex flex-col justify-center">
           <p className="text-xs text-gray-400 mb-1">এই মাসের রেভিনিউ</p>
           <p className="text-2xl font-bold text-dark">{fmtMoney(monthly?.summary?.total_collected)}</p>
         </div>
@@ -82,15 +96,15 @@ export default function AdminDashboard() {
 
       {/* Desktop: row 2 — 3 boxes */}
       <div className="hidden md:grid grid-cols-3 gap-3">
-        <div className="rounded-2xl p-4 bg-white border border-gray-100">
+        <div className="stat-white rounded-2xl p-4">
           <p className="text-xs text-gray-400 mb-1">আজকের লেনদেন</p>
           <p className="text-2xl font-bold text-dark">{fmtNum(today.today_transactions)}</p>
         </div>
-        <div className="rounded-2xl p-4" style={{ background: '#EEF2FF' }}>
+        <div className="stat-indigo rounded-2xl p-4">
           <p className="text-xs mb-1" style={{ color: '#6366f1' }}>মোট রেভিনিউ</p>
           <p className="text-2xl font-bold" style={{ color: '#4338ca' }}>{fmtMoney(t.total_revenue)}</p>
         </div>
-        <div className="rounded-2xl p-4" style={{ background: '#FFF1F2' }}>
+        <div className="stat-red rounded-2xl p-4">
           <p className="text-xs mb-1" style={{ color: '#f43f5e' }}>মোট বকেয়া</p>
           <p className="text-2xl font-bold" style={{ color: '#be123c' }}>{fmtMoney(t.total_due)}</p>
         </div>
@@ -100,7 +114,7 @@ export default function AdminDashboard() {
       <div>
         <h2 className="text-base font-bold text-dark mb-3">সামগ্রিক পরিসংখ্যান</h2>
         <div className="grid grid-cols-3 gap-3">
-          <div className="rounded-2xl p-4" style={{ background: '#F0FDF4' }}>
+          <div className="stat-green rounded-2xl p-4">
             <div className="mb-2">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
@@ -109,7 +123,7 @@ export default function AdminDashboard() {
             <p className="text-2xl font-bold text-dark">{fmtNum(t.total_students)}</p>
             <p className="text-xs text-gray-400 mt-0.5">মোট এনরোলমেন্ট</p>
           </div>
-          <div className="rounded-2xl p-4" style={{ background: '#F0FDF4' }}>
+          <div className="stat-green rounded-2xl p-4">
             <div className="mb-2">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12"/>
@@ -118,7 +132,7 @@ export default function AdminDashboard() {
             <p className="text-2xl font-bold" style={{ color: '#16a34a' }}>{fmtNum(t.paid_students)}</p>
             <p className="text-xs text-gray-400 mt-0.5">মোট পেইড</p>
           </div>
-          <div className="rounded-2xl p-4" style={{ background: '#FFF7ED' }}>
+          <div className="stat-orange rounded-2xl p-4">
             <div className="mb-2">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ea580c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
