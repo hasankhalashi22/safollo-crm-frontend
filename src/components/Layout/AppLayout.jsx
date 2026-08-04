@@ -46,6 +46,22 @@ const MODULE_COLORS = {
   ess:        '#ec4899',
 };
 
+const MODULE_ICONS = {
+  crm:        Users,
+  accounting: Wallet,
+  hr:         Briefcase,
+  academy:    GraduationCap,
+  ess:        Home,
+};
+
+const MODULE_LABELS = {
+  crm:        'CRM',
+  accounting: 'ACCOUNTS',
+  hr:         'HR',
+  academy:    'ACADEMY',
+  ess:        'OFFICE',
+};
+
 function TopModuleBar() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -60,27 +76,39 @@ function TopModuleBar() {
   const currentModule = visibleModules.find(m =>
     location.pathname === m.basePath || location.pathname.startsWith(m.basePath + '/')
   ) || getModuleForPath(location.pathname);
-  const activeColor = MODULE_COLORS[currentModule?.key] || '#6b7280';
 
   return (
-    <div
-      style={{ background: '#1A7A6E', borderBottom: `3px solid ${activeColor}` }}
-      className="flex items-end px-4 gap-1 overflow-x-auto flex-shrink-0 transition-colors duration-200"
-    >
+    <div className="bg-white border-b border-gray-100 flex items-center px-2 gap-1 overflow-x-auto flex-shrink-0 shadow-sm">
       {visibleModules.map(m => {
         const isActive = currentModule?.key === m.key;
         const color = MODULE_COLORS[m.key] || '#6b7280';
+        const Icon = MODULE_ICONS[m.key] || Activity;
+        const shortLabel = MODULE_LABELS[m.key] || m.label.toUpperCase();
         return (
           <button
             key={m.key}
             onClick={() => navigate(m.basePath)}
-            style={isActive
-              ? { background: color, borderRadius: '6px 6px 0 0', color: '#fff' }
-              : { color: '#FEF9EE', opacity: 0.85 }
-            }
-            className="px-4 py-2 text-sm font-medium whitespace-nowrap transition-all hover:opacity-100"
+            className="flex flex-col items-center gap-1 px-3 py-2.5 rounded-xl transition-all flex-shrink-0 hover:bg-gray-50"
           >
-            {m.label}
+            <div
+              style={{
+                background: isActive ? color : color + '20',
+                borderRadius: 12,
+                padding: 8,
+                transition: 'background 0.2s',
+              }}
+            >
+              <Icon
+                size={20}
+                style={{ color: isActive ? '#fff' : color }}
+              />
+            </div>
+            <span
+              style={{ color: isActive ? color : '#9ca3af', fontSize: 10, fontWeight: isActive ? 700 : 500 }}
+              className="whitespace-nowrap tracking-wide"
+            >
+              {shortLabel}
+            </span>
           </button>
         );
       })}
