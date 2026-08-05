@@ -164,19 +164,29 @@ export default function AdminDashboard() {
           <div className="card">
             <h2 className="font-semibold text-dark mb-4">এই মাসের লিডারবোর্ড</h2>
             <div className="space-y-2">
-              {monthly.leaderboard.map((e, i) => (
-                <div key={i} className="flex items-center gap-3 p-2.5 bg-gray-50 rounded-xl">
-                  <span className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0
-                    ${i === 0 ? 'bg-yellow-400 text-white' : i === 1 ? 'bg-gray-300 text-white' : 'bg-orange-300 text-white'}`}>
-                    {i + 1}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{e.full_name || e.phone}</p>
-                    <p className="text-xs text-gray-400">{e.sales_count}টি সেল</p>
+              {monthly.leaderboard.map((e, i) => {
+                const rank = i + 1;
+                const styles = rank === 1
+                  ? { row: '#fefce8', badge: '#ca8a04', badgeBg: '#fef08a', text: '#854d0e' }
+                  : rank === 2
+                  ? { row: '#f8fafc', badge: '#64748b', badgeBg: '#e2e8f0', text: '#475569' }
+                  : rank === 3
+                  ? { row: '#fff7ed', badge: '#c2410c', badgeBg: '#fed7aa', text: '#9a3412' }
+                  : { row: '#f9fafb', badge: '#6b7280', badgeBg: '#f3f4f6', text: '#374151' };
+                return (
+                  <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl" style={{ background: styles.row }}>
+                    <span className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
+                      style={{ background: styles.badgeBg, color: styles.badge }}>
+                      {rank}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate" style={{ color: styles.text }}>{e.full_name || e.phone}</p>
+                      <p className="text-xs text-gray-400">{e.sales_count}টি সেল</p>
+                    </div>
+                    <span className="font-bold flex-shrink-0" style={{ color: styles.badge }}>৳{Number(e.total_collected).toLocaleString('en-US')}</span>
                   </div>
-                  <span className="font-bold text-primary-600 flex-shrink-0">৳{Number(e.total_collected).toLocaleString('en-US')}</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
