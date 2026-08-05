@@ -212,6 +212,7 @@ export default function AdminSales() {
   const [courses, setCourses] = useState([]);
   const [executives, setExecutives] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [silentRefreshing, setSilentRefreshing] = useState(false);
   const [selected, setSelected] = useState(null);
   const [editModal, setEditModal] = useState(null);
   const [filters, setFilters] = useState(EMPTY_ENROLLMENT_FILTERS);
@@ -1287,7 +1288,26 @@ const fetchSales = (f = filters) => {
                       key={p.id || i}
                       payment={p}
                       isSuperAdmin={user?.role === 'super_admin'}
-                      onUpdated={() => { fetchSales(); fetchRevenue(); }}
+                      onUpdated={async () => {
+                        setSilentRefreshing(true);
+                        try {
+                          const [salesRes, revRes] = await Promise.all([
+                            salesApi.getAll({ limit: 5000, ...Object.fromEntries(Object.entries(filters).filter(([,v]) => v)) }),
+                            salesApi.getRevenue(Object.fromEntries(Object.entries(revenueFilters).filter(([,v]) => v))),
+                          ]);
+                          const data = salesRes.data || [];
+                          setSales(data);
+                          setTotal(salesRes.total || 0);
+                          setRevenue(revRes.data || []);
+                          setRevenueTotalAmount(revRes.total_amount || 0);
+                          setRevenueTotal(revRes.total || 0);
+                          setSelected(prev => {
+                            if (!prev) return null;
+                            return data.find(s => s.id === prev.id) || prev;
+                          });
+                        } catch(e) { /* silent */ }
+                        setSilentRefreshing(false);
+                      }}
                     />
                   ))}
                 </div>
