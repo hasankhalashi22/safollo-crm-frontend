@@ -1288,7 +1288,39 @@ const fetchSales = (f = filters) => {
                       key={p.id || i}
                       payment={p}
                       isSuperAdmin={user?.role === 'super_admin'}
-                      onUpdated={() => { fetchSales(); fetchRevenue(); }}
+                      onUpdated={() => {
+                        const salesParams = { limit: 5000 };
+                        if (filters.search) salesParams.search = filters.search;
+                        if (filters.course_id) salesParams.course_id = filters.course_id;
+                        if (filters.payment_status) salesParams.payment_status = filters.payment_status;
+                        if (filters.date_from) salesParams.date_from = filters.date_from;
+                        if (filters.date_to) salesParams.date_to = filters.date_to;
+                        if (filters.executive_id) salesParams.executive_id = filters.executive_id;
+                        if (filters.payment_method) salesParams.payment_method = filters.payment_method;
+                        salesApi.getAll(salesParams).then(res => {
+                          const data = res.data || [];
+                          setSales(data);
+                          setTotal(res.total || 0);
+                          toast(`✅ Sales refreshed: ${data.length} rows`, { duration: 2000 });
+                          setSelected(prev => {
+                            if (!prev) return null;
+                            const fresh = data.find(s => s.id === prev.id);
+                            if (fresh) toast(`Modal: collected=${fresh.total_collected}`, { duration: 3000 });
+                            return fresh || prev;
+                          });
+                        });
+                        const revParams = {};
+                        if (revenueFilters.date_from) revParams.date_from = revenueFilters.date_from;
+                        if (revenueFilters.date_to) revParams.date_to = revenueFilters.date_to;
+                        if (revenueFilters.course_id) revParams.course_id = revenueFilters.course_id;
+                        if (revenueFilters.executive_id) revParams.executive_id = revenueFilters.executive_id;
+                        if (revenueFilters.payment_method) revParams.payment_method = revenueFilters.payment_method;
+                        salesApi.getRevenue(revParams).then(res => {
+                          setRevenue(res.data || []);
+                          setRevenueTotalAmount(res.total_amount || 0);
+                          setRevenueTotal(res.total || 0);
+                        });
+                      }}
                     />
                   ))}
                 </div>
