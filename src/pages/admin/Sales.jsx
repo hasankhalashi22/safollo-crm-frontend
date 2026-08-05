@@ -235,10 +235,17 @@ const fetchSales = (f = filters) => {
     if (f.executive_id) params.executive_id = f.executive_id;
     if (f.payment_method) params.payment_method = f.payment_method;
     salesApi.getAll(params).then(res => {
-      setSales(res.data || []);
+      const data = res.data || [];
+      setSales(data);
       setTotal(res.total || 0);
       setCurrentPage(1);
       setLoading(false);
+      // modal খোলা থাকলে fresh data দিয়ে update করো
+      setSelected(prev => {
+        if (!prev) return null;
+        const fresh = data.find(s => s.id === prev.id);
+        return fresh || prev;
+      });
     }).catch(() => setLoading(false));
   };
 
@@ -1280,7 +1287,7 @@ const fetchSales = (f = filters) => {
                       key={p.id || i}
                       payment={p}
                       isSuperAdmin={user?.role === 'super_admin'}
-                      onUpdated={() => { fetchSales(); setSelected(prev => ({ ...prev, _refresh: Date.now() })); }}
+                      onUpdated={() => { fetchSales(); fetchRevenue(); }}
                     />
                   ))}
                 </div>
