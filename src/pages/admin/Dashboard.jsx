@@ -8,12 +8,19 @@ export default function AdminDashboard() {
   const [monthly, setMonthly] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchAll = () => {
     Promise.all([reportsApi.overview(), reportsApi.monthly()]).then(([oRes, mRes]) => {
       setOverview(oRes.data);
       setMonthly(mRes.data);
       setLoading(false);
     }).catch(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchAll();
+    const onVisible = () => { if (document.visibilityState === 'visible') fetchAll(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
   }, []);
 
   if (loading) return (
@@ -44,9 +51,17 @@ export default function AdminDashboard() {
         .stat-green { background: #F0FDF4; transition: background 0.2s; }
         .stat-green:hover { background: #dcfce7; }
       `}</style>
-      <div>
-        <h1 className="text-2xl font-display font-bold text-dark">ড্যাশবোর্ড</h1>
-        <p className="text-gray-500 text-sm mt-0.5">সাফল্য একাডেমি CRM Overview</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-display font-bold text-dark">ড্যাশবোর্ড</h1>
+          <p className="text-gray-500 text-sm mt-0.5">সাফল্য একাডেমি CRM Overview</p>
+        </div>
+        <button onClick={fetchAll} className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm transition-colors">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+          </svg>
+          রিফ্রেশ
+        </button>
       </div>
 
       {/* Mobile: stacked 2-col */}
