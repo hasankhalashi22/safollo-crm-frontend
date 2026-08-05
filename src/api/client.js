@@ -167,6 +167,7 @@ getJournal: (params) => api.get('/api/accounting/journal', { params }),
   getTransactions: (params) => api.get('/api/accounting/transactions', { params: { limit: 10000, ...params } }),
   getReconciliation: (params) => api.get('/api/accounting/reconciliation', { params }),
   backfillPayments: () => api.post('/api/accounting/backfill-payments'),
+  resyncEditedPayments: () => api.post('/api/accounting/resync-edited-payments'),
   deleteTransaction: (id) => api.delete(`/api/accounting/transactions/${id}`),
 updateTransaction: (id, formData) => api.patch(`/api/accounting/transactions/${id}`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' }

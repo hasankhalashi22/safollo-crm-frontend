@@ -15,6 +15,7 @@ export default function Reconciliation() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [backfilling, setBackfilling] = useState(false);
+  const [resyncing, setResyncing] = useState(false);
 
   const fetch = async () => {
     setLoading(true);
@@ -36,6 +37,19 @@ export default function Reconciliation() {
       toast.error('Backfill ব্যর্থ হয়েছে');
     }
     setBackfilling(false);
+  };
+
+  const handleResyncEdited = async () => {
+    if (!window.confirm('পেমেন্ট এডিট করার পর accounting এ যে amount ভুল হয়ে গেছে, সেগুলো ঠিক করবেন?')) return;
+    setResyncing(true);
+    try {
+      const r = await accountingApi.resyncEditedPayments();
+      toast.success(r.message || 'Resync সম্পন্ন');
+      if (data) fetch();
+    } catch (e) {
+      toast.error('Resync ব্যর্থ হয়েছে');
+    }
+    setResyncing(false);
   };
 
   const mismatched = data?.rows?.filter(r => !r.matched) || [];
@@ -74,6 +88,11 @@ export default function Reconciliation() {
             className="btn-secondary py-2 px-6 flex items-center gap-2">
             {backfilling ? <RefreshCw size={16} className="animate-spin" /> : <DatabaseZap size={16} />}
             {backfilling ? 'Sync হচ্ছে...' : 'Missing Sync করুন'}
+          </button>
+          <button onClick={handleResyncEdited} disabled={resyncing}
+            className="py-2 px-6 flex items-center gap-2 rounded-xl border border-amber-300 bg-amber-50 text-amber-700 text-sm font-medium hover:bg-amber-100 transition-colors">
+            {resyncing ? <RefreshCw size={16} className="animate-spin" /> : <DatabaseZap size={16} />}
+            {resyncing ? 'ঠিক করছে...' : 'ভুল Amount ঠিক করুন'}
           </button>
         </div>
       </div>
