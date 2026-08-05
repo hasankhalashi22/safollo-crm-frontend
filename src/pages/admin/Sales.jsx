@@ -59,17 +59,25 @@ function PaymentHistoryItem({ payment: p, isSuperAdmin, onUpdated }) {
   const [editing, setEditing] = useState(false);
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState('');
+  const [payDate, setPayDate] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const handleEdit = () => { setAmount(p.amount); setMethod(p.payment_method); setEditing(true); };
+  const handleEdit = () => {
+    setAmount(p.amount);
+    setMethod(p.payment_method);
+    setPayDate(p.created_at ? p.created_at.split('T')[0] : '');
+    setEditing(true);
+  };
   const handleSave = async () => {
     if (!amount || Number(amount) <= 0) return;
     setSaving(true);
     try {
       const amountChanged = Number(amount) !== Number(p.amount);
       const methodChanged = method !== p.payment_method;
+      const dateChanged = payDate && payDate !== (p.created_at || '').split('T')[0];
       if (amountChanged) await paymentsApi.updateAmount(p.id, Number(amount));
       if (methodChanged) await paymentsApi.updateMethod(p.id, method);
+      if (dateChanged) await paymentsApi.updateDetails(p.id, { payment_date: payDate });
       toast.success('Payment আপডেট হয়েছে');
       setEditing(false);
       onUpdated();
@@ -82,15 +90,17 @@ function PaymentHistoryItem({ payment: p, isSuperAdmin, onUpdated }) {
   return (
     <div className="bg-gray-50 rounded-xl p-3 mb-2">
       <div className="flex justify-between items-start">
-        <div>
+        <div className="flex-1">
           {editing ? (
             <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <input type="number" className="input-field py-1 px-2 text-sm w-28" value={amount}
-                  onChange={e => setAmount(e.target.value)} autoFocus />
+                  onChange={e => setAmount(e.target.value)} autoFocus placeholder="Amount" />
                 <select className="input-field py-1 px-2 text-sm" value={method} onChange={e => setMethod(e.target.value)}>
                   {PAYMENT_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
                 </select>
+                <input type="date" className="input-field py-1 px-2 text-sm" value={payDate}
+                  onChange={e => setPayDate(e.target.value)} />
               </div>
               <div className="flex items-center gap-2">
                 <button onClick={handleSave} disabled={saving}
@@ -101,7 +111,7 @@ function PaymentHistoryItem({ payment: p, isSuperAdmin, onUpdated }) {
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="font-medium">৳{Number(p.amount).toLocaleString()}</span>
               {isSuperAdmin && p.id && (
                 <>
@@ -119,7 +129,7 @@ function PaymentHistoryItem({ payment: p, isSuperAdmin, onUpdated }) {
             </div>
           )}
         </div>
-        <span className="text-gray-400 text-xs">{format(new Date(p.created_at), 'dd/MM/yy HH:mm')}</span>
+        <span className="text-gray-400 text-xs flex-shrink-0 ml-2">{format(new Date(p.created_at), 'dd/MM/yy HH:mm')}</span>
       </div>
       <p className="text-xs text-gray-500">{p.payment_method} {p.transaction_id ? '• ' + p.transaction_id : ''}</p>
       {p.sender_number && <p className="text-xs text-gray-500">পেমেন্ট নম্বর: {p.sender_number}</p>}
@@ -1288,39 +1298,7 @@ const fetchSales = (f = filters) => {
                       key={p.id || i}
                       payment={p}
                       isSuperAdmin={user?.role === 'super_admin'}
-                      onUpdated={() => {
-                        const salesParams = { limit: 5000 };
-                        if (filters.search) salesParams.search = filters.search;
-                        if (filters.course_id) salesParams.course_id = filters.course_id;
-                        if (filters.payment_status) salesParams.payment_status = filters.payment_status;
-                        if (filters.date_from) salesParams.date_from = filters.date_from;
-                        if (filters.date_to) salesParams.date_to = filters.date_to;
-                        if (filters.executive_id) salesParams.executive_id = filters.executive_id;
-                        if (filters.payment_method) salesParams.payment_method = filters.payment_method;
-                        salesApi.getAll(salesParams).then(res => {
-                          const data = res.data || [];
-                          setSales(data);
-                          setTotal(res.total || 0);
-                          toast(`✅ Sales refreshed: ${data.length} rows`, { duration: 2000 });
-                          setSelected(prev => {
-                            if (!prev) return null;
-                            const fresh = data.find(s => s.id === prev.id);
-                            if (fresh) toast(`Modal: collected=${fresh.total_collected}`, { duration: 3000 });
-                            return fresh || prev;
-                          });
-                        });
-                        const revParams = {};
-                        if (revenueFilters.date_from) revParams.date_from = revenueFilters.date_from;
-                        if (revenueFilters.date_to) revParams.date_to = revenueFilters.date_to;
-                        if (revenueFilters.course_id) revParams.course_id = revenueFilters.course_id;
-                        if (revenueFilters.executive_id) revParams.executive_id = revenueFilters.executive_id;
-                        if (revenueFilters.payment_method) revParams.payment_method = revenueFilters.payment_method;
-                        salesApi.getRevenue(revParams).then(res => {
-                          setRevenue(res.data || []);
-                          setRevenueTotalAmount(res.total_amount || 0);
-                          setRevenueTotal(res.total || 0);
-                        });
-                      }}
+                      onUpdated={() => { fetchSales(); fetchRevenue(); }}
                     />
                   ))}
                 </div>
@@ -1447,7 +1425,6 @@ function EditSaleModal({ sale, executives, onClose, onSuccess }) {
     student_phone: sale.student_phone || '',
     created_at: sale.created_at?.split('T')[0] || '',
     course_price: sale.course_price || '',
-    total_collected: sale.total_collected || '',
     executive_id: sale.executive_id || '',
     reference: sale.reference || '',
     notes: sale.notes || '',
@@ -1500,11 +1477,6 @@ return (
             <label className="block text-sm font-medium mb-1.5">কোর্স মূল্য</label>
             <input type="number" className="input-field" value={form.course_price}
               onChange={e => setForm(p => ({ ...p, course_price: e.target.value }))} />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1.5">সংগৃহীত টাকা (Total Collected)</label>
-            <input type="number" className="input-field" value={form.total_collected}
-              onChange={e => setForm(p => ({ ...p, total_collected: e.target.value }))} />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1.5">Executive পরিবর্তন</label>
