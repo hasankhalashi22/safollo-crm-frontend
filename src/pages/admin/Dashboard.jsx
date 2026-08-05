@@ -189,24 +189,27 @@ export default function AdminDashboard() {
             <BookOpen size={18} className="text-primary-500" /> কোর্সভিত্তিক এনরোলমেন্ট
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-            {overview.course_stats.map((c, i) => (
-              <div key={i}>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="font-medium">{c.course_name}</span>
-                  <span className="text-gray-500">{c.total_enrollments} জন</span>
+            {overview.course_stats.map((c, i) => {
+              const pct = c.total_enrollments > 0 ? (c.paid / c.total_enrollments) * 100 : 0;
+              const barColor = pct >= 90 ? '#16a34a' : pct >= 40 ? '#f59e0b' : '#ef4444';
+              const bgColor  = pct >= 90 ? '#dcfce7' : pct >= 40 ? '#fef9c3' : '#fee2e2';
+              const textColor= pct >= 90 ? '#15803d' : pct >= 40 ? '#b45309' : '#b91c1c';
+              return (
+                <div key={i}>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="font-medium">{c.course_name}</span>
+                    <span className="text-gray-500">{c.total_enrollments} জন</span>
+                  </div>
+                  <div className="h-2 rounded-full overflow-hidden" style={{ background: bgColor }}>
+                    <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(100, pct)}%`, background: barColor }} />
+                  </div>
+                  <div className="flex justify-between text-xs mt-0.5">
+                    <span style={{ color: textColor }}>পেইড: {c.paid}</span>
+                    <span className="text-gray-400">বকেয়া: {c.due}</span>
+                  </div>
                 </div>
-                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary-500 rounded-full"
-                    style={{ width: `${Math.min(100, (c.paid / c.total_enrollments) * 100)}%` }}
-                  />
-                </div>
-                <div className="flex justify-between text-xs text-gray-400 mt-0.5">
-                  <span>পেইড: {c.paid}</span>
-                  <span>বকেয়া: {c.due}</span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
