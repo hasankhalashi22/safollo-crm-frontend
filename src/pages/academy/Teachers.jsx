@@ -69,11 +69,24 @@ export default function Teachers() {
 
   return (
     <div className="p-3 md:p-6 space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-xl font-bold text-gray-800">শিক্ষকবৃন্দ</h1>
-        {canEdit && <button onClick={openNew} className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2 text-sm transition-colors">
-          <Plus size={16} /> নতুন শিক্ষক
-        </button>}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 transition-colors rounded-xl px-3 py-2">
+            <a href="https://safollo-crm-frontend.vercel.app/teacher/login" target="_blank" rel="noreferrer"
+              className="text-sm font-medium text-gray-700 whitespace-nowrap">Teacher Login Link</a>
+            <button
+              onClick={() => { navigator.clipboard.writeText('https://safollo-crm-frontend.vercel.app/teacher/login'); toast.success('লিঙ্ক কপি হয়েছে ✅'); }}
+              className="text-gray-400 hover:text-primary-500 transition-colors ml-1" title="লিঙ্ক কপি করুন">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              </svg>
+            </button>
+          </div>
+          {canEdit && <button onClick={openNew} className="bg-primary-500 hover:bg-primary-600 text-white font-semibold px-5 py-2.5 rounded-xl flex items-center gap-2 text-sm transition-colors">
+            <Plus size={16} /> নতুন শিক্ষক
+          </button>}
+        </div>
       </div>
 
       {canEdit && showForm && (
