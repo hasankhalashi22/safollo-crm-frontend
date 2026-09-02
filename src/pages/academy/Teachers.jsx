@@ -72,13 +72,16 @@ export default function Teachers() {
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-xl font-bold text-gray-800">শিক্ষকবৃন্দ</h1>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 transition-colors rounded-xl px-3 py-2">
+          <div className="flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors rounded-xl px-3 py-2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+            </svg>
             <a href="https://safollo-crm-frontend.vercel.app/teacher/login" target="_blank" rel="noreferrer"
-              className="text-sm font-medium text-gray-700 whitespace-nowrap">Teacher Login Link</a>
+              className="text-sm font-semibold text-blue-600 whitespace-nowrap">Teacher Login Link</a>
             <button
               onClick={() => { navigator.clipboard.writeText('https://safollo-crm-frontend.vercel.app/teacher/login'); toast.success('লিঙ্ক কপি হয়েছে ✅'); }}
-              className="text-gray-400 hover:text-primary-500 transition-colors ml-1" title="লিঙ্ক কপি করুন">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              className="text-blue-400 hover:text-blue-600 transition-colors ml-0.5" title="লিঙ্ক কপি করুন">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
               </svg>
             </button>
