@@ -22,6 +22,7 @@ export default function SaleApproval() {
   const [rejectDueModal, setRejectDueModal] = useState(null);
   const [zoomImage, setZoomImage] = useState(null);
   const [search, setSearch] = useState('');
+  const [execFilter, setExecFilter] = useState('');
 
   const fetchData = () => {
     setLoading(true);
@@ -96,17 +97,29 @@ export default function SaleApproval() {
   };
 
   const q = search.toLowerCase().trim();
-  const filteredSales = sales.filter(s =>
-    !q || (s.student_name || '').toLowerCase().includes(q) ||
-    (s.student_phone || '').includes(q) ||
-    (s.executive_name || '').toLowerCase().includes(q) ||
-    (s.executive_phone || '').includes(q)
-  );
-  const filteredDue = duePayments.filter(p =>
-    !q || (p.student_name || '').toLowerCase().includes(q) ||
-    (p.student_phone || '').includes(q) ||
-    (p.executive_name || '').toLowerCase().includes(q)
-  );
+
+  // Unique executive list from both tabs
+  const execOptions = [...new Set([
+    ...sales.map(s => s.executive_name || s.executive_phone || ''),
+    ...duePayments.map(p => p.executive_name || ''),
+  ].filter(Boolean))].sort();
+
+  const filteredSales = sales.filter(s => {
+    const matchSearch = !q ||
+      (s.student_name || '').toLowerCase().includes(q) ||
+      (s.student_phone || '').includes(q);
+    const matchExec = !execFilter ||
+      (s.executive_name || s.executive_phone || '') === execFilter;
+    return matchSearch && matchExec;
+  });
+  const filteredDue = duePayments.filter(p => {
+    const matchSearch = !q ||
+      (p.student_name || '').toLowerCase().includes(q) ||
+      (p.student_phone || '').includes(q);
+    const matchExec = !execFilter ||
+      (p.executive_name || '') === execFilter;
+    return matchSearch && matchExec;
+  });
 
   const canCancel = user?.role === 'super_admin' || user?.role === 'advisor';
 
@@ -118,16 +131,28 @@ export default function SaleApproval() {
         </div>
       </div>
 
-      {/* Search */}
-      <div className="relative mb-4 max-w-sm">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-        <input
-          type="text"
-          className="input-field pl-9 py-2 text-sm"
-          placeholder="নাম, মোবাইল বা Executive দিয়ে খুঁজুন..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
+      {/* Search + Executive filter */}
+      <div className="flex gap-3 mb-4 flex-wrap">
+        <div className="relative flex-1 min-w-[180px] max-w-xs">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            className="input-field pl-9 py-2 text-sm w-full"
+            placeholder="নাম বা মোবাইল দিয়ে খুঁজুন..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+        <select
+          className="input-field py-2 text-sm min-w-[160px]"
+          value={execFilter}
+          onChange={e => setExecFilter(e.target.value)}
+        >
+          <option value="">সব Executive</option>
+          {execOptions.map(name => (
+            <option key={name} value={name}>{name}</option>
+          ))}
+        </select>
       </div>
 
       {/* Tabs */}
@@ -151,7 +176,7 @@ export default function SaleApproval() {
         filteredSales.length === 0 ? (
           <div className="card text-center py-16">
             <p className="text-4xl mb-3">✅</p>
-            <p className="text-gray-500">{search ? 'কোনো ফলাফল পাওয়া যায়নি' : 'কোনো pending সেল নেই'}</p>
+            <p className="text-gray-500">{(search || execFilter) ? 'কোনো ফলাফল পাওয়া যায়নি' : 'কোনো pending সেল নেই'}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -191,7 +216,7 @@ export default function SaleApproval() {
         filteredDue.length === 0 ? (
           <div className="card text-center py-16">
             <p className="text-4xl mb-3">✅</p>
-            <p className="text-gray-500">{search ? 'কোনো ফলাফল পাওয়া যায়নি' : 'কোনো pending বকেয়া payment নেই'}</p>
+            <p className="text-gray-500">{(search || execFilter) ? 'কোনো ফলাফল পাওয়া যায়নি' : 'কোনো pending বকেয়া payment নেই'}</p>
           </div>
         ) : (
           <div className="space-y-3">
