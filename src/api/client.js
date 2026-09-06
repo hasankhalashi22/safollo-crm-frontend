@@ -126,6 +126,8 @@ export const approvalsApi = {
   approveDuePayment:    (id) => api.patch(`/api/approvals/payments/${id}/approve`),
   rejectDuePayment:     (id, reason) => api.patch(`/api/approvals/payments/${id}/reject`, { reason }),
   resubmitDuePayment:   (id) => api.patch(`/api/approvals/payments/${id}/resubmit`),
+  cancelSale:           (id) => api.delete(`/api/approvals/${id}/cancel`),
+  cancelDuePayment:     (id) => api.delete(`/api/approvals/payments/${id}/cancel`),
 };
 
 

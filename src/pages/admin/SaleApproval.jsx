@@ -4,7 +4,7 @@ import { approvalsApi, coursesApi } from '../../api/client';
 import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
-import { ZoomIn, CheckCircle, XCircle, Edit } from 'lucide-react';
+import { ZoomIn, CheckCircle, XCircle, Edit, Trash2, Search } from 'lucide-react';
 
 function Portal({ children }) {
   return createPortal(children, document.body);
@@ -21,6 +21,7 @@ export default function SaleApproval() {
   const [rejectModal, setRejectModal] = useState(null);
   const [rejectDueModal, setRejectDueModal] = useState(null);
   const [zoomImage, setZoomImage] = useState(null);
+  const [search, setSearch] = useState('');
 
   const fetchData = () => {
     setLoading(true);
@@ -74,12 +75,59 @@ export default function SaleApproval() {
     } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
   };
 
+  const handleCancelSale = async (e, sale) => {
+    e.stopPropagation();
+    if (!window.confirm(`"${sale.student_name || sale.student_phone}"-এর pending সেল বাতিল করবেন?`)) return;
+    try {
+      await approvalsApi.cancelSale(sale.id);
+      toast.success('সেল বাতিল হয়েছে');
+      fetchData();
+    } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
+  };
+
+  const handleCancelDue = async (e, payment) => {
+    e.stopPropagation();
+    if (!window.confirm(`"${payment.student_name || payment.student_phone}"-এর ৳${Number(payment.amount).toLocaleString()} pending payment বাতিল করবেন?`)) return;
+    try {
+      await approvalsApi.cancelDuePayment(payment.id);
+      toast.success('Payment বাতিল হয়েছে');
+      fetchData();
+    } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
+  };
+
+  const q = search.toLowerCase().trim();
+  const filteredSales = sales.filter(s =>
+    !q || (s.student_name || '').toLowerCase().includes(q) ||
+    (s.student_phone || '').includes(q) ||
+    (s.executive_name || '').toLowerCase().includes(q) ||
+    (s.executive_phone || '').includes(q)
+  );
+  const filteredDue = duePayments.filter(p =>
+    !q || (p.student_name || '').toLowerCase().includes(q) ||
+    (p.student_phone || '').includes(q) ||
+    (p.executive_name || '').toLowerCase().includes(q)
+  );
+
+  const canCancel = user?.role === 'super_admin' || user?.role === 'advisor';
+
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-display font-bold text-dark">সেল এন্ট্রি Approval</h1>
         </div>
+      </div>
+
+      {/* Search */}
+      <div className="relative mb-4 max-w-sm">
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input
+          type="text"
+          className="input-field pl-9 py-2 text-sm"
+          placeholder="নাম, মোবাইল বা Executive দিয়ে খুঁজুন..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
       </div>
 
       {/* Tabs */}
@@ -100,17 +148,17 @@ export default function SaleApproval() {
         <div className="flex justify-center py-12"><div className="spinner w-8 h-8" /></div>
       ) : activeTab === 'sales' ? (
         /* New Sales */
-        sales.length === 0 ? (
+        filteredSales.length === 0 ? (
           <div className="card text-center py-16">
             <p className="text-4xl mb-3">✅</p>
-            <p className="text-gray-500">কোনো pending সেল নেই</p>
+            <p className="text-gray-500">{search ? 'কোনো ফলাফল পাওয়া যায়নি' : 'কোনো pending সেল নেই'}</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {sales.map(sale => (
+            {filteredSales.map(sale => (
               <div key={sale.id} className="card hover:shadow-card-hover cursor-pointer" onClick={() => setSelected(sale)}>
-                <div className="flex items-start justify-between">
-                  <div>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
                     <p className="font-semibold">{sale.student_name || sale.student_phone}</p>
                     <p className="text-sm text-gray-500">{sale.course_name} {sale.batch_name ? '• ' + sale.batch_name : ''}</p>
                     <div className="flex items-center gap-3 mt-1.5">
@@ -120,10 +168,18 @@ export default function SaleApproval() {
                       )}
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
                     <p className="text-xs text-gray-400">{format(new Date(sale.created_at), 'dd/MM/yy HH:mm')}</p>
-                    <p className="text-sm text-gray-500 mt-1">{sale.executive_name || sale.executive_phone}</p>
-                    <span className="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full">Pending</span>
+                    <p className="text-sm text-gray-500">{sale.executive_name || sale.executive_phone}</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full">Pending</span>
+                      {canCancel && (
+                        <button onClick={e => handleCancelSale(e, sale)}
+                          className="p-1 rounded-lg hover:bg-red-50 text-red-400 hover:text-red-600 transition-colors" title="বাতিল করুন">
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -132,17 +188,17 @@ export default function SaleApproval() {
         )
       ) : (
         /* Due Payments */
-        duePayments.length === 0 ? (
+        filteredDue.length === 0 ? (
           <div className="card text-center py-16">
             <p className="text-4xl mb-3">✅</p>
-            <p className="text-gray-500">কোনো pending বকেয়া payment নেই</p>
+            <p className="text-gray-500">{search ? 'কোনো ফলাফল পাওয়া যায়নি' : 'কোনো pending বকেয়া payment নেই'}</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {duePayments.map(payment => (
+            {filteredDue.map(payment => (
               <div key={payment.id} className="card hover:shadow-card-hover cursor-pointer" onClick={() => setSelectedDue(payment)}>
-                <div className="flex items-start justify-between">
-                  <div>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
                     <p className="font-semibold">{payment.student_name || payment.student_phone}</p>
                     <p className="text-sm text-gray-500">{payment.course_name} {payment.batch_name ? '• ' + payment.batch_name : ''}</p>
                     <div className="flex items-center gap-3 mt-1.5">
@@ -150,10 +206,18 @@ export default function SaleApproval() {
                       <span className="text-red-500 text-sm">বাকি: ৳{Number(payment.remaining_due).toLocaleString()}</span>
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
                     <p className="text-xs text-gray-400">{format(new Date(payment.created_at), 'dd/MM/yy HH:mm')}</p>
-                    <p className="text-sm text-gray-500 mt-1">{payment.executive_name}</p>
-                    <span className="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full">Pending</span>
+                    <p className="text-sm text-gray-500">{payment.executive_name}</p>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full">Pending</span>
+                      {canCancel && (
+                        <button onClick={e => handleCancelDue(e, payment)}
+                          className="p-1 rounded-lg hover:bg-red-50 text-red-400 hover:text-red-600 transition-colors" title="বাতিল করুন">
+                          <Trash2 size={14} />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
