@@ -76,6 +76,15 @@ export default function SaleApproval() {
     } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
   };
 
+  const handleBulkApprove = async () => {
+    if (!window.confirm(`সব ${sales.length}টি pending সেল একসাথে Approve করবেন?`)) return;
+    try {
+      const res = await approvalsApi.bulkApproveSales();
+      toast.success(res.message || 'সব সেল Approve হয়েছে ✅');
+      fetchData();
+    } catch (err) { toast.error(err.message || 'সমস্যা হয়েছে'); }
+  };
+
   const handleCancelSale = async (e, sale) => {
     e.stopPropagation();
     if (!window.confirm(`"${sale.student_name || sale.student_phone}"-এর pending সেল বাতিল করবেন?`)) return;
@@ -129,6 +138,15 @@ export default function SaleApproval() {
         <div>
           <h1 className="text-2xl font-display font-bold text-dark">সেল এন্ট্রি Approval</h1>
         </div>
+        {user?.role === 'super_admin' && sales.length > 0 && (
+          <button
+            onClick={handleBulkApprove}
+            className="flex items-center gap-2 px-4 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-semibold transition-colors shadow-sm"
+          >
+            <CheckCircle size={16} />
+            সব Approve ({sales.length})
+          </button>
+        )}
       </div>
 
       {/* Search + Executive filter */}
