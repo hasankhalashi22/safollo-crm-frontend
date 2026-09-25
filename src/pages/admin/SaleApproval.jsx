@@ -23,6 +23,7 @@ export default function SaleApproval() {
   const [zoomImage, setZoomImage] = useState(null);
   const [search, setSearch] = useState('');
   const [execFilter, setExecFilter] = useState('');
+  const [courseFilter, setCourseFilter] = useState('');
 
   const fetchData = () => {
     setLoading(true);
@@ -113,13 +114,20 @@ export default function SaleApproval() {
     ...duePayments.map(p => p.executive_name || ''),
   ].filter(Boolean))].sort();
 
+  // Unique course list from both tabs
+  const courseOptions = [...new Set([
+    ...sales.map(s => s.course_name || ''),
+    ...duePayments.map(p => p.course_name || ''),
+  ].filter(Boolean))].sort();
+
   const filteredSales = sales.filter(s => {
     const matchSearch = !q ||
       (s.student_name || '').toLowerCase().includes(q) ||
       (s.student_phone || '').includes(q);
     const matchExec = !execFilter ||
       (s.executive_name || s.executive_phone || '') === execFilter;
-    return matchSearch && matchExec;
+    const matchCourse = !courseFilter || (s.course_name || '') === courseFilter;
+    return matchSearch && matchExec && matchCourse;
   });
   const filteredDue = duePayments.filter(p => {
     const matchSearch = !q ||
@@ -127,7 +135,8 @@ export default function SaleApproval() {
       (p.student_phone || '').includes(q);
     const matchExec = !execFilter ||
       (p.executive_name || '') === execFilter;
-    return matchSearch && matchExec;
+    const matchCourse = !courseFilter || (p.course_name || '') === courseFilter;
+    return matchSearch && matchExec && matchCourse;
   });
 
   const canCancel = user?.role === 'super_admin' || user?.role === 'advisor';
@@ -149,7 +158,7 @@ export default function SaleApproval() {
         )}
       </div>
 
-      {/* Search + Executive filter */}
+      {/* Search + Filters */}
       <div className="flex gap-3 mb-4 flex-wrap">
         <div className="relative flex-1 min-w-[180px] max-w-xs">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -161,6 +170,18 @@ export default function SaleApproval() {
             onChange={e => setSearch(e.target.value)}
           />
         </div>
+        {(user?.role === 'advisor' || user?.role === 'super_admin') && (
+          <select
+            className="input-field py-2 text-sm min-w-[180px]"
+            value={courseFilter}
+            onChange={e => setCourseFilter(e.target.value)}
+          >
+            <option value="">সব কোর্স</option>
+            {courseOptions.map(name => (
+              <option key={name} value={name}>{name}</option>
+            ))}
+          </select>
+        )}
         <select
           className="input-field py-2 text-sm min-w-[160px]"
           value={execFilter}
@@ -194,7 +215,7 @@ export default function SaleApproval() {
         filteredSales.length === 0 ? (
           <div className="card text-center py-16">
             <p className="text-4xl mb-3">✅</p>
-            <p className="text-gray-500">{(search || execFilter) ? 'কোনো ফলাফল পাওয়া যায়নি' : 'কোনো pending সেল নেই'}</p>
+            <p className="text-gray-500">{(search || execFilter || courseFilter) ? 'কোনো ফলাফল পাওয়া যায়নি' : 'কোনো pending সেল নেই'}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -234,7 +255,7 @@ export default function SaleApproval() {
         filteredDue.length === 0 ? (
           <div className="card text-center py-16">
             <p className="text-4xl mb-3">✅</p>
-            <p className="text-gray-500">{(search || execFilter) ? 'কোনো ফলাফল পাওয়া যায়নি' : 'কোনো pending বকেয়া payment নেই'}</p>
+            <p className="text-gray-500">{(search || execFilter || courseFilter) ? 'কোনো ফলাফল পাওয়া যায়নি' : 'কোনো pending বকেয়া payment নেই'}</p>
           </div>
         ) : (
           <div className="space-y-3">
