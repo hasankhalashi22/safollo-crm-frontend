@@ -159,20 +159,20 @@ export default function SaleApproval() {
       </div>
 
       {/* Search + Filters */}
-      <div className="flex gap-3 mb-4 flex-wrap">
-        <div className="relative flex-1 min-w-[180px] max-w-xs">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+      <div className="flex gap-2 mb-4 items-center">
+        <div className="relative w-48">
+          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            className="input-field pl-9 py-2 text-sm w-full"
-            placeholder="নাম বা মোবাইল দিয়ে খুঁজুন..."
+            className="input-field pl-8 py-2 text-sm w-full"
+            placeholder="নাম বা মোবাইল..."
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
         </div>
         {(user?.role === 'advisor' || user?.role === 'super_admin') && (
           <select
-            className="input-field py-2 text-sm min-w-[180px]"
+            className="input-field py-2 text-sm w-44"
             value={courseFilter}
             onChange={e => setCourseFilter(e.target.value)}
           >
@@ -183,7 +183,7 @@ export default function SaleApproval() {
           </select>
         )}
         <select
-          className="input-field py-2 text-sm min-w-[160px]"
+          className="input-field py-2 text-sm w-40"
           value={execFilter}
           onChange={e => setExecFilter(e.target.value)}
         >
