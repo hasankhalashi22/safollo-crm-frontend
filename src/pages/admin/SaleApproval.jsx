@@ -160,7 +160,7 @@ export default function SaleApproval() {
 
       {/* Search + Filters */}
       <div className="flex gap-2 mb-4 items-center">
-        <div className="relative w-48">
+        <div className="relative w-72">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
@@ -172,7 +172,7 @@ export default function SaleApproval() {
         </div>
         {(user?.role === 'advisor' || user?.role === 'super_admin') && (
           <select
-            className="input-field py-2 text-sm w-44"
+            className="input-field py-2 text-sm w-64"
             value={courseFilter}
             onChange={e => setCourseFilter(e.target.value)}
           >
@@ -183,7 +183,7 @@ export default function SaleApproval() {
           </select>
         )}
         <select
-          className="input-field py-2 text-sm w-40"
+          className="input-field py-2 text-sm w-60"
           value={execFilter}
           onChange={e => setExecFilter(e.target.value)}
         >
