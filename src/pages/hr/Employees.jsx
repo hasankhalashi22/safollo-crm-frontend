@@ -1119,7 +1119,7 @@ function EssAccessTab({ employee, onSuccess }) {
               CRM Account: {employee.crm_role_label || 'Employee'} ({employee.crm_phone || employee.phone})
             </p>
           )}
-          {employee.crm_phone && (
+          {userId && (
             <div className="bg-white border border-green-100 rounded-xl p-3 space-y-2">
               <p className="text-xs font-semibold text-gray-500">CRM Manager সেট করুন</p>
               <div className="flex gap-2">
