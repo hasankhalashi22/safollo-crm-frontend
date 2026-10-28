@@ -220,25 +220,47 @@ const handleExport = () => {
       {viewProfile && (
         <ProfileModal
           user={viewProfile}
-          onClose={() => setViewProfile(null)}
+          managers={managers}
+          roles={roles}
+          onClose={() => { setViewProfile(null); fetchUsers(); }}
         />
       )}
     </div>
   );
 }
 
-function ProfileModal({ user, onClose }) {
+function ProfileModal({ user, onClose, managers = [], roles = [] }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [editAccess, setEditAccess] = useState(false);
+  const [accessForm, setAccessForm] = useState({ role_id: '', manager_id: '' });
+  const [savingAccess, setSavingAccess] = useState(false);
 
   useEffect(() => {
     usersApi.getById(user.id).then(r => {
-      console.log('Profile data:', r);
-      setProfile(r.data || r);
+      const p = r.data || r;
+      setProfile(p);
+      setAccessForm({ role_id: p.role_id || '', manager_id: p.manager_id || '' });
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [user.id]);
+
+  const handleSaveAccess = async () => {
+    setSavingAccess(true);
+    try {
+      await usersApi.update(user.id, {
+        role_id: accessForm.role_id ? parseInt(accessForm.role_id) : undefined,
+        manager_id: accessForm.manager_id || null,
+      });
+      toast.success('আপডেট হয়েছে ✅');
+      setEditAccess(false);
+      // Refresh profile
+      usersApi.getById(user.id).then(r => { const p = r.data || r; setProfile(p); setAccessForm({ role_id: p.role_id || '', manager_id: p.manager_id || '' }); });
+    } catch (err) {
+      toast.error(err.message || 'সমস্যা হয়েছে');
+    } finally { setSavingAccess(false); }
+  };
 
   const handleDownloadCV = async () => {
     setGeneratingPdf(true);
@@ -330,8 +352,49 @@ function ProfileModal({ user, onClose }) {
 
           <Section title="চাকরির তথ্য">
             <Row label="যোগদানের তারিখ" value={profile?.joining_date ? format(new Date(profile.joining_date), 'dd/MM/yyyy') : null} />
-            <Row label="পদ" value={profile?.role_label} />
-            <Row label="ম্যানেজার" value={profile?.manager_name} />
+            {editAccess ? (
+              <div className="space-y-3 pt-2">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">পদ (Role)</label>
+                  <select className="input-field text-sm" value={accessForm.role_id}
+                    onChange={e => setAccessForm(p => ({ ...p, role_id: e.target.value }))}>
+                    <option value="">-- Role বেছে নিন --</option>
+                    {roles.filter(r => r.name !== 'super_admin').map(r => (
+                      <option key={r.id} value={r.id}>{r.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">ম্যানেজার</label>
+                  <select className="input-field text-sm" value={accessForm.manager_id}
+                    onChange={e => setAccessForm(p => ({ ...p, manager_id: e.target.value }))}>
+                    <option value="">-- ম্যানেজার নেই --</option>
+                    {managers.filter(m => m.id !== user.id).map(m => (
+                      <option key={m.id} value={m.id}>{m.full_name || m.phone}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={handleSaveAccess} disabled={savingAccess}
+                    className="flex-1 py-2 bg-primary-500 text-white rounded-xl text-sm font-medium">
+                    {savingAccess ? 'হচ্ছে...' : '✅ সেভ করুন'}
+                  </button>
+                  <button onClick={() => setEditAccess(false)}
+                    className="flex-1 py-2 bg-gray-100 text-gray-600 rounded-xl text-sm">
+                    বাতিল
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <Row label="পদ" value={profile?.role_label} />
+                <Row label="ম্যানেজার" value={profile?.manager_name} />
+                <button onClick={() => setEditAccess(true)}
+                  className="mt-2 text-xs text-primary-600 hover:underline">
+                  ✏️ পদ / ম্যানেজার পরিবর্তন করুন
+                </button>
+              </>
+            )}
           </Section>
         </div>
       </div>
