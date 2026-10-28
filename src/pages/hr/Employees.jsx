@@ -1023,7 +1023,7 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
                 )}
 
                 {/* CRM Manager Assignment */}
-                {employee.user_id && moduleAccess['crm'] && (
+                {employee.user_id && (
                 <section>
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">CRM Manager</p>
                   <div className="flex gap-2">
