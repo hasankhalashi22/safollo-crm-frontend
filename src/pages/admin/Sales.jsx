@@ -415,69 +415,62 @@ const fetchSales = (f = filters) => {
     exportPdf(headers, rows, `Enrollment_Report_${format(new Date(), 'dd-MM-yyyy')}.pdf`, 'Enrollment Report - Safollo Academy', filterInfo);
   };
 
-  // Daily Summary: merged enrollment + collection data with raw records for drill-down
+  // Helper: filter a single payment by date filters
+  const paymentInRange = (p, dateFrom, dateTo, month) => {
+    const d = (p.created_at || '').split('T')[0];
+    if (!d) return false;
+    if (dateFrom && d < dateFrom) return false;
+    if (dateTo && d > dateTo) return false;
+    if (month && !dateFrom && !dateTo && !d.startsWith(month)) return false;
+    return true;
+  };
+
+  // Daily Summary: fully payment-based (date = payment date)
   const dailySummaryRows = (() => {
-    let filtered = [...sales];
-    if (dailyFilters.course_id) filtered = filtered.filter(s => String(s.course_id) === String(dailyFilters.course_id));
-    if (dailyFilters.executive_id) filtered = filtered.filter(s => String(s.executive_id) === String(dailyFilters.executive_id));
-
-    const enrollMap = {};
-    filtered.forEach(s => {
-      const d = s.created_at.split('T')[0];
-      if (dailyFilters.date_from && d < dailyFilters.date_from) return;
-      if (dailyFilters.date_to && d > dailyFilters.date_to) return;
-      if (dailyFilters.month && !dailyFilters.date_from && !d.startsWith(dailyFilters.month)) return;
-      if (!enrollMap[d]) enrollMap[d] = { count: 0, gross: 0, due: 0, enrollments: [] };
-      enrollMap[d].count++;
-      enrollMap[d].gross += Number(s.course_price) || 0;
-      enrollMap[d].due += Number(s.due_amount) || 0;
-      enrollMap[d].enrollments.push(s);
-    });
-
-    const collectMap = {};
-    filtered.forEach(s => {
+    const map = {};
+    sales.forEach(s => {
+      if (dailyFilters.course_id && String(s.course_id) !== String(dailyFilters.course_id)) return;
+      if (dailyFilters.executive_id && String(s.executive_id) !== String(dailyFilters.executive_id)) return;
       const approvedPayments = (s.payment_history || []).filter(p => p.approval_status === 'approved');
       const methodPayments = dailyFilters.payment_method
         ? approvedPayments.filter(p => p.payment_method === dailyFilters.payment_method)
         : approvedPayments;
       methodPayments.forEach(p => {
-        const d = (p.created_at || '').split('T')[0];
-        if (!d) return;
-        if (dailyFilters.date_from && d < dailyFilters.date_from) return;
-        if (dailyFilters.date_to && d > dailyFilters.date_to) return;
-        if (dailyFilters.month && !dailyFilters.date_from && !d.startsWith(dailyFilters.month)) return;
-        if (!collectMap[d]) collectMap[d] = { collected: 0, payment_count: 0, payments: [] };
-        collectMap[d].collected += Number(p.amount) || 0;
-        collectMap[d].payment_count++;
-        collectMap[d].payments.push({ ...p, student_name: s.student_name, student_phone: s.student_phone, course_name: s.course_name });
+        if (!paymentInRange(p, dailyFilters.date_from, dailyFilters.date_to, dailyFilters.month)) return;
+        const d = p.created_at.split('T')[0];
+        if (!map[d]) map[d] = { count: 0, gross: 0, due: 0, collected: 0, payment_count: 0, enrollmentIds: new Set(), enrollments: [], payments: [] };
+        if (!map[d].enrollmentIds.has(s.id)) {
+          map[d].enrollmentIds.add(s.id);
+          map[d].count++;
+          map[d].due += Number(s.due_amount) || 0;
+          map[d].enrollments.push(s);
+        }
+        map[d].gross += Number(p.amount) || 0;
+        map[d].collected += Number(p.amount) || 0;
+        map[d].payment_count++;
+        map[d].payments.push({ ...p, student_name: s.student_name, student_phone: s.student_phone, course_name: s.course_name });
       });
     });
-
-    const allDates = new Set([...Object.keys(enrollMap), ...Object.keys(collectMap)]);
-    return [...allDates].sort((a, b) => b.localeCompare(a)).map(d => ({
-      date: d,
-      count: enrollMap[d]?.count || 0,
-      gross: enrollMap[d]?.gross || 0,
-      due: enrollMap[d]?.due || 0,
-      collected: collectMap[d]?.collected || 0,
-      payment_count: collectMap[d]?.payment_count || 0,
-      enrollments: enrollMap[d]?.enrollments || [],
-      payments: collectMap[d]?.payments || [],
+    return Object.entries(map).sort(([a], [b]) => b.localeCompare(a)).map(([d, v]) => ({
+      date: d, count: v.count, gross: v.gross, due: v.due,
+      collected: v.collected, payment_count: v.payment_count,
+      enrollments: v.enrollments, payments: v.payments,
     }));
   })();
 
   const courseRows = useMemo(() => {
-    let f = [...sales];
-    if (courseFilters.executive_id) f = f.filter(s => String(s.executive_id) === String(courseFilters.executive_id));
-    if (courseFilters.date_from) f = f.filter(s => s.created_at.split('T')[0] >= courseFilters.date_from);
-    if (courseFilters.date_to) f = f.filter(s => s.created_at.split('T')[0] <= courseFilters.date_to);
-    if (courseFilters.month && !courseFilters.date_from && !courseFilters.date_to) f = f.filter(s => s.created_at.startsWith(courseFilters.month));
     const map = {};
-    f.forEach(s => {
+    sales.forEach(s => {
+      if (courseFilters.executive_id && String(s.executive_id) !== String(courseFilters.executive_id)) return;
+      const approvedPayments = (s.payment_history || []).filter(p => p.approval_status === 'approved');
+      const inRange = approvedPayments.filter(p => paymentInRange(p, courseFilters.date_from, courseFilters.date_to, courseFilters.month && !courseFilters.date_from && !courseFilters.date_to ? courseFilters.month : ''));
+      if (inRange.length === 0) return;
       const k = s.course_name || 'অন্যান্য';
       if (!map[k]) map[k] = { name: k, count: 0, gross: 0, collected: 0, due: 0 };
-      map[k].count++; map[k].gross += Number(s.course_price) || 0;
-      map[k].collected += Number(s.total_collected) || 0; map[k].due += Number(s.due_amount) || 0;
+      map[k].count++;
+      inRange.forEach(p => { map[k].gross += Number(p.amount) || 0; });
+      map[k].collected = map[k].gross;
+      map[k].due += Number(s.due_amount) || 0;
     });
     let rows = Object.values(map).sort((a, b) => b.gross - a.gross);
     if (courseFilters.selected.length > 0) rows = rows.filter(r => courseFilters.selected.includes(r.name));
@@ -487,17 +480,18 @@ const fetchSales = (f = filters) => {
   }, [sales, courseFilters]);
 
   const execRows = useMemo(() => {
-    let f = [...sales];
-    if (execFilters.course_id) f = f.filter(s => String(s.course_id) === String(execFilters.course_id));
-    if (execFilters.date_from) f = f.filter(s => s.created_at.split('T')[0] >= execFilters.date_from);
-    if (execFilters.date_to) f = f.filter(s => s.created_at.split('T')[0] <= execFilters.date_to);
-    if (execFilters.month && !execFilters.date_from && !execFilters.date_to) f = f.filter(s => s.created_at.startsWith(execFilters.month));
     const map = {};
-    f.forEach(s => {
+    sales.forEach(s => {
+      if (execFilters.course_id && String(s.course_id) !== String(execFilters.course_id)) return;
+      const approvedPayments = (s.payment_history || []).filter(p => p.approval_status === 'approved');
+      const inRange = approvedPayments.filter(p => paymentInRange(p, execFilters.date_from, execFilters.date_to, execFilters.month && !execFilters.date_from && !execFilters.date_to ? execFilters.month : ''));
+      if (inRange.length === 0) return;
       const k = s.executive_name || 'অজানা';
       if (!map[k]) map[k] = { name: k, count: 0, gross: 0, collected: 0, due: 0 };
-      map[k].count++; map[k].gross += Number(s.course_price) || 0;
-      map[k].collected += Number(s.total_collected) || 0; map[k].due += Number(s.due_amount) || 0;
+      map[k].count++;
+      inRange.forEach(p => { map[k].gross += Number(p.amount) || 0; });
+      map[k].collected = map[k].gross;
+      map[k].due += Number(s.due_amount) || 0;
     });
     let rows = Object.values(map).sort((a, b) => b.gross - a.gross);
     if (execFilters.selected.length > 0) rows = rows.filter(r => execFilters.selected.includes(r.name));
