@@ -1012,6 +1012,27 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
                               </select>
                             )}
                           </div>
+                          {m.key === 'crm' && hasAccess && employee.user_id && (
+                            <div className="mt-2 pt-2 border-t border-gray-100">
+                              <p className="text-xs text-gray-400 mb-1.5">CRM Manager</p>
+                              <div className="flex gap-2">
+                                <select
+                                  className="input-field text-xs py-1 flex-1"
+                                  value={selectedManagerId}
+                                  onChange={e => setSelectedManagerId(e.target.value)}
+                                >
+                                  <option value="">-- কোনো Manager নেই --</option>
+                                  {managers.map(mg => (
+                                    <option key={mg.id} value={mg.id}>{mg.full_name || mg.phone}</option>
+                                  ))}
+                                </select>
+                                <button type="button" onClick={handleSaveManager} disabled={managerSaving}
+                                  className="px-3 py-1 bg-primary-500 text-white rounded-lg text-xs font-medium disabled:opacity-50 whitespace-nowrap">
+                                  {managerSaving ? '...' : '✅ সেট করুন'}
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -1019,29 +1040,6 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
                   <button type="button" onClick={handleSaveModuleAccess} className="btn-primary w-full mt-3" disabled={loading}>
                     {loading ? 'Saving...' : '✅ Module Access সংরক্ষণ করুন'}
                   </button>
-                </section>
-                )}
-
-                {/* CRM Manager Assignment */}
-                {employee.user_id && (
-                <section>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">CRM Manager</p>
-                  <div className="flex gap-2">
-                    <select
-                      className="input-field text-sm flex-1"
-                      value={selectedManagerId}
-                      onChange={e => setSelectedManagerId(e.target.value)}
-                    >
-                      <option value="">-- কোনো Manager নেই --</option>
-                      {managers.map(m => (
-                        <option key={m.id} value={m.id}>{m.full_name || m.phone}</option>
-                      ))}
-                    </select>
-                    <button type="button" onClick={handleSaveManager} disabled={managerSaving}
-                      className="px-4 py-2 bg-primary-500 text-white rounded-xl text-sm font-medium disabled:opacity-50 whitespace-nowrap">
-                      {managerSaving ? 'সংরক্ষণ...' : '✅ সংরক্ষণ'}
-                    </button>
-                  </div>
                 </section>
                 )}
 
