@@ -1034,12 +1034,31 @@ function EssAccessTab({ employee, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [hasEss, setHasEss] = useState(!!employee.user_id);
   const [userId, setUserId] = useState(employee.user_id || null);
+  const [managers, setManagers] = useState([]);
+  const [selectedManagerId, setSelectedManagerId] = useState(employee.crm_manager_id || '');
+  const [managerSaving, setManagerSaving] = useState(false);
 
   useEffect(() => {
     if (!hasEss) {
       hrApi.getUnlinkedCrmUsers().then(r => setUnlinkedUsers(r.data || []));
     }
   }, [hasEss]);
+
+  useEffect(() => {
+    usersApi.getAll({ role: 'manager' }).then(r => setManagers(r.data || r || []));
+  }, []);
+
+  const handleSaveManager = async () => {
+    if (!userId) return;
+    setManagerSaving(true);
+    try {
+      await usersApi.update(userId, { manager_id: selectedManagerId || null });
+      toast.success('CRM Manager আপডেট হয়েছে ✅');
+      onSuccess();
+    } catch (err) {
+      toast.error(err.message || 'সমস্যা হয়েছে');
+    } finally { setManagerSaving(false); }
+  };
 
   const handleLink = async () => {
     if (!selectedUserId) return toast.error('একটি CRM User বেছে নিন');
@@ -1099,6 +1118,31 @@ function EssAccessTab({ employee, onSuccess }) {
             <p className="text-xs text-gray-500 bg-white rounded-lg px-3 py-2">
               CRM Account: {employee.crm_role_label || 'Employee'} ({employee.crm_phone || employee.phone})
             </p>
+          )}
+          {employee.crm_phone && (
+            <div className="bg-white border border-green-100 rounded-xl p-3 space-y-2">
+              <p className="text-xs font-semibold text-gray-500">CRM Manager সেট করুন</p>
+              <div className="flex gap-2">
+                <select
+                  className="input-field text-sm flex-1"
+                  value={selectedManagerId}
+                  onChange={e => setSelectedManagerId(e.target.value)}
+                >
+                  <option value="">-- কোনো Manager নেই --</option>
+                  {managers.map(m => (
+                    <option key={m.id} value={m.id}>{m.full_name || m.phone}</option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={handleSaveManager}
+                  disabled={managerSaving}
+                  className="px-3 py-1.5 bg-primary-500 text-white rounded-lg text-xs font-medium disabled:opacity-50 whitespace-nowrap"
+                >
+                  {managerSaving ? 'সংরক্ষণ...' : '✅ সংরক্ষণ'}
+                </button>
+              </div>
+            </div>
           )}
           <button onClick={handleUnlink} disabled={loading}
             className="flex items-center gap-2 px-3 py-2 bg-red-50 text-red-600 rounded-xl text-sm font-medium hover:bg-red-100 transition">
