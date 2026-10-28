@@ -630,6 +630,9 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
   const [positions, setPositions] = useState([]);
   const [moduleAccess, setModuleAccess] = useState({});
   const [crmRoles, setCrmRoles] = useState([]);
+  const [managers, setManagers] = useState([]);
+  const [selectedManagerId, setSelectedManagerId] = useState(employee.crm_manager_id || '');
+  const [managerSaving, setManagerSaving] = useState(false);
 
   useEffect(() => {
     hrApi.getPositions().then(r => setPositions(r.data || []));
@@ -639,7 +642,20 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
       setModuleAccess(map);
     });
     usersApi.getRoles().then(r => setCrmRoles((r.data || []).filter(role => role.name !== 'super_admin')));
+    usersApi.getAll({ role: 'manager' }).then(r => setManagers(r.data || []));
   }, []);
+
+  const handleSaveManager = async () => {
+    if (!employee.user_id) return;
+    setManagerSaving(true);
+    try {
+      await usersApi.update(employee.user_id, { manager_id: selectedManagerId || null });
+      toast.success('CRM Manager আপডেট হয়েছে ✅');
+      onSuccess();
+    } catch (err) {
+      toast.error(err.message || 'সমস্যা হয়েছে');
+    } finally { setManagerSaving(false); }
+  };
 
   const toggleModuleAccess = (moduleKey, defaultRole) => {
     setModuleAccess(prev => {
@@ -1003,6 +1019,29 @@ function EmployeeEditModal({ employee, allEmployees, onClose, onSuccess }) {
                   <button type="button" onClick={handleSaveModuleAccess} className="btn-primary w-full mt-3" disabled={loading}>
                     {loading ? 'Saving...' : '✅ Module Access সংরক্ষণ করুন'}
                   </button>
+                </section>
+                )}
+
+                {/* CRM Manager Assignment */}
+                {employee.user_id && moduleAccess['crm'] && (
+                <section>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">CRM Manager</p>
+                  <div className="flex gap-2">
+                    <select
+                      className="input-field text-sm flex-1"
+                      value={selectedManagerId}
+                      onChange={e => setSelectedManagerId(e.target.value)}
+                    >
+                      <option value="">-- কোনো Manager নেই --</option>
+                      {managers.map(m => (
+                        <option key={m.id} value={m.id}>{m.full_name || m.phone}</option>
+                      ))}
+                    </select>
+                    <button type="button" onClick={handleSaveManager} disabled={managerSaving}
+                      className="px-4 py-2 bg-primary-500 text-white rounded-xl text-sm font-medium disabled:opacity-50 whitespace-nowrap">
+                      {managerSaving ? 'সংরক্ষণ...' : '✅ সংরক্ষণ'}
+                    </button>
+                  </div>
                 </section>
                 )}
 
