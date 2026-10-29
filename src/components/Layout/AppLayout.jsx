@@ -789,6 +789,7 @@ function buildModuleList(user) {
         { to: `${base}/new-sale`, icon: Plus, label: 'নতুন সেল' },
         { to: `${base}/sales`, icon: BarChart2, label: 'সেলস রিপোর্ট' },
         { to: `${base}/due`, icon: Clock, label: 'বকেয়া তালিকা' },
+        { to: `${base}/my-due`, icon: Clock, label: 'আমার বকেয়া' },
         { to: `${base}/performance`, icon: TrendingUp, label: 'পারফরম্যান্স' },
       ];
     } else if (user.role === 'advisor') {
