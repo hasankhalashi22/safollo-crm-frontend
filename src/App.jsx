@@ -157,6 +157,7 @@ useNotifications();
       <Route path="/manager/new-sale" element={<ProtectedRoute allowedLevels={[3]}><UnifiedLayout><NewSale /></UnifiedLayout></ProtectedRoute>} />
       <Route path="/manager/sales" element={<ProtectedRoute allowedLevels={[3]}><UnifiedLayout><AdminSales /></UnifiedLayout></ProtectedRoute>} />
       <Route path="/manager/due" element={<ProtectedRoute allowedLevels={[3]}><UnifiedLayout><AdminDueList /></UnifiedLayout></ProtectedRoute>} />
+      <Route path="/manager/my-due" element={<ProtectedRoute allowedLevels={[3]}><UnifiedLayout><DueList /></UnifiedLayout></ProtectedRoute>} />
       <Route path="/manager/performance" element={<ProtectedRoute allowedLevels={[3]}><UnifiedLayout><MyPerformance /></UnifiedLayout></ProtectedRoute>} />
       <Route path="/manager/approvals" element={<ProtectedRoute allowedLevels={[3]}><UnifiedLayout><SaleApproval /></UnifiedLayout></ProtectedRoute>} />
       <Route path="/manager/profile" element={<ProtectedRoute allowedLevels={[3]}><UnifiedLayout><Profile /></UnifiedLayout></ProtectedRoute>} />

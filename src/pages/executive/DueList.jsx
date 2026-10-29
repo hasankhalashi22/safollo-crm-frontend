@@ -5,10 +5,13 @@ import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { Phone, ChevronDown, ChevronUp, Search, Download, X, ZoomIn, Pencil, Trash2 } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 const PAYMENT_METHODS = ['bkash', 'nagad', 'rocket', 'cash', 'cod'];
 
 export default function DueList() {
+  const location = useLocation();
+  const isMyDue = location.pathname.includes('my-due');
   const [dues, setDues] = useState([]);
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState('');
@@ -73,7 +76,7 @@ export default function DueList() {
     <div className="p-4">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-display font-bold text-dark">
-          বকেয়া তালিকা
+          {isMyDue ? 'আমার বকেয়া' : 'বকেয়া তালিকা'}
           <span className="ml-2 text-sm font-normal text-red-500 bg-red-50 px-2 py-0.5 rounded-full">
             {filtered.length}টি
           </span>
