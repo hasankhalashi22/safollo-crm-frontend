@@ -141,9 +141,11 @@ export function AdminDueList() {
                   </a>
                 </td>
                 <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
-                  <button onClick={() => setReassignModal(d)} className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium">
-                    Reassign
-                  </button>
+                  {currentUser?.role !== 'manager' && (
+                    <button onClick={() => setReassignModal(d)} className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-xs font-medium">
+                      Reassign
+                    </button>
+                  )}
                 </td>
                 <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                   {currentUser?.role === 'super_admin' && (
