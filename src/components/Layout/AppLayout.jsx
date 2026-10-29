@@ -233,7 +233,6 @@ export function AdminLayout({ children }) {
       { to: '/manager/my-due', icon: Clock, label: 'আমার বকেয়া' },
     ]},
     { to: '/manager/performance', icon: TrendingUp, label: 'পারফরম্যান্স' },
-    { to: '/manager/profile', icon: User, label: 'আমার প্রোফাইল' },
   ];
 
   const adminNav = [
