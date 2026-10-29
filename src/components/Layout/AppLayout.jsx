@@ -228,8 +228,10 @@ export function AdminLayout({ children }) {
     { to: '/manager/approvals', icon: CheckSquare, label: 'সেল Approval' },
     { to: '/manager/new-sale', icon: Plus, label: 'নতুন সেল' },
     { to: '/manager/sales', icon: BarChart2, label: 'সেলস রিপোর্ট' },
-    { to: '/manager/due', icon: Clock, label: 'বকেয়া তালিকা' },
-    { to: '/manager/my-due', icon: Clock, label: 'আমার বকেয়া' },
+    { group: 'due', label: 'বকেয়া', icon: Clock, children: [
+      { to: '/manager/due', icon: Clock, label: 'বকেয়া তালিকা' },
+      { to: '/manager/my-due', icon: Clock, label: 'আমার বকেয়া' },
+    ]},
     { to: '/manager/performance', icon: TrendingUp, label: 'পারফরম্যান্স' },
     { to: '/manager/profile', icon: User, label: 'আমার প্রোফাইল' },
   ];
