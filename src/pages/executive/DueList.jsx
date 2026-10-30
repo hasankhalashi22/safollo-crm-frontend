@@ -21,7 +21,7 @@ export default function DueList() {
   const [historyModal, setHistoryModal] = useState(null);
 
   const fetchDues = () => {
-    salesApi.getDueList({ limit: 500 }).then(res => {
+    salesApi.getDueList({ limit: 500, ...(isMyDue ? { self_only: true } : {}) }).then(res => {
       setDues(res.data || []);
       setFiltered(res.data || []);
       setLoading(false);
